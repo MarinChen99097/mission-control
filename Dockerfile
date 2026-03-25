@@ -30,6 +30,8 @@ LABEL org.opencontainers.image.version="${MC_VERSION}"
 
 WORKDIR /app
 ENV NODE_ENV=production
+# curl is needed for agent runtime installers (OpenClaw, Hermes)
+RUN apt-get update && apt-get install -y curl --no-install-recommends && rm -rf /var/lib/apt/lists/*
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
