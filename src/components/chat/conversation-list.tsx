@@ -133,6 +133,9 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
     activeConversation,
     setActiveConversation,
     markConversationRead,
+    sessionAttention,
+    setSessionAttention,
+    addSplitPane,
   } = useMissionControl()
   const [search, setSearch] = useState('')
   const [initialLoading, setInitialLoading] = useState(conversations.length === 0)
@@ -329,6 +332,11 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
   const handleSelect = (convId: string) => {
     setActiveConversation(convId)
     markConversationRead(convId)
+    // Clear attention when user views the session
+    const conv = conversations.find((c) => c.id === convId)
+    if (conv?.session?.sessionId) {
+      setSessionAttention(conv.session.sessionId, null)
+    }
   }
 
   const filteredConversations = conversations.filter((c) => {
@@ -352,6 +360,7 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
     const isSelected = activeConversation === conv.id
     const isEditing = editingId === conv.id
     const session = conv.session
+    const attentionLevel = session?.sessionId ? sessionAttention[session.sessionId] : undefined
 
     // Extract working directory leaf name for compact display
     const workDirLeaf = session?.workingDir
@@ -377,14 +386,18 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
         }`}
       >
         <div className="flex items-start gap-2.5 w-full">
-          {/* Avatar with status ring */}
-          <div className="relative flex-shrink-0 mt-0.5">
+          {/* Avatar with status ring + attention indicator */}
+          <div className={`relative flex-shrink-0 mt-0.5 ${
+            attentionLevel ? 'ring-2 ring-offset-1 ring-offset-card rounded-full ring-blue-400 animate-pulse' : ''
+          }`}>
             <SessionKindAvatar
               kind={session?.sessionKind || 'gateway'}
               fallback={displayName.charAt(0).toUpperCase()}
             />
             {isSessionRow && session?.active && (
-              <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-card ${STATUS_COLORS.busy}`} />
+              <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-card ${
+                attentionLevel === 'error' ? STATUS_COLORS.error : STATUS_COLORS.busy
+              }`} />
             )}
             {isSessionRow && !session?.active && (
               <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-card ${STATUS_COLORS.offline}`} />

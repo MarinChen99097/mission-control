@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { SessionMessage, shouldShowTimestamp, type SessionTranscriptMessage } from './session-message'
 import { getSessionKindLabel, SessionKindAvatar } from './session-kind-brand'
 import { TerminalView } from '@/components/terminal/terminal-view'
+import { SplitPaneLayout, type SplitPane } from '@/components/terminal/split-pane-layout'
 
 const log = createClientLogger('ChatWorkspace')
 
@@ -38,6 +39,10 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
     conversations,
     setAgents,
     notifications,
+    splitPanes,
+    addSplitPane,
+    removeSplitPane,
+    clearSplitPanes,
   } = useMissionControl()
 
   const pendingIdRef = useRef(-1)
@@ -399,13 +404,13 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
         {(!isMobile || !showConversations) && (
           <div className="flex min-w-0 flex-1 flex-col">
             {/* Conversation header */}
-            {activeConversation && (
+            {activeConversation && splitPanes.length === 0 && (
               <div className="bg-surface-1 flex flex-shrink-0 items-center gap-2 border-b border-border/50 px-4 py-2">
                 <AgentAvatar
                   name={(selectedConversation?.name || activeConversation).replace('agent_', '')}
                   size="sm"
                 />
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium text-foreground">
                     {(selectedConversation?.name || activeConversation).replace('agent_', '')}
                   </div>
@@ -413,30 +418,101 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
                     {getConversationStatus(agents, activeConversation)}
                   </div>
                 </div>
+                {/* Split pane button for sessions */}
+                {selectedConversation?.source === 'session' && selectedConversation.session && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const s = selectedConversation.session!
+                      addSplitPane(s.sessionId, s.sessionKind, selectedConversation.name)
+                    }}
+                    className="text-[10px] px-2 py-1 rounded border border-border/50 text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+                    title="Open in split view"
+                  >
+                    <svg className="w-3.5 h-3.5 inline-block mr-1" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1">
+                      <rect x="1" y="2" width="6" height="12" rx="1" />
+                      <rect x="9" y="2" width="6" height="12" rx="1" />
+                    </svg>
+                    Split
+                  </button>
+                )}
               </div>
             )}
 
-            {selectedConversation?.source === 'session' && selectedConversation.session ? (
-              <SessionConversationView
-                key={selectedConversation.session.sessionId}
-                session={selectedConversation.session}
-                messages={sessionTranscript}
-                loading={sessionTranscriptLoading}
-                error={sessionTranscriptError}
-                onRefreshTranscript={refreshSessionTranscript}
-                onSavePreferences={handleSaveSessionPreferences}
-              />
-            ) : (
-              <>
-                <MessageList />
-                <ChatIndicators notifications={notifications} />
-                <ChatInput
-                  onSend={handleSend}
-                  onAbort={handleAbort}
-                  disabled={!canSendMessage}
-                  agents={agents.map(a => ({ name: a.name, role: a.role }))}
-                  isGenerating={isGenerating}
+            {/* Split pane mode */}
+            {splitPanes.length > 0 && (
+              <div className="flex-1 min-h-0 flex flex-col">
+                <div className="flex items-center justify-between px-3 py-1 border-b border-border/50 bg-surface-1 shrink-0">
+                  <span className="text-[10px] text-muted-foreground/60">{splitPanes.length} pane{splitPanes.length !== 1 ? 's' : ''}</span>
+                  <div className="flex items-center gap-1.5">
+                    {selectedConversation?.source === 'session' && selectedConversation.session && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const s = selectedConversation.session!
+                          addSplitPane(s.sessionId, s.sessionKind, selectedConversation.name)
+                        }}
+                        disabled={splitPanes.length >= 4}
+                        className="text-[10px] px-1.5 py-0.5 rounded text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+                      >
+                        + Add
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={clearSplitPanes}
+                      className="text-[10px] px-1.5 py-0.5 rounded text-muted-foreground hover:text-red-400 transition-colors"
+                    >
+                      Close all
+                    </button>
+                  </div>
+                </div>
+                <SplitPaneLayout
+                  panes={splitPanes.map((p) => ({
+                    id: p.id,
+                    sessionId: p.sessionId,
+                    sessionKind: p.sessionKind as SplitPane['sessionKind'],
+                    sessionName: p.sessionName,
+                    isActive: conversations.find((c) => c.session?.sessionId === p.sessionId)?.session?.active,
+                  }))}
+                  onRemovePane={removeSplitPane}
+                  onSwitchToTranscript={(sessionId) => {
+                    const conv = conversations.find((c) => c.session?.sessionId === sessionId)
+                    if (conv) {
+                      setActiveConversation(conv.id)
+                      clearSplitPanes()
+                    }
+                  }}
                 />
+              </div>
+            )}
+
+            {/* Single session / chat view */}
+            {splitPanes.length === 0 && (
+              <>
+                {selectedConversation?.source === 'session' && selectedConversation.session ? (
+                  <SessionConversationView
+                    key={selectedConversation.session.sessionId}
+                    session={selectedConversation.session}
+                    messages={sessionTranscript}
+                    loading={sessionTranscriptLoading}
+                    error={sessionTranscriptError}
+                    onRefreshTranscript={refreshSessionTranscript}
+                    onSavePreferences={handleSaveSessionPreferences}
+                  />
+                ) : (
+                  <>
+                    <MessageList />
+                    <ChatIndicators notifications={notifications} />
+                    <ChatInput
+                      onSend={handleSend}
+                      onAbort={handleAbort}
+                      disabled={!canSendMessage}
+                      agents={agents.map(a => ({ name: a.name, role: a.role }))}
+                      isGenerating={isGenerating}
+                    />
+                  </>
+                )}
               </>
             )}
           </div>
