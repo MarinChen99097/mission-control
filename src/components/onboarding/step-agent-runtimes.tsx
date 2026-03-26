@@ -254,40 +254,30 @@ export function StepAgentRuntimes({ isGateway, onNext, onBack }: Props) {
                         <div className="mt-2 p-2.5 rounded-lg border border-border/20 bg-black/10 space-y-2">
                           <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">Quick Setup</p>
 
-                          {/* Provider pills */}
-                          <div className="flex flex-wrap gap-1">
-                            {HERMES_PROVIDERS.map((p) => (
-                              <button
-                                key={p.id}
-                                type="button"
-                                onClick={() => { setHermesProvider(p.id); setHermesModel(p.models[0]) }}
-                                className={`px-1.5 py-0.5 rounded text-[10px] transition-colors ${
-                                  hermesProvider === p.id
-                                    ? 'bg-primary/15 border border-primary/30 text-foreground'
-                                    : 'bg-black/15 border border-border/10 text-muted-foreground/60 hover:text-foreground'
-                                }`}
-                              >
-                                {p.label}
-                              </button>
-                            ))}
-                          </div>
-
-                          {/* Model pills */}
-                          <div className="flex flex-wrap gap-1">
-                            {(HERMES_PROVIDERS.find(p => p.id === hermesProvider)?.models || []).map((m) => (
-                              <button
-                                key={m}
-                                type="button"
-                                onClick={() => setHermesModel(m)}
-                                className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition-colors ${
-                                  hermesModel === m
-                                    ? 'bg-primary/15 border border-primary/30 text-foreground'
-                                    : 'bg-black/15 border border-border/10 text-muted-foreground/50 hover:text-foreground'
-                                }`}
-                              >
-                                {m}
-                              </button>
-                            ))}
+                          {/* Provider + Model dropdowns */}
+                          <div className="grid grid-cols-2 gap-1.5">
+                            <select
+                              value={hermesProvider}
+                              onChange={(e) => {
+                                const p = HERMES_PROVIDERS.find(pr => pr.id === e.target.value)
+                                setHermesProvider(e.target.value)
+                                setHermesModel(p?.models[0] || '')
+                              }}
+                              className="h-7 rounded border border-border/20 bg-card px-1.5 text-[10px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
+                            >
+                              {HERMES_PROVIDERS.map((p) => (
+                                <option key={p.id} value={p.id}>{p.label}</option>
+                              ))}
+                            </select>
+                            <select
+                              value={hermesModel}
+                              onChange={(e) => setHermesModel(e.target.value)}
+                              className="h-7 rounded border border-border/20 bg-card px-1.5 text-[10px] text-foreground font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
+                            >
+                              {(HERMES_PROVIDERS.find(p => p.id === hermesProvider)?.models || []).map((m) => (
+                                <option key={m} value={m}>{m}</option>
+                              ))}
+                            </select>
                           </div>
 
                           {/* API Key */}
@@ -296,11 +286,11 @@ export function StepAgentRuntimes({ isGateway, onNext, onBack }: Props) {
                             value={hermesApiKey}
                             onChange={(e) => setHermesApiKey(e.target.value)}
                             placeholder={`${HERMES_PROVIDERS.find(p => p.id === hermesProvider)?.label || ''} API key`}
-                            className="w-full h-6 rounded border border-border/20 bg-black/15 px-2 text-[10px] text-foreground font-mono placeholder:text-muted-foreground/30 focus:outline-none focus:ring-1 focus:ring-primary/30"
+                            className="w-full h-7 rounded border border-border/20 bg-card px-2 text-[10px] text-foreground font-mono placeholder:text-muted-foreground/30 focus:outline-none focus:ring-1 focus:ring-primary/30"
                           />
                           {hermesProvider === 'openai' && (
                             <p className="text-[9px] text-muted-foreground/40">
-                              Or use OAuth: run <code className="bg-black/20 px-0.5 rounded">hermes model</code> in a terminal for browser login
+                              Or use OAuth: run <code className="bg-black/20 px-0.5 rounded">hermes model</code> in a terminal
                             </p>
                           )}
 
