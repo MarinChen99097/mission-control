@@ -1555,6 +1555,9 @@ const migrations: Migration[] = [
       // Seed runtimes for known agents
       const runtimeMap: Record<string, string> = {
         // claude-code: can run Bash, gcloud, read/write code, MCP
+        'engineering-lead': 'claude-code',
+        'planner': 'claude-code',
+        'compliance-auditor': 'claude-code',
         'devops-automator': 'claude-code',
         'backend-architect': 'claude-code',
         'frontend-developer': 'claude-code',
@@ -1568,7 +1571,8 @@ const migrations: Migration[] = [
 
         // claude-mcp: MCP tools + read + spawn subagent, no Bash
         'secretary': 'claude-mcp',
-        'engineering-lead': 'claude-mcp',
+        'plan-reviewer': 'claude-mcp',
+        'integration-checker': 'claude-mcp',
         'design-lead': 'claude-mcp',
         'research-lead': 'claude-mcp',
         'communications-lead': 'claude-mcp',
