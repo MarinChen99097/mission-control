@@ -1445,6 +1445,104 @@ const migrations: Migration[] = [
       db.exec(`CREATE INDEX IF NOT EXISTS idx_memory_files_cache_ws ON memory_files_cache(workspace_id)`)
       db.exec(`CREATE INDEX IF NOT EXISTS idx_memory_files_cache_path ON memory_files_cache(file_path, workspace_id)`)
     }
+  },
+  {
+    id: '051_team_leads_and_task_deps',
+    up(db: Database.Database) {
+      // --- tasks: add parent_task_id, blocked_by, team ---
+      const taskCols = db.prepare('PRAGMA table_info(tasks)').all() as Array<{ name: string }>
+      if (!taskCols.some(c => c.name === 'parent_task_id')) {
+        db.exec(`ALTER TABLE tasks ADD COLUMN parent_task_id INTEGER REFERENCES tasks(id)`)
+      }
+      if (!taskCols.some(c => c.name === 'blocked_by')) {
+        db.exec(`ALTER TABLE tasks ADD COLUMN blocked_by TEXT DEFAULT '[]'`)
+      }
+      if (!taskCols.some(c => c.name === 'team')) {
+        db.exec(`ALTER TABLE tasks ADD COLUMN team TEXT`)
+      }
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_tasks_parent ON tasks(parent_task_id)`)
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_tasks_team ON tasks(workspace_id, team)`)
+
+      // --- team_leads table ---
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS team_leads (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          display_name TEXT NOT NULL,
+          description TEXT,
+          icon TEXT DEFAULT '',
+          keywords TEXT NOT NULL DEFAULT '[]',
+          skills TEXT NOT NULL DEFAULT '[]',
+          agent_types TEXT NOT NULL DEFAULT '[]',
+          mcp_scopes TEXT NOT NULL DEFAULT '[]',
+          soul_template TEXT,
+          sop_content TEXT,
+          task_creation_instructions TEXT,
+          enabled INTEGER NOT NULL DEFAULT 1,
+          priority INTEGER NOT NULL DEFAULT 50,
+          agent_id INTEGER,
+          workspace_id INTEGER NOT NULL DEFAULT 1,
+          created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+          UNIQUE(name, workspace_id)
+        )
+      `)
+
+      // --- Seed 9 default Team Leads ---
+      const insert = db.prepare(`
+        INSERT OR IGNORE INTO team_leads (name, display_name, description, icon, keywords, skills, agent_types, priority, workspace_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+      `)
+      const leads = [
+        ['engineering-lead', 'Engineering Lead', 'Software development, deployment, debugging, code review', '🔧',
+          JSON.stringify(['code','bug','deploy','fix','review','test','API','backend','frontend','refactor','migrate','database','CI/CD','程式','修復','部署']),
+          JSON.stringify(['/review','/investigate','/ship','/qa','/qa-only','/land-and-deploy','/benchmark','/canary','/plan-eng-review','/codex']),
+          JSON.stringify(['Backend Architect','Frontend Developer','DevOps Automator','Code Reviewer','Software Architect','Database Optimizer','SRE','Technical Writer','Git Workflow Master']),
+          90],
+        ['design-lead', 'Design Lead', 'UI/UX design, design systems, visual audits', '🎨',
+          JSON.stringify(['design','UI','UX','視覺','mockup','prototype','layout','responsive','wireframe','美化','figma']),
+          JSON.stringify(['/design-consultation','/design-review','/design-shotgun','/plan-design-review','/browse']),
+          JSON.stringify(['UI Designer','UX Architect','UX Researcher','Visual Storyteller','Accessibility Auditor']),
+          80],
+        ['research-lead', 'Research Lead', 'Market research, competitive analysis, deep research', '📊',
+          JSON.stringify(['研究','research','分析','競品','市場','調研','paper','survey','trend','data','報告']),
+          JSON.stringify(['/browse']),
+          JSON.stringify(['Explore','Trend Researcher','Data Engineer','Analytics Reporter']),
+          70],
+        ['communications-lead', 'Communications Lead', 'Email, social media, external communications', '📧',
+          JSON.stringify(['email','信件','社群','貼文','tweet','post','newsletter','LinkedIn','回覆','公告']),
+          JSON.stringify(['/browse']),
+          JSON.stringify(['Content Creator','Social Media Strategist','LinkedIn Content Creator','Twitter Engager','Reddit Community Builder']),
+          60],
+        ['marketing-lead', 'Marketing Lead', 'SEO, campaigns, analytics, SalesStack workflows', '📈',
+          JSON.stringify(['SEO','行銷','campaign','廣告','keyword','analytics','流量','轉換','landing','品牌','成交','會員','導流','內容','私域','活動']),
+          JSON.stringify(['/browse']),
+          JSON.stringify(['SEO Specialist','Growth Hacker','Content Creator','App Store Optimizer']),
+          75],
+        ['finance-lead', 'Finance Lead', 'Cost tracking, pricing strategy, financial reports', '💰',
+          JSON.stringify(['成本','cost','定價','pricing','財務','budget','revenue','ROI','invoice','報價']),
+          JSON.stringify([]),
+          JSON.stringify(['Finance Tracker','Analytics Reporter','Pipeline Analyst','Executive Summary Generator']),
+          50],
+        ['operations-lead', 'Operations Lead', 'Scheduling, weekly reports, documentation, processes', '🗓️',
+          JSON.stringify(['排程','會議','calendar','週報','retro','整理','文件','document','SOP','流程']),
+          JSON.stringify(['/retro','/document-release']),
+          JSON.stringify(['Project Shepherd','Sprint Prioritizer','Workflow Optimizer','Document Generator','Studio Operations']),
+          55],
+        ['security-lead', 'Security Lead', 'Security audits, vulnerability scanning, compliance', '🛡️',
+          JSON.stringify(['安全','security','漏洞','vulnerability','OWASP','audit','合規','compliance','secret','滲透']),
+          JSON.stringify(['/cso','/careful','/guard','/freeze']),
+          JSON.stringify(['Security Engineer','Threat Detection Engineer','Compliance Auditor','Blockchain Security Auditor']),
+          65],
+        ['product-lead', 'Product Lead', 'Product planning, requirements, user research, sprint planning', '📦',
+          JSON.stringify(['產品','product','需求','feature','roadmap','用戶','user story','sprint','MVP','規劃']),
+          JSON.stringify(['/autoplan','/plan-ceo-review','/office-hours']),
+          JSON.stringify(['Product Manager','Sprint Prioritizer','Feedback Synthesizer','Trend Researcher','UX Researcher']),
+          60],
+      ]
+      for (const lead of leads) {
+        insert.run(...lead)
+      }
+    }
   }
 ]
 

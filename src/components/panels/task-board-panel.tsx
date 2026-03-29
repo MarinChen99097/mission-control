@@ -925,6 +925,31 @@ export function TaskBoardPanel() {
         </div>
       )}
 
+      {/* Team Filter */}
+      {(() => {
+        const allTeams = new Set<string>()
+        for (const col of Object.values(tasksByStatus)) {
+          if (Array.isArray(col)) col.forEach((t: any) => { if (t.team) allTeams.add(t.team) })
+        }
+        if (allTeams.size === 0) return null
+        return (
+          <div className="flex items-center gap-1.5 px-4 pb-1 overflow-x-auto">
+            <span className="text-xs text-muted-foreground mr-1">Team:</span>
+            <button
+              className={`text-xs px-2 py-0.5 rounded ${!(window as any).__mcTeamFilter ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => { (window as any).__mcTeamFilter = ''; window.dispatchEvent(new Event('mc-team-filter')) }}
+            >All</button>
+            {Array.from(allTeams).sort().map(team => (
+              <button
+                key={team}
+                className={`text-xs px-2 py-0.5 rounded ${(window as any).__mcTeamFilter === team ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                onClick={() => { (window as any).__mcTeamFilter = team; window.dispatchEvent(new Event('mc-team-filter')) }}
+              >{team}</button>
+            ))}
+          </div>
+        )
+      })()}
+
       {/* Kanban Board */}
       <div className="flex-1 min-h-0 flex gap-4 p-4 overflow-x-auto" role="region" aria-label={t('taskBoard')}>
         {statusColumns.map(column => (
@@ -969,8 +994,35 @@ export function TaskBoardPanel() {
                   }}
                   className={`group bg-card rounded-lg p-3 cursor-pointer border border-border/40 shadow-sm hover:shadow-md hover:shadow-black/10 hover:border-border/70 transition-all duration-200 ease-out border-l-4 ${priorityColors[task.priority]} ${
                     draggedTask?.id === task.id ? 'opacity-40 scale-[0.97] rotate-1' : ''
-                  } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background`}
+                  } ${(task as any).blocked_by && (task as any).blocked_by !== '[]' && JSON.parse((task as any).blocked_by || '[]').length > 0 ? 'opacity-50' : ''} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background`}
                 >
+                  {/* Blocked + Team + Subtask indicators */}
+                  {(() => {
+                    const blockedBy = (() => { try { return JSON.parse((task as any).blocked_by || '[]') } catch { return [] } })()
+                    const hasParent = !!(task as any).parent_task_id
+                    const team = (task as any).team
+                    const showIndicators = blockedBy.length > 0 || hasParent || team
+                    if (!showIndicators) return null
+                    return (
+                      <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
+                        {blockedBy.length > 0 && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono" title={`Blocked by: ${blockedBy.map((id: number) => `TASK-${id}`).join(', ')}`}>
+                            blocked
+                          </span>
+                        )}
+                        {hasParent && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400 font-mono">
+                            sub-task
+                          </span>
+                        )}
+                        {team && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 font-mono">
+                            {team}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })()}
                   {/* Drag handle + Title row */}
                   <div className="flex items-start gap-2 mb-2">
                     {/* Grip handle — visible on hover */}

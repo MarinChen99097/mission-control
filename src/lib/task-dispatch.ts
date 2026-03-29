@@ -635,8 +635,8 @@ export async function dispatchAssignedTasks(): Promise<{ ok: boolean; message: s
     ORDER BY
       CASE t.priority WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END ASC,
       t.created_at ASC
-    LIMIT 3
-  `).all() as (DispatchableTask & { tags?: string })[]
+    LIMIT 10
+  `).all() as (DispatchableTask & { tags?: string; blocked_by?: string; team?: string; parent_task_id?: number })[]
 
   if (tasks.length === 0) {
     return { ok: true, message: 'No assigned tasks to dispatch' }
@@ -649,10 +649,32 @@ export async function dispatchAssignedTasks(): Promise<{ ok: boolean; message: s
     }
   }
 
+  // Topological sort: filter out blocked tasks
+  const dispatchable = tasks.filter(task => {
+    const blockedByRaw = (task as any).blocked_by
+    if (!blockedByRaw || blockedByRaw === '[]') return true
+    try {
+      const blockedByIds: number[] = JSON.parse(blockedByRaw)
+      if (!Array.isArray(blockedByIds) || blockedByIds.length === 0) return true
+      // Check if all blocking tasks are done
+      const placeholders = blockedByIds.map(() => '?').join(',')
+      const pending = db.prepare(
+        `SELECT COUNT(*) as c FROM tasks WHERE id IN (${placeholders}) AND status != 'done'`
+      ).get(...blockedByIds) as { c: number }
+      return pending.c === 0
+    } catch {
+      return true
+    }
+  }).slice(0, 3) // Dispatch max 3 at a time
+
+  if (dispatchable.length === 0) {
+    return { ok: true, message: `${tasks.length} assigned task(s) but all blocked by dependencies` }
+  }
+
   const results: Array<{ id: number; success: boolean; error?: string }> = []
   const now = Math.floor(Date.now() / 1000)
 
-  for (const task of tasks) {
+  for (const task of dispatchable) {
     // Mark as in_progress immediately to prevent re-dispatch
     db.prepare('UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?')
       .run('in_progress', now, task.id)
@@ -1026,4 +1048,62 @@ export async function autoRouteInboxTasks(): Promise<{ ok: boolean; message: str
       ? `Auto-routed ${routed}/${inboxTasks.length} inbox task(s)`
       : `${inboxTasks.length} inbox task(s), no suitable agents found`,
   }
+}
+
+// ---------------------------------------------------------------------------
+// Auto-unblock: when a task completes, unblock downstream tasks
+// ---------------------------------------------------------------------------
+
+export function unblockDependentTasks(completedTaskId: number, workspaceId: number): number {
+  const db = getDatabase()
+  let unblocked = 0
+
+  try {
+    // Find all tasks that have completedTaskId in their blocked_by array
+    const candidates = db.prepare(`
+      SELECT id, blocked_by, status FROM tasks
+      WHERE workspace_id = ? AND status IN ('inbox', 'assigned')
+        AND blocked_by LIKE ?
+    `).all(workspaceId, `%${completedTaskId}%`) as Array<{ id: number; blocked_by: string; status: string }>
+
+    for (const task of candidates) {
+      let blockedByIds: number[]
+      try {
+        blockedByIds = JSON.parse(task.blocked_by)
+        if (!Array.isArray(blockedByIds)) continue
+      } catch { continue }
+
+      // Only process if this task actually references the completed task
+      if (!blockedByIds.includes(completedTaskId)) continue
+
+      // Check if ALL blocking tasks are now done
+      if (blockedByIds.length === 0) continue
+      const placeholders = blockedByIds.map(() => '?').join(',')
+      const pending = db.prepare(
+        `SELECT COUNT(*) as c FROM tasks WHERE id IN (${placeholders}) AND status != 'done'`
+      ).get(...blockedByIds) as { c: number }
+
+      if (pending.c === 0) {
+        // All dependencies complete — unblock this task
+        const newStatus = task.status === 'inbox' ? 'assigned' : task.status
+        db.prepare('UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?')
+          .run(newStatus === task.status ? 'assigned' : newStatus, Math.floor(Date.now() / 1000), task.id)
+
+        eventBus.broadcast('task.status_changed', {
+          id: task.id,
+          status: 'assigned',
+          previous_status: task.status,
+          reason: 'dependency_unblocked',
+          unblocked_by: completedTaskId,
+        })
+
+        logger.info({ taskId: task.id, unblockedBy: completedTaskId }, 'Task unblocked — all dependencies complete')
+        unblocked++
+      }
+    }
+  } catch (err) {
+    logger.error({ err, completedTaskId }, 'Failed to unblock dependent tasks')
+  }
+
+  return unblocked
 }

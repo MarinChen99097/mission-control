@@ -51,6 +51,9 @@ export const createTaskSchema = z.object({
   completed_at: z.number().int().min(0).max(4102444800).optional(),
   tags: z.array(z.string().min(1).max(100)).max(50).default([] as string[]),
   metadata: taskMetadataSchema.default({} as Record<string, unknown>),
+  parent_task_id: z.number().int().positive().optional(),
+  blocked_by: z.array(z.number().int().positive()).max(50).optional(),
+  team: z.string().max(100).optional(),
 })
 
 export const updateTaskSchema = createTaskSchema.partial()

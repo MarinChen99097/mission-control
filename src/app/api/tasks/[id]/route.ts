@@ -9,6 +9,7 @@ import { resolveMentionRecipients } from '@/lib/mentions';
 import { normalizeTaskUpdateStatus } from '@/lib/task-status';
 import { pushTaskToGitHub } from '@/lib/github-sync-engine';
 import { pushTaskToGnap, removeTaskFromGnap } from '@/lib/gnap-sync';
+import { unblockDependentTasks } from '@/lib/task-dispatch';
 import { config } from '@/lib/config';
 
 function formatTicketRef(prefix?: string | null, num?: number | null): string | undefined {
@@ -134,7 +135,10 @@ export async function PUT(
       retry_count,
       completed_at,
       tags,
-      metadata
+      metadata,
+      parent_task_id,
+      blocked_by,
+      team,
     } = body;
     const normalizedStatus = normalizeTaskUpdateStatus({
       currentStatus: currentTask.status,
@@ -268,7 +272,19 @@ export async function PUT(
       fieldsToUpdate.push('metadata = ?');
       updateParams.push(JSON.stringify(metadata));
     }
-    
+    if (parent_task_id !== undefined) {
+      fieldsToUpdate.push('parent_task_id = ?');
+      updateParams.push(parent_task_id);
+    }
+    if (blocked_by !== undefined) {
+      fieldsToUpdate.push('blocked_by = ?');
+      updateParams.push(JSON.stringify(blocked_by));
+    }
+    if (team !== undefined) {
+      fieldsToUpdate.push('team = ?');
+      updateParams.push(team);
+    }
+
     fieldsToUpdate.push('updated_at = ?');
     updateParams.push(now);
     updateParams.push(taskId, workspaceId);
@@ -302,6 +318,14 @@ export async function PUT(
           taskId,
           workspaceId
         );
+      }
+
+      // Auto-unblock dependent tasks when this task completes
+      if (normalizedStatus === 'done') {
+        const unblockedCount = unblockDependentTasks(taskId, workspaceId)
+        if (unblockedCount > 0) {
+          logger.info({ taskId, unblockedCount }, 'Auto-unblocked dependent tasks')
+        }
       }
     }
     

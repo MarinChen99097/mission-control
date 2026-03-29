@@ -314,7 +314,7 @@ const TOOLS = [
   },
   {
     name: 'mc_create_task',
-    description: 'Create a new task',
+    description: 'Create a new task. Supports sub-tasks (parent_task_id), dependency ordering (blocked_by), and team assignment.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -322,6 +322,9 @@ const TOOLS = [
         description: { type: 'string', description: 'Task description' },
         priority: { type: 'string', description: 'Priority: low, medium, high, critical' },
         assigned_to: { type: 'string', description: 'Agent name to assign to' },
+        parent_task_id: { type: 'number', description: 'Parent task ID — makes this a sub-task' },
+        blocked_by: { type: 'array', items: { type: 'number' }, description: 'Array of task IDs that must complete before this task can start' },
+        team: { type: 'string', description: 'Team name: engineering, design, research, communications, marketing, finance, operations, security, product' },
       },
       required: ['title'],
     },
@@ -329,20 +332,41 @@ const TOOLS = [
   },
   {
     name: 'mc_update_task',
-    description: 'Update an existing task (status, priority, assigned_to, title, description, etc.)',
+    description: 'Update an existing task. When setting status to "done", downstream blocked tasks auto-unblock.',
     inputSchema: {
       type: 'object',
       properties: {
         id: { type: ['string', 'number'], description: 'Task ID' },
-        status: { type: 'string', description: 'New status' },
+        status: { type: 'string', description: 'New status: inbox, assigned, in_progress, review, done' },
         priority: { type: 'string', description: 'New priority' },
         assigned_to: { type: 'string', description: 'New assignee agent name' },
         title: { type: 'string', description: 'New title' },
         description: { type: 'string', description: 'New description' },
+        outcome: { type: 'string', description: 'Outcome when completing: success, failed, partial' },
+        blocked_by: { type: 'array', items: { type: 'number' }, description: 'Updated dependency list' },
+        team: { type: 'string', description: 'Team name' },
       },
       required: ['id'],
     },
     handler: async ({ id, ...fields }) => api('PUT', `/api/tasks/${id}`, fields),
+  },
+  {
+    name: 'mc_match_team_lead',
+    description: 'Find the best team lead for a task based on keyword matching. Returns ranked matches.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        text: { type: 'string', description: 'Task description text to match against team lead keywords' },
+      },
+      required: ['text'],
+    },
+    handler: async (args) => api('POST', '/api/team-leads/match', args),
+  },
+  {
+    name: 'mc_list_team_leads',
+    description: 'List all available team leads with their keywords, skills, and agent types.',
+    inputSchema: { type: 'object', properties: {} },
+    handler: async () => api('GET', '/api/team-leads'),
   },
   {
     name: 'mc_poll_task_queue',
