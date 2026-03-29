@@ -3,6 +3,7 @@ import { existsSync, readdirSync, statSync } from 'fs'
 import path from 'path'
 import Database from 'better-sqlite3'
 import { config } from '@/lib/config'
+import { getDatabase } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
 import { readLimiter } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
@@ -82,6 +83,26 @@ export async function GET(request: NextRequest) {
   if (limited) return limited
 
   if (!memoryDbDir || !existsSync(memoryDbDir)) {
+    // Fallback: read from remote cache (pushed by lobster-bridge)
+    try {
+      const mcDb = getDatabase()
+      const workspaceId = auth.user.workspace_id ?? 1
+      const cached = mcDb.prepare(
+        'SELECT data, updated_at FROM memory_graph_cache WHERE workspace_id = ? ORDER BY updated_at DESC LIMIT 1'
+      ).get(workspaceId) as { data: string; updated_at: number } | undefined
+
+      if (cached) {
+        const parsed = JSON.parse(cached.data)
+        return NextResponse.json({
+          agents: parsed.agents || [],
+          cached: true,
+          cachedAt: cached.updated_at,
+        })
+      }
+    } catch (err) {
+      logger.warn({ err }, 'Failed to read memory graph cache')
+    }
+
     return NextResponse.json(
       { error: 'Memory directory not available', agents: [] },
       { status: 404 }

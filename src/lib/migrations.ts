@@ -1410,6 +1410,21 @@ const migrations: Migration[] = [
         )
       `)
     }
+  },
+  {
+    id: '049_memory_graph_cache',
+    up(db: Database.Database) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS memory_graph_cache (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          source TEXT NOT NULL DEFAULT 'bridge',
+          data TEXT NOT NULL,
+          updated_at INTEGER NOT NULL DEFAULT (unixepoch()),
+          workspace_id INTEGER NOT NULL DEFAULT 1
+        )
+      `)
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_memory_graph_cache_ws ON memory_graph_cache(workspace_id, updated_at DESC)`)
+    }
   }
 ]
 
