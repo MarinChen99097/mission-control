@@ -16,6 +16,71 @@ import { getDatabase } from './db'
 import { logger } from './logger'
 
 // ---------------------------------------------------------------------------
+// Gateway skill fetching — when running remotely (e.g. Cloud Run),
+// local skill paths don't exist. Fetch skills from the connected
+// OpenClaw Gateway via its HTTP API instead.
+// ---------------------------------------------------------------------------
+
+interface GatewaySkillEntry {
+  name: string
+  description?: string
+  content?: string
+}
+
+async function fetchSkillsFromGateway(): Promise<DiskSkill[]> {
+  // Fetch skills from the lobster box's skills-api service via Cloudflare Tunnel.
+  // The gateway URL (wss://gateway.orgofclaws.com) is converted to HTTPS and
+  // /api/skills is routed to the local skills-api.js (port 18790) by the tunnel config.
+  const gwUrl = (process.env.OPENCLAW_GATEWAY_URL || '').trim()
+  const gwToken = (process.env.OPENCLAW_GATEWAY_TOKEN || process.env.OPENCLAW_TOKEN || process.env.GATEWAY_TOKEN || '').trim()
+  if (!gwUrl) return []
+
+  const httpUrl = gwUrl.replace(/^wss:\/\//, 'https://').replace(/^ws:\/\//, 'http://').replace(/\/ws\/?$/, '')
+
+  try {
+    const res = await fetch(`${httpUrl}/api/skills`, {
+      headers: {
+        'Authorization': gwToken ? `Bearer ${gwToken}` : '',
+        'Accept': 'application/json',
+      },
+      signal: AbortSignal.timeout(10_000),
+    })
+    if (!res.ok) {
+      logger.debug(`Gateway skills API returned ${res.status}`)
+      return []
+    }
+    const data = await res.json() as any
+    const skills = parseGatewaySkillsResponse(data)
+    if (skills.length > 0) {
+      logger.info(`Fetched ${skills.length} skills from gateway (${httpUrl}/api/skills)`)
+    }
+    return skills
+  } catch (err) {
+    logger.debug({ err }, 'Failed to fetch skills from gateway')
+    return []
+  }
+}
+
+function parseGatewaySkillsResponse(data: any): DiskSkill[] {
+  const skills: DiskSkill[] = []
+
+  // Handle array of skills or object with skills property
+  const items: any[] = Array.isArray(data) ? data : (data?.skills || data?.items || [])
+  for (const item of items) {
+    if (!item?.name) continue
+    const content = item.content || item.description || `# ${item.name}`
+    skills.push({
+      name: item.name,
+      source: 'gateway-remote',
+      path: `gateway://${item.name}`,
+      description: typeof item.description === 'string' ? item.description : extractDescription(content),
+      contentHash: sha256(content),
+    })
+  }
+  return skills
+}
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
@@ -134,7 +199,17 @@ function scanDiskSkills(): DiskSkill[] {
 export async function syncSkillsFromDisk(): Promise<{ ok: boolean; message: string }> {
   try {
     const db = getDatabase()
-    const diskSkills = scanDiskSkills()
+    let diskSkills = scanDiskSkills()
+
+    // If no local skills found, try fetching from remote gateway
+    if (diskSkills.length === 0) {
+      const gatewaySkills = await fetchSkillsFromGateway()
+      if (gatewaySkills.length > 0) {
+        diskSkills = gatewaySkills
+        logger.info(`No local skills found, fetched ${gatewaySkills.length} skills from gateway`)
+      }
+    }
+
     const now = new Date().toISOString()
 
     // Build a lookup of what's on disk
@@ -144,7 +219,7 @@ export async function syncSkillsFromDisk(): Promise<{ ok: boolean; message: stri
     }
 
     // Fetch current DB rows (only local sources, not registry-installed via slug)
-    const localSources = ['user-agents', 'user-codex', 'project-agents', 'project-codex', 'openclaw', 'workspace']
+    const localSources = ['user-agents', 'user-codex', 'project-agents', 'project-codex', 'openclaw', 'workspace', 'gateway-remote']
     // Also include any dynamic workspace-* sources from disk
     for (const s of diskSkills) {
       if (s.source.startsWith('workspace-') && !localSources.includes(s.source)) {

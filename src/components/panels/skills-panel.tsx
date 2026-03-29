@@ -57,6 +57,7 @@ const SOURCE_LABELS: Record<string, string> = {
   'project-codex': '.codex/skills (project)',
   'openclaw': '~/.openclaw/skills (gateway)',
   'workspace': '~/.openclaw/workspace/skills',
+  'gateway-remote': 'Gateway Skills (remote)',
 }
 
 function getSourceLabel(source: string): string {

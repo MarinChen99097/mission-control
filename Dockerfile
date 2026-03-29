@@ -34,13 +34,16 @@ RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
+# Copy gateway skills manifest for remote skill sync
+COPY gateway-skills.json ./gateway-skills.json
 # Copy schema.sql needed by migration 001_init at runtime
 COPY --from=build /app/src/lib/schema.sql ./src/lib/schema.sql
 # Create data directory with correct ownership for SQLite
 RUN mkdir -p .data && chown nextjs:nodejs .data
 RUN echo 'const http=require("http");const r=http.get("http://localhost:"+(process.env.PORT||3000)+"/api/status?action=health",s=>{process.exit(s.statusCode===200?0:1)});r.on("error",()=>process.exit(1));r.setTimeout(4000,()=>{r.destroy();process.exit(1)})' > /app/healthcheck.js
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod 755 /app/docker-entrypoint.sh && \
+RUN sed -i 's/\r$//' /app/docker-entrypoint.sh && \
+    chmod 755 /app/docker-entrypoint.sh && \
     chmod -R a+rX /app/public/ /app/src/
 USER nextjs
 ENV PORT=3000

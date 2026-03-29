@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from 'crypto'
 import { eventBus, type ServerEvent } from './event-bus'
+import { getDatabase } from './db'
 import { logger } from './logger'
 
 interface Webhook {
@@ -82,10 +83,36 @@ export function verifyWebhookSignature(
 }
 
 /**
+ * Seed a default webhook from env vars if the table is empty.
+ * Env: SEED_WEBHOOK_URL, SEED_WEBHOOK_EVENTS (comma-separated)
+ */
+function seedWebhookFromEnv() {
+  const url = process.env.SEED_WEBHOOK_URL
+  if (!url) return
+  try {
+    const db = getDatabase()
+    const existing = db.prepare('SELECT COUNT(*) as count FROM webhooks').get() as { count: number }
+    if (existing.count > 0) return
+    const rawEvents = process.env.SEED_WEBHOOK_EVENTS || 'activity.task_created,activity.task_updated,activity.task_status_changed'
+    const events = rawEvents.replace(/__/g, ',')
+    const name = process.env.SEED_WEBHOOK_NAME || 'lobster-task-dispatch'
+    const crypto = require('crypto')
+    const secret = crypto.randomBytes(32).toString('hex')
+    db.prepare('INSERT INTO webhooks (name, url, secret, events, created_by) VALUES (?, ?, ?, ?, ?)').run(
+      name, url, secret, JSON.stringify(events.split(',')), 'system'
+    )
+    logger.info({ name, url, events }, 'Seeded webhook from env')
+  } catch (err) {
+    logger.warn({ err }, 'Failed to seed webhook from env')
+  }
+}
+
+/**
  * Subscribe to the event bus and fire webhooks for matching events.
  * Called once during server initialization.
  */
 export function initWebhookListener() {
+  seedWebhookFromEnv()
   eventBus.on('server-event', (event: ServerEvent) => {
     const mapping = EVENT_MAP[event.type]
     if (!mapping) return
