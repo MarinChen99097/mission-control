@@ -1,0 +1,197 @@
+# =============================================================================
+# Cloud Build — Mission Control (Next.js) → Cloud Run
+# Manual: gcloud builds submit . --config=cloudbuild.yaml
+#
+# Substitution variables (pass via --substitutions or set in trigger):
+# Secrets (from GCP Secret Manager):
+#   smtp-password          = Gmail SMTP password for deploy notifications
+#   mc-api-key             = Mission Control API key
+#   mc-auth-pass           = Admin login password
+#
+# =============================================================================
+
+steps:
+  # Step 0: Notify deploy started
+  - name: 'python:3.11-slim'
+    entrypoint: 'python'
+    args:
+      - '-c'
+      - |
+        import smtplib, os
+        from email.mime.text import MIMEText
+        from email.mime.multipart import MIMEMultipart
+        p = os.environ.get('SMTP_PASSWORD', '')
+        if not p:
+            print('SMTP_PASSWORD not set, skipping'); exit(0)
+        sender = 'synthesisagent@gmail.com'
+        to = ['hyuchen869@gmail.com', 'zereo.x.t@gmail.com']
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = '🚀 Deploy Started: ${_SERVICE}'
+        msg['From'] = sender
+        msg['To'] = ', '.join(to)
+        html = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+        <body style="margin:0;padding:0;font-family:ui-serif,Georgia,Cambria,'Noto Serif TC',serif;background-color:#F2EFE9;color:#1A1A1A;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F2EFE9;padding:24px 0;">
+        <tr><td align="center">
+        <table width="580" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+        <tr><td style="background:linear-gradient(135deg,#E8746A 0%,#D4635A 100%);padding:28px 32px;text-align:center;">
+        <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:0.02em;">🚀 Deploy Started</h1>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+        <p style="margin:0 0 16px;font-size:16px;line-height:1.6;">Service <strong style="color:#E8746A;">${_SERVICE}</strong> build has been triggered.</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8F7F4;border-radius:6px;padding:16px;margin-bottom:20px;">
+        <tr><td style="padding:8px 16px;font-size:14px;color:#666;">Commit</td><td style="padding:8px 16px;font-size:14px;"><code style="background:#EDEAE4;padding:2px 8px;border-radius:4px;font-size:13px;">$SHORT_SHA</code></td></tr>
+        <tr><td style="padding:8px 16px;font-size:14px;color:#666;">Region</td><td style="padding:8px 16px;font-size:14px;">${_REGION}</td></tr>
+        <tr><td style="padding:8px 16px;font-size:14px;color:#666;">Status</td><td style="padding:8px 16px;font-size:14px;"><span style="background:#FEF3C7;color:#92400E;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;">Building</span></td></tr>
+        </table>
+        </td></tr>
+        <tr><td style="padding:16px 32px 24px;text-align:center;border-top:1px solid #EDEAE4;">
+        <p style="margin:0;font-size:12px;color:#999;font-style:italic;">Auto-notification from Cloud Build · Landing AI</p>
+        </td></tr></table></td></tr></table></body></html>"""
+        msg.attach(MIMEText(html, 'html'))
+        with smtplib.SMTP('smtp.gmail.com', 587) as s:
+            s.starttls(); s.login(sender, p); s.sendmail(sender, to, msg.as_string())
+        print('Start notification sent')
+    secretEnv: ['SMTP_PASSWORD']
+
+  # Step 1: Build Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$COMMIT_SHA'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:latest'
+      - '.'
+    id: 'build-mc'
+
+  # Step 2: Push image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}'
+    id: 'push-mc'
+    waitFor: ['build-mc']
+
+  # Step 3: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE}'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$COMMIT_SHA'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--set-env-vars'
+      - 'NODE_ENV=production,NEXT_PUBLIC_GATEWAY_OPTIONAL=true,MC_ALLOW_ANY_HOST=true,AUTH_USER=admin'
+      - '--set-secrets'
+      - 'AUTH_PASS=mc-auth-pass:latest,API_KEY=mc-api-key:latest'
+      - '--memory'
+      - '1Gi'
+      - '--cpu'
+      - '1'
+      - '--max-instances'
+      - '3'
+      - '--timeout'
+      - '60'
+      - '--port'
+      - '3000'
+      - '--allow-unauthenticated'
+    id: 'deploy-mc'
+    waitFor: ['push-mc']
+
+  # Step 4: Get service URL for notification
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        gcloud run services describe ${_SERVICE} --region=${_REGION} --format='value(status.url)' > /workspace/service_url.txt 2>/dev/null || echo '' > /workspace/service_url.txt
+    id: 'get-url'
+    waitFor: ['deploy-mc']
+
+  # Step 5: Notify deploy completed
+  - name: 'python:3.11-slim'
+    entrypoint: 'python'
+    args:
+      - '-c'
+      - |
+        import smtplib, os
+        from email.mime.text import MIMEText
+        from email.mime.multipart import MIMEMultipart
+        p = os.environ.get('SMTP_PASSWORD', '')
+        if not p:
+            print('SMTP_PASSWORD not set, skipping'); exit(0)
+        url = ''
+        try:
+            url = open('/workspace/service_url.txt').read().strip()
+        except Exception:
+            pass
+        svc = '${_SERVICE}'
+        env_label = 'Production'
+        env_bg = '#DBEAFE'
+        env_fg = '#1E40AF'
+        btn_text = 'Visit Mission Control →'
+        btn_bg = '#2A6E4A'
+        url_btn = f'<tr><td style="padding:20px 0 0;" align="center"><a href="{url}" style="display:inline-block;padding:14px 32px;background:{btn_bg};color:#fff!important;text-decoration:none;border-radius:6px;font-weight:700;font-size:15px;letter-spacing:0.02em;">{btn_text}</a></td></tr>' if url else ''
+        url_row = f'<tr><td style="padding:8px 16px;font-size:14px;color:#666;">URL</td><td style="padding:8px 16px;font-size:14px;"><a href="{url}" style="color:#E8746A;text-decoration:none;">{url}</a></td></tr>' if url else ''
+        env_row = f'<tr><td style="padding:8px 16px;font-size:14px;color:#666;">Environment</td><td style="padding:8px 16px;font-size:14px;"><span style="background:{env_bg};color:{env_fg};padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;">{env_label}</span></td></tr>'
+        sender = 'synthesisagent@gmail.com'
+        to = ['hyuchen869@gmail.com', 'zereo.x.t@gmail.com']
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = '✅ Deploy OK: ${_SERVICE}'
+        msg['From'] = sender
+        msg['To'] = ', '.join(to)
+        html = f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+        <body style="margin:0;padding:0;font-family:ui-serif,Georgia,Cambria,'Noto Serif TC',serif;background-color:#F2EFE9;color:#1A1A1A;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F2EFE9;padding:24px 0;">
+        <tr><td align="center">
+        <table width="580" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+        <tr><td style="background:linear-gradient(135deg,#2A6E4A 0%,#1F5C3C 100%);padding:28px 32px;text-align:center;">
+        <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:0.02em;">✅ Deploy Successful</h1>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+        <p style="margin:0 0 16px;font-size:16px;line-height:1.6;">Service <strong style="color:#2A6E4A;">${_SERVICE}</strong> has been deployed successfully.</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8F7F4;border-radius:6px;padding:16px;margin-bottom:4px;">
+        <tr><td style="padding:8px 16px;font-size:14px;color:#666;">Commit</td><td style="padding:8px 16px;font-size:14px;"><code style="background:#EDEAE4;padding:2px 8px;border-radius:4px;font-size:13px;">$SHORT_SHA</code></td></tr>
+        <tr><td style="padding:8px 16px;font-size:14px;color:#666;">Region</td><td style="padding:8px 16px;font-size:14px;">${_REGION}</td></tr>
+        <tr><td style="padding:8px 16px;font-size:14px;color:#666;">Project</td><td style="padding:8px 16px;font-size:14px;">$PROJECT_ID</td></tr>
+        {env_row}
+        {url_row}
+        <tr><td style="padding:8px 16px;font-size:14px;color:#666;">Status</td><td style="padding:8px 16px;font-size:14px;"><span style="background:#D1FAE5;color:#065F46;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;">Deployed</span></td></tr>
+        </table>
+        {url_btn}
+        </td></tr>
+        <tr><td style="padding:16px 32px 24px;text-align:center;border-top:1px solid #EDEAE4;">
+        <p style="margin:0;font-size:12px;color:#999;font-style:italic;">Auto-notification from Cloud Build · Landing AI</p>
+        </td></tr></table></td></tr></table></body></html>"""
+        msg.attach(MIMEText(html, 'html'))
+        with smtplib.SMTP('smtp.gmail.com', 587) as s:
+            s.starttls(); s.login(sender, p); s.sendmail(sender, to, msg.as_string())
+        print('Notification sent')
+    secretEnv: ['SMTP_PASSWORD']
+    waitFor: ['get-url']
+
+substitutions:
+  _REGION: asia-east1
+  _REPO: cloud-run-source-deploy
+  _SERVICE: mission-control
+
+images:
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$COMMIT_SHA'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/smtp-password/versions/latest
+      env: 'SMTP_PASSWORD'
+
+timeout: '1800s'
