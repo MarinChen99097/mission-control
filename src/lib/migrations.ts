@@ -1543,6 +1543,77 @@ const migrations: Migration[] = [
         insert.run(...lead)
       }
     }
+  },
+  {
+    id: '052_agent_runtime',
+    up(db: Database.Database) {
+      const cols = db.prepare('PRAGMA table_info(agents)').all() as Array<{ name: string }>
+      if (!cols.some(c => c.name === 'runtime')) {
+        db.exec(`ALTER TABLE agents ADD COLUMN runtime TEXT NOT NULL DEFAULT 'claude-mcp'`)
+      }
+
+      // Seed runtimes for known agents
+      const runtimeMap: Record<string, string> = {
+        // claude-code: can run Bash, gcloud, read/write code, MCP
+        'devops-automator': 'claude-code',
+        'backend-architect': 'claude-code',
+        'frontend-developer': 'claude-code',
+        'software-architect': 'claude-code',
+        'database-optimizer': 'claude-code',
+        'sre': 'claude-code',
+        'security-engineer': 'claude-code',
+        'code-reviewer': 'claude-code',
+        'git-workflow-master': 'claude-code',
+        'campaign-ship': 'claude-code',
+
+        // claude-mcp: MCP tools + read + spawn subagent, no Bash
+        'secretary': 'claude-mcp',
+        'engineering-lead': 'claude-mcp',
+        'design-lead': 'claude-mcp',
+        'research-lead': 'claude-mcp',
+        'communications-lead': 'claude-mcp',
+        'marketing-lead': 'claude-mcp',
+        'finance-lead': 'claude-mcp',
+        'operations-lead': 'claude-mcp',
+        'security-lead': 'claude-mcp',
+        'product-lead': 'claude-mcp',
+        'sales-office-hours': 'claude-mcp',
+        'plan-cgo-review': 'claude-mcp',
+        'plan-brand-review': 'claude-mcp',
+        'plan-funnel-review': 'claude-mcp',
+        'market-intel': 'claude-mcp',
+        'trend-researcher': 'claude-mcp',
+        'analytics-reporter': 'claude-mcp',
+        'pipeline-analyst': 'claude-mcp',
+
+        // claude-browse: MCP + headless browser
+        'journey-qa': 'claude-browse',
+        'engage-operator': 'claude-browse',
+        'traffic-strategist': 'claude-browse',
+        'seo-specialist': 'claude-browse',
+        'app-store-optimizer': 'claude-browse',
+
+        // claude-write: MCP + file write, no Bash
+        'content-architect': 'claude-write',
+        'content-creator': 'claude-write',
+        'conversion-closer': 'claude-write',
+        'member-lifecycle': 'claude-write',
+        'growth-retro': 'claude-write',
+        'guard-brand': 'claude-write',
+        'brand-risk-review': 'claude-write',
+        'technical-writer': 'claude-write',
+        'document-generator': 'claude-write',
+
+        // gemini: pure text, no MCP
+        'openclaw-gateway': 'gemini',
+        'service-system-mcp': 'gemini',
+      }
+
+      const update = db.prepare('UPDATE agents SET runtime = ? WHERE name = ?')
+      for (const [name, runtime] of Object.entries(runtimeMap)) {
+        update.run(runtime, name)
+      }
+    }
   }
 ]
 
