@@ -13,14 +13,21 @@ export async function GET(request: NextRequest) {
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const gwUrl = (process.env.OPENCLAW_GATEWAY_URL || '').trim()
-  if (!gwUrl) {
-    return NextResponse.json({ servers: [], total: 0, error: 'No gateway URL configured' })
+  const gwHost = (process.env.OPENCLAW_GATEWAY_HOST || '').trim()
+
+  let httpUrl = ''
+  if (gwUrl) {
+    httpUrl = gwUrl
+      .replace(/^wss:\/\//, 'https://')
+      .replace(/^ws:\/\//, 'http://')
+      .replace(/\/ws\/?$/, '')
+  } else if (gwHost) {
+    httpUrl = gwHost.startsWith('http') ? gwHost : `https://${gwHost}`
   }
 
-  const httpUrl = gwUrl
-    .replace(/^wss:\/\//, 'https://')
-    .replace(/^ws:\/\//, 'http://')
-    .replace(/\/ws\/?$/, '')
+  if (!httpUrl) {
+    return NextResponse.json({ servers: [], total: 0, error: 'No gateway URL configured' })
+  }
 
   const gwToken = (
     process.env.OPENCLAW_GATEWAY_TOKEN ||
