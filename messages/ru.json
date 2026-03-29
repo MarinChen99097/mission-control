@@ -78,6 +78,7 @@
     "chat": "Чат",
     "channels": "Каналы",
     "skills": "Навыки",
+    "mcpServers": "MCP Servers",
     "memory": "Память",
     "activity": "Активность",
     "logs": "Журналы",
@@ -1781,6 +1782,7 @@
     "createWebhook": "Создать вебхук"
   },
   "skills": {
+    "mcpServers": "MCP Servers",
     "title": "Центр навыков",
     "subtitle": "Управляйте навыками локально и просматривайте внешние реестры.",
     "localMode": "Локальный режим",

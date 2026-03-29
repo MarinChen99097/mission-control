@@ -78,6 +78,7 @@
     "chat": "채팅",
     "channels": "채널",
     "skills": "스킬",
+    "mcpServers": "MCP Servers",
     "memory": "메모리",
     "activity": "활동",
     "logs": "로그",
@@ -1781,6 +1782,7 @@
     "createWebhook": "Webhook 생성"
   },
   "skills": {
+    "mcpServers": "MCP Servers",
     "title": "스킬 허브",
     "subtitle": "스킬을 로컬에서 관리하고 외부 레지스트리를 탐색합니다.",
     "localMode": "로컬 모드",

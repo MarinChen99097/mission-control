@@ -36,6 +36,7 @@ import { SecurityAuditPanel } from '@/components/panels/security-audit-panel'
 import { NodesPanel } from '@/components/panels/nodes-panel'
 import { ExecApprovalPanel } from '@/components/panels/exec-approval-panel'
 import { SystemMonitorPanel } from '@/components/panels/system-monitor-panel'
+import { McpServersPanel } from '@/components/panels/mcp-servers-panel'
 import { ChatPagePanel } from '@/components/panels/chat-page-panel'
 import { ChatPanel } from '@/components/chat/chat-panel'
 import { getPluginPanel } from '@/lib/plugins'
@@ -560,6 +561,9 @@ function ContentRouter({ tab }: { tab: string }) {
       return <SystemMonitorPanel />
     case 'skills':
       return <SkillsPanel />
+    case 'mcp-servers':
+      if (isLocal) return <LocalModeUnavailable panel={tab} />
+      return <McpServersPanel />
     case 'channels':
       if (isLocal) return <LocalModeUnavailable panel={tab} />
       return <ChannelsPanel />

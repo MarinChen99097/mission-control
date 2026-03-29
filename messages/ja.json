@@ -78,6 +78,7 @@
     "chat": "チャット",
     "channels": "チャンネル",
     "skills": "スキル",
+    "mcpServers": "MCP Servers",
     "memory": "メモリ",
     "activity": "アクティビティ",
     "logs": "ログ",
@@ -1781,6 +1782,7 @@
     "createWebhook": "Webhook を作成"
   },
   "skills": {
+    "mcpServers": "MCP Servers",
     "title": "スキルハブ",
     "subtitle": "スキルをローカルで管理し、外部レジストリを閲覧します。",
     "localMode": "ローカルモード",

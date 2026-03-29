@@ -34,6 +34,7 @@ const navGroups: NavGroup[] = [
       { id: 'chat', label: 'Chat', icon: <ChatIcon />, priority: false, essential: true },
       { id: 'channels', label: 'Channels', icon: <ChannelsIcon />, priority: false },
       { id: 'skills', label: 'Skills', icon: <SkillsIcon />, priority: false },
+      { id: 'mcp-servers', label: 'MCP Servers', icon: <McpIcon />, priority: false },
       { id: 'memory', label: 'Memory', icon: <MemoryIcon />, priority: false },
     ],
   },
@@ -89,6 +90,7 @@ const navItemTranslationKeys: Record<string, string> = {
   chat: 'chat',
   channels: 'channels',
   skills: 'skills',
+  'mcp-servers': 'mcpServers',
   memory: 'memory',
   activity: 'activity',
   logs: 'logs',
@@ -119,7 +121,7 @@ const groupTranslationKeys: Record<string, string> = {
 }
 
 const gatewayOnlyPanels = new Set([
-  'gateways', 'gateway-config', 'channels', 'nodes', 'exec-approvals',
+  'gateways', 'gateway-config', 'channels', 'nodes', 'exec-approvals', 'mcp-servers',
   ...getPluginNavItems().filter(pi => pi.gatewayOnly).map(pi => pi.id),
 ])
 const adminOnlyPanels = new Set<string>([])
@@ -1397,6 +1399,17 @@ function SkillsIcon() {
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="2" width="12" height="12" rx="1.5" />
       <path d="M5 5h6M5 8h6M5 11h3" />
+    </svg>
+  )
+}
+
+function McpIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="8" cy="3" r="2" />
+      <circle cx="3" cy="12" r="2" />
+      <circle cx="13" cy="12" r="2" />
+      <path d="M8 5v3M6.5 9.5L5 10.5M9.5 9.5L11 10.5" />
     </svg>
   )
 }

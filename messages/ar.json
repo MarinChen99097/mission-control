@@ -78,6 +78,7 @@
     "chat": "الدردشة",
     "channels": "القنوات",
     "skills": "المهارات",
+    "mcpServers": "MCP Servers",
     "memory": "الذاكرة",
     "activity": "النشاط",
     "logs": "السجلات",
@@ -1781,6 +1782,7 @@
     "createWebhook": "إنشاء Webhook"
   },
   "skills": {
+    "mcpServers": "MCP Servers",
     "title": "مركز المهارات",
     "subtitle": "إدارة المهارات محلياً واستعراض السجلات الخارجية.",
     "localMode": "الوضع المحلي",

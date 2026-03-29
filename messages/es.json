@@ -78,6 +78,7 @@
     "chat": "Chat",
     "channels": "Canales",
     "skills": "Habilidades",
+    "mcpServers": "MCP Servers",
     "memory": "Memoria",
     "activity": "Actividad",
     "logs": "Registros",
@@ -1781,6 +1782,7 @@
     "createWebhook": "Crear webhook"
   },
   "skills": {
+    "mcpServers": "MCP Servers",
     "title": "Centro de habilidades",
     "subtitle": "Administra habilidades localmente y explora registros externos.",
     "localMode": "Modo local",
