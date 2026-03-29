@@ -1649,6 +1649,38 @@ const migrations: Migration[] = [
         update.run(JSON.stringify(aliases), name)
       }
     }
+  },
+  {
+    id: '054_auto_seed_gateway_agents',
+    up(db: Database.Database) {
+      // Auto-seed gateway from env vars so Cloud Run doesn't lose config on redeploy
+      const gwUrl = (process.env.OPENCLAW_GATEWAY_URL || '').trim()
+      if (gwUrl) {
+        const isWss = gwUrl.startsWith('wss://') || gwUrl.startsWith('https://')
+        const host = gwUrl.replace(/^wss?:\/\//, '').replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/:\d+$/, '')
+        const port = isWss ? 443 : 18789
+
+        const existing = db.prepare('SELECT id FROM gateways WHERE name = ? AND workspace_id = 1').get('lobster-gateway') as any
+        if (!existing) {
+          db.prepare(`
+            INSERT INTO gateways (name, host, port, is_primary, status, workspace_id)
+            VALUES (?, ?, ?, 1, 'unknown', 1)
+          `).run('lobster-gateway', (isWss ? 'https://' : 'http://') + host, port)
+        }
+      }
+
+      // Auto-seed core agents from env var (comma-separated list)
+      const seedAgents = (process.env.MC_SEED_AGENTS || '').trim()
+      if (seedAgents) {
+        const insert = db.prepare(`
+          INSERT OR IGNORE INTO agents (name, role, status, created_at, updated_at, workspace_id)
+          VALUES (?, 'agent', 'idle', unixepoch(), unixepoch(), 1)
+        `)
+        for (const name of seedAgents.split(',').map(s => s.trim()).filter(Boolean)) {
+          insert.run(name)
+        }
+      }
+    }
   }
 ]
 
