@@ -114,9 +114,32 @@ export async function PUT(
         values.push(role)
       }
 
+      if (body.soul_content !== undefined) {
+        fields.push('soul_content = ?')
+        values.push(body.soul_content)
+      }
+
+      if (body.runtime !== undefined) {
+        fields.push('runtime = ?')
+        values.push(body.runtime)
+      }
+
+      if (body.aliases !== undefined) {
+        fields.push('aliases = ?')
+        values.push(JSON.stringify(body.aliases))
+      }
+
+      if (body.working_memory !== undefined) {
+        fields.push('working_memory = ?')
+        values.push(body.working_memory)
+      }
+
       if (gateway_config) {
         fields.push('config = ?')
         values.push(JSON.stringify(newConfig))
+      } else if (body.config !== undefined && !gateway_config) {
+        fields.push('config = ?')
+        values.push(JSON.stringify(body.config))
       }
 
       values.push(agent.id, workspaceId)
