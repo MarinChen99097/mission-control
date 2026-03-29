@@ -6,6 +6,8 @@
 
 Manage AI agent fleets, dispatch tasks, track costs, and coordinate multi-agent workflows — self-hosted, zero external dependencies, powered by SQLite.
 
+*Added by John Cipher (Partner 🧄) - Deployment Test*
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org/)
