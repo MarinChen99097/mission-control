@@ -1425,6 +1425,26 @@ const migrations: Migration[] = [
       `)
       db.exec(`CREATE INDEX IF NOT EXISTS idx_memory_graph_cache_ws ON memory_graph_cache(workspace_id, updated_at DESC)`)
     }
+  },
+  {
+    id: '050_memory_files_cache',
+    up(db: Database.Database) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS memory_files_cache (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          file_path TEXT NOT NULL,
+          content TEXT NOT NULL DEFAULT '',
+          size INTEGER NOT NULL DEFAULT 0,
+          modified INTEGER NOT NULL DEFAULT 0,
+          source TEXT NOT NULL DEFAULT 'bridge',
+          updated_at INTEGER NOT NULL DEFAULT (unixepoch()),
+          workspace_id INTEGER NOT NULL DEFAULT 1,
+          UNIQUE(file_path, workspace_id)
+        )
+      `)
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_memory_files_cache_ws ON memory_files_cache(workspace_id)`)
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_memory_files_cache_path ON memory_files_cache(file_path, workspace_id)`)
+    }
   }
 ]
 

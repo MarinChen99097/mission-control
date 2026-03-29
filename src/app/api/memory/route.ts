@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readdir, readFile, stat, writeFile, mkdir, unlink } from 'fs/promises'
 import { existsSync, mkdirSync } from 'fs'
-import { join, dirname } from 'path'
+import { join, dirname, posix } from 'path'
 import { db_helpers, getDatabase } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
 import { readLimiter, mutationLimiter } from '@/lib/rate-limit'
@@ -13,6 +13,107 @@ import { searchMemory, indexFile, removeFromIndex } from '@/lib/memory-search'
 // Ensure memory directory exists on startup
 if (MEMORY_PATH && !existsSync(MEMORY_PATH)) {
   try { mkdirSync(MEMORY_PATH, { recursive: true }) } catch { /* ignore */ }
+}
+
+/** Check if local memory directory is usable */
+function hasLocalMemory(): boolean {
+  return Boolean(MEMORY_PATH && existsSync(MEMORY_PATH))
+}
+
+// ---------------------------------------------------------------------------
+// Cache fallback helpers (when local filesystem is unavailable, e.g. GCP)
+// ---------------------------------------------------------------------------
+
+interface CachedFile {
+  file_path: string
+  content: string
+  size: number
+  modified: number
+}
+
+function getCachedFileTree(workspaceId: number): MemoryFile[] {
+  try {
+    const db = getDatabase()
+    const rows = db.prepare(
+      'SELECT file_path, size, modified FROM memory_files_cache WHERE workspace_id = ? ORDER BY file_path'
+    ).all(workspaceId) as Array<{ file_path: string; size: number; modified: number }>
+
+    if (rows.length === 0) return []
+
+    // Build tree from flat file paths
+    const root: MemoryFile[] = []
+    const dirs = new Map<string, MemoryFile>()
+
+    for (const row of rows) {
+      const parts = row.file_path.replace(/\\/g, '/').split('/')
+      const fileName = parts[parts.length - 1]
+
+      // Ensure parent directories exist
+      let currentChildren = root
+      for (let i = 0; i < parts.length - 1; i++) {
+        const dirPath = parts.slice(0, i + 1).join('/')
+        let dir = dirs.get(dirPath)
+        if (!dir) {
+          dir = { path: dirPath, name: parts[i], type: 'directory', children: [] }
+          dirs.set(dirPath, dir)
+          currentChildren.push(dir)
+        }
+        currentChildren = dir.children!
+      }
+
+      currentChildren.push({
+        path: row.file_path.replace(/\\/g, '/'),
+        name: fileName,
+        type: 'file',
+        size: row.size,
+        modified: row.modified,
+      })
+    }
+
+    return root
+  } catch (err) {
+    logger.warn({ err }, 'Failed to build cached file tree')
+    return []
+  }
+}
+
+function getCachedFileContent(workspaceId: number, filePath: string): CachedFile | null {
+  try {
+    const db = getDatabase()
+    return db.prepare(
+      'SELECT file_path, content, size, modified FROM memory_files_cache WHERE workspace_id = ? AND file_path = ?'
+    ).get(workspaceId, filePath) as CachedFile | null
+  } catch {
+    return null
+  }
+}
+
+function searchCachedFiles(workspaceId: number, query: string): any {
+  try {
+    const db = getDatabase()
+    const queryLower = query.toLowerCase()
+    const rows = db.prepare(
+      'SELECT file_path, content, size, modified FROM memory_files_cache WHERE workspace_id = ?'
+    ).all(workspaceId) as CachedFile[]
+
+    const results = rows
+      .filter(r => r.content.toLowerCase().includes(queryLower) || r.file_path.toLowerCase().includes(queryLower))
+      .map(r => {
+        const idx = r.content.toLowerCase().indexOf(queryLower)
+        const snippetStart = Math.max(0, idx - 60)
+        const snippetEnd = Math.min(r.content.length, idx + query.length + 60)
+        return {
+          path: r.file_path,
+          snippet: r.content.slice(snippetStart, snippetEnd),
+          score: idx >= 0 ? 1 : 0.5,
+        }
+      })
+      .slice(0, 20)
+
+    return { query, results, cached: true }
+  } catch {
+    return { query, results: [] }
+  }
 }
 
 interface MemoryFile {
@@ -97,7 +198,12 @@ export async function GET(request: NextRequest) {
     const maxDepth = Number.isFinite(depthParam) ? Math.max(0, Math.min(depthParam, 8)) : Number.POSITIVE_INFINITY
 
     if (action === 'tree') {
-      // Return the file tree
+      // Fallback to cache when local memory is unavailable (e.g. GCP deploy)
+      if (!hasLocalMemory()) {
+        const workspaceId = auth.user.workspace_id ?? 1
+        const tree = getCachedFileTree(workspaceId)
+        return NextResponse.json({ tree, cached: true })
+      }
       if (!MEMORY_PATH) {
         return NextResponse.json({ tree: [] })
       }
@@ -140,7 +246,28 @@ export async function GET(request: NextRequest) {
     }
 
     if (action === 'content' && path) {
-      // Return file content
+      // Fallback to cache when local memory is unavailable
+      if (!hasLocalMemory()) {
+        const workspaceId = auth.user.workspace_id ?? 1
+        const cached = getCachedFileContent(workspaceId, path)
+        if (cached) {
+          const isMarkdown = path.endsWith('.md')
+          const wikiLinks = isMarkdown ? extractWikiLinks(cached.content) : []
+          const schemaResult = isMarkdown ? validateSchema(cached.content) : null
+          return NextResponse.json({
+            content: cached.content,
+            size: cached.size,
+            modified: cached.modified,
+            path,
+            wikiLinks,
+            schema: schemaResult,
+            cached: true,
+          })
+        }
+        return NextResponse.json({ error: 'File not found' }, { status: 404 })
+      }
+
+      // Return file content from local filesystem
       if (!isPathAllowed(path)) {
         return NextResponse.json({ error: 'Path not allowed' }, { status: 403 })
       }
@@ -148,7 +275,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Memory directory not configured' }, { status: 500 })
       }
       const fullPath = await resolveSafeMemoryPath(MEMORY_PATH, path)
-      
+
       try {
         const content = await readFile(fullPath, 'utf-8')
         const stats = await stat(fullPath)
@@ -176,6 +303,13 @@ export async function GET(request: NextRequest) {
       if (!query) {
         return NextResponse.json({ error: 'Query required' }, { status: 400 })
       }
+
+      // Fallback to cache search
+      if (!hasLocalMemory()) {
+        const workspaceId = auth.user.workspace_id ?? 1
+        return NextResponse.json(searchCachedFiles(workspaceId, query))
+      }
+
       if (!MEMORY_PATH) {
         return NextResponse.json({ query, results: [] })
       }
