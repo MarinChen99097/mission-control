@@ -240,8 +240,8 @@ export async function POST(request: NextRequest) {
     const stmt = db.prepare(`
       INSERT INTO agents (
         name, role, session_key, soul_content, status,
-        created_at, updated_at, config, workspace_id, runtime
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        created_at, updated_at, config, workspace_id, runtime, aliases
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const dbResult = stmt.run(
@@ -255,6 +255,7 @@ export async function POST(request: NextRequest) {
       JSON.stringify(finalConfig),
       workspaceId,
       body.runtime || 'claude-mcp',
+      JSON.stringify(body.aliases || []),
     );
 
     const agentId = dbResult.lastInsertRowid as number;

@@ -369,6 +369,18 @@ const TOOLS = [
     handler: async () => api('GET', '/api/team-leads'),
   },
   {
+    name: 'mc_resolve_agent',
+    description: 'Resolve an @alias to an agent name. Use when routing messages with @mentions.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        alias: { type: 'string', description: 'The alias to resolve (e.g. "eng", "mkt", "backend")' },
+      },
+      required: ['alias'],
+    },
+    handler: async ({ alias }) => api('GET', `/api/agents/resolve?alias=${encodeURIComponent(alias)}`),
+  },
+  {
     name: 'mc_poll_task_queue',
     description: 'Poll the task queue for an agent — returns the next available task(s) to work on',
     inputSchema: {

@@ -1614,6 +1614,41 @@ const migrations: Migration[] = [
         update.run(runtime, name)
       }
     }
+  },
+  {
+    id: '053_agent_aliases',
+    up(db: Database.Database) {
+      const cols = db.prepare('PRAGMA table_info(agents)').all() as Array<{ name: string }>
+      if (!cols.some(c => c.name === 'aliases')) {
+        db.exec(`ALTER TABLE agents ADD COLUMN aliases TEXT NOT NULL DEFAULT '[]'`)
+      }
+
+      const aliasMap: Record<string, string[]> = {
+        'engineering-lead': ['eng', '工程'],
+        'marketing-lead': ['mkt', '行銷'],
+        'design-lead': ['design', '設計'],
+        'research-lead': ['research', '研究'],
+        'product-lead': ['product', '產品'],
+        'devops-automator': ['devops', '部署'],
+        'backend-architect': ['backend', '後端'],
+        'frontend-developer': ['frontend', '前端'],
+        'security-lead': ['sec', '安全'],
+        'security-engineer': ['seceng'],
+        'operations-lead': ['ops', '營運'],
+        'finance-lead': ['finance', '財務'],
+        'code-reviewer': ['reviewer', 'review'],
+        'database-optimizer': ['db', 'dba'],
+        'seo-specialist': ['seo'],
+        'content-creator': ['content', '內容'],
+        'software-architect': ['arch', '架構'],
+        'secretary': ['sec-ai', '秘書'],
+      }
+
+      const update = db.prepare('UPDATE agents SET aliases = ? WHERE name = ?')
+      for (const [name, aliases] of Object.entries(aliasMap)) {
+        update.run(JSON.stringify(aliases), name)
+      }
+    }
   }
 ]
 
