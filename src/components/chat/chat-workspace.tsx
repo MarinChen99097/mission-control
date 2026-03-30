@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback, useState, useRef } from 'react'
 import { useMissionControl, type Conversation, type ChatAttachment } from '@/store'
+import { useWebSocket } from '@/lib/websocket'
 import { useSmartPoll } from '@/lib/use-smart-poll'
 import { createClientLogger } from '@/lib/client-logger'
 import { ConversationList } from './conversation-list'
@@ -12,12 +13,6 @@ import { SessionMessage, shouldShowTimestamp, type SessionTranscriptMessage } fr
 import { getSessionKindLabel, SessionKindAvatar } from './session-kind-brand'
 
 const log = createClientLogger('ChatWorkspace')
-
-declare global {
-  interface Window {
-    __mcWebSocket?: WebSocket
-  }
-}
 
 interface ChatWorkspaceProps {
   mode?: 'overlay' | 'embedded'
@@ -39,8 +34,10 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
     notifications,
   } = useMissionControl()
 
+  const { sendMessage: wsSend, isConnected: wsConnected } = useWebSocket()
   const pendingIdRef = useRef(-1)
   const sendingRef = useRef(false)
+  const forwardQueueRef = useRef<Array<{ to: string; content: string; idempotencyKey: string }>>([])
 
   const [showConversations, setShowConversations] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
@@ -128,6 +125,37 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOverlay, onClose])
 
+  // Forward message to Gateway via WebSocket RPC (with retry queue for disconnects)
+  const forwardViaWebSocket = useCallback((to: string, content: string, idempotencyKey: string) => {
+    const sent = wsSend({
+      type: 'req',
+      method: 'chat.send',
+      id: `mc-chat-${idempotencyKey}`,
+      params: {
+        agentId: to,
+        message: `Message from Admin: ${content}`,
+        idempotencyKey,
+        deliver: false,
+      },
+    })
+    if (!sent) {
+      // Queue for retry when WebSocket reconnects
+      forwardQueueRef.current.push({ to, content, idempotencyKey })
+      log.warn('WebSocket not connected, queued forward for retry')
+    }
+    return sent
+  }, [wsSend])
+
+  // Drain forward queue when WebSocket reconnects
+  useEffect(() => {
+    if (!wsConnected || forwardQueueRef.current.length === 0) return
+    const queue = [...forwardQueueRef.current]
+    forwardQueueRef.current = []
+    for (const item of queue) {
+      forwardViaWebSocket(item.to, item.content, item.idempotencyKey)
+    }
+  }, [wsConnected, forwardViaWebSocket])
+
   // Send message handler with optimistic updates
   const handleSend = async (content: string, attachments?: ChatAttachment[]) => {
     console.debug('[CHAT-DEBUG] handleSend called, content=', content?.slice(0, 30), 'sendingRef=', sendingRef.current, 'conv=', activeConversation)
@@ -161,6 +189,7 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
     setIsGenerating(true)
 
     try {
+      // Store message in DB (no server-side forward — we forward via WebSocket below)
       const res = await fetch('/api/chat/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -171,7 +200,7 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
           conversation_id: activeConversation,
           message_type: 'text',
           attachments,
-          forward: true,
+          forward: false,
         }),
       })
 
@@ -180,6 +209,10 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
         console.debug('[CHAT-DEBUG] POST response ok, message id=', data.message?.id, 'tempId=', tempId)
         if (data.message) {
           replacePendingMessage(tempId, data.message)
+          // Forward to Gateway via front-end WebSocket (self-healing: queued on disconnect)
+          if (to) {
+            forwardViaWebSocket(to, cleanContent, `mc-${data.message.id}-${Date.now()}`)
+          }
         }
       } else {
         updatePendingMessage(tempId, { pendingStatus: 'failed' })
@@ -196,22 +229,14 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
   // Abort active generation
   const handleAbort = useCallback(() => {
     if (!activeConversation) return
-    // Try to send cancel RPC via websocket if available
-    try {
-      const ws = window.__mcWebSocket
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({
-          type: 'req',
-          method: 'chat.cancel',
-          id: `mc-cancel-${Date.now()}`,
-          params: { sessionId: activeConversation },
-        }))
-      }
-    } catch (err) {
-      log.error('Failed to send abort:', err)
-    }
+    wsSend({
+      type: 'req',
+      method: 'chat.cancel',
+      id: `mc-cancel-${Date.now()}`,
+      params: { sessionId: activeConversation },
+    })
     setIsGenerating(false)
-  }, [activeConversation])
+  }, [activeConversation, wsSend])
 
   const handleNewConversation = (agentName: string) => {
     const convId = `agent_${agentName}`
