@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import {
   MetricCard,
   SessionIcon,
@@ -14,6 +15,7 @@ import {
 } from '../widget-primitives'
 
 export function MetricCardsWidget({ data }: { data: DashboardData }) {
+  const t = useTranslations('dashboard')
   const {
     isLocal,
     isClaudeLoading,
@@ -71,7 +73,7 @@ export function MetricCardsWidget({ data }: { data: DashboardData }) {
           color="purple"
         />
         <MetricCard
-          label="System Load"
+          label={t('systemLoad')}
           value={isSystemLoading ? '...' : `${systemLoad}%`}
           subtitle={`mem ${memPct ?? '-'} · disk ${Number.isFinite(diskPct) ? `${diskPct}%` : '-'}`}
           icon={<ActivityIconMini />}
@@ -97,11 +99,11 @@ export function MetricCardsWidget({ data }: { data: DashboardData }) {
 
   return (
     <section className="grid grid-cols-2 xl:grid-cols-5 gap-3">
-      <MetricCard label="Gateway" value={connection.isConnected ? 'Online' : 'Offline'} subtitle="transport status" icon={<GatewayIcon />} color={connection.isConnected ? 'green' : 'red'} />
-      <MetricCard label="Sessions" value={activeSessions} total={sessions.length} subtitle="active / total" icon={<SessionIcon />} color="blue" />
-      <MetricCard label="Agent Capacity" value={onlineAgents} subtitle={`${dbStats?.agents.total ?? agents.length} total`} icon={<AgentIcon />} color="green" />
-      <MetricCard label="Queue" value={backlogCount} subtitle={`${runningTasks} running`} icon={<TaskIcon />} color={backlogCount > 12 ? 'red' : 'purple'} />
-      <MetricCard label="System Load" value={isSystemLoading ? '...' : `${systemLoad}%`} subtitle={`errors ${errorCount}`} icon={<ActivityIconMini />} color={systemLoad > 85 || errorCount > 0 ? 'red' : 'blue'} />
+      <MetricCard label="Gateway" value={connection.isConnected ? t('online') : t('offline')} subtitle={t('transportStatus')} icon={<GatewayIcon />} color={connection.isConnected ? 'green' : 'red'} />
+      <MetricCard label={t('sessions')} value={activeSessions} total={sessions.length} subtitle={t('activeTotal')} icon={<SessionIcon />} color="blue" />
+      <MetricCard label={t('agentCapacity')} value={onlineAgents} subtitle={`${dbStats?.agents.total ?? agents.length} ${t('total')}`} icon={<AgentIcon />} color="green" />
+      <MetricCard label={t('queue')} value={backlogCount} subtitle={`${runningTasks} ${t('running')}`} icon={<TaskIcon />} color={backlogCount > 12 ? 'red' : 'purple'} />
+      <MetricCard label={t('systemLoad')} value={isSystemLoading ? '...' : `${systemLoad}%`} subtitle={`${t('errors')} ${errorCount}`} icon={<ActivityIconMini />} color={systemLoad > 85 || errorCount > 0 ? 'red' : 'blue'} />
     </section>
   )
 }

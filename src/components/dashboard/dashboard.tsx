@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { useMissionControl } from '@/store'
 import { useNavigateToPanel } from '@/lib/navigation'
 import { useSmartPoll } from '@/lib/use-smart-poll'
@@ -11,6 +12,7 @@ import { WidgetGrid } from './widget-grid'
 import type { DbStats, ClaudeStats, LogLike, DashboardData } from './widget-primitives'
 
 export function Dashboard() {
+  const t = useTranslations('dashboard')
   const {
     sessions,
     setSessions,
@@ -267,21 +269,19 @@ export function Dashboard() {
       <section className="rounded-xl border border-border bg-card p-4">
         <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className="text-2xs uppercase tracking-[0.12em] text-muted-foreground">Overview</div>
+            <div className="text-2xs uppercase tracking-[0.12em] text-muted-foreground">{t('overview')}</div>
             <h2 className="text-lg font-semibold text-foreground">
-              {isLocal ? 'Local Agent Runtime' : 'Gateway Control Plane'}
+              {isLocal ? t('localAgentRuntime') : t('gatewayControlPlane')}
             </h2>
             <p className="text-xs text-muted-foreground">
-              {isLocal
-                ? 'Unified visibility for Claude, Codex & Hermes local sessions, host pressure, and operator continuity.'
-                : 'Gateway-first health, session routing, queue pressure, and incident response signals.'}
+              {isLocal ? t('localDesc') : t('gatewayDesc')}
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 min-w-[280px]">
-            <SignalPill label="Mode" value={isLocal ? 'Local' : 'Gateway'} tone="info" />
-            <SignalPill label="Events" value={`${mergedRecentLogs.length} stream`} tone={recentErrorLogs > 0 ? 'warning' : 'success'} />
-            <SignalPill label="Queue" value={String(backlogCount)} tone={backlogCount > 10 ? 'warning' : 'info'} />
-            <SignalPill label="Errors" value={String(errorCount)} tone={errorCount > 0 ? 'warning' : 'success'} />
+            <SignalPill label={t('mode')} value={isLocal ? t('local') : t('gateway')} tone="info" />
+            <SignalPill label={t('events')} value={`${mergedRecentLogs.length} ${t('stream')}`} tone={recentErrorLogs > 0 ? 'warning' : 'success'} />
+            <SignalPill label={t('queue')} value={String(backlogCount)} tone={backlogCount > 10 ? 'warning' : 'info'} />
+            <SignalPill label={t('errors')} value={String(errorCount)} tone={errorCount > 0 ? 'warning' : 'success'} />
           </div>
         </div>
       </section>

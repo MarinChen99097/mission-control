@@ -1,14 +1,16 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import type { DashboardData } from '../widget-primitives'
 
 export function SessionWorkbenchWidget({ data }: { data: DashboardData }) {
   const { isLocal, sessions, isSessionsLoading, openSession } = data
+  const t = useTranslations('dashboard')
 
   return (
     <div className="panel">
       <div className="panel-header">
-        <h3 className="text-sm font-semibold">{isLocal ? 'Session Workbench' : 'Session Router'}</h3>
+        <h3 className="text-sm font-semibold">{isLocal ? t('sessionWorkbench') : t('sessionRouter')}</h3>
         <span className="text-2xs text-muted-foreground font-mono-tight">{sessions.length}</span>
       </div>
       <div className="divide-y divide-border/50 max-h-80 overflow-y-auto">
@@ -16,15 +18,15 @@ export function SessionWorkbenchWidget({ data }: { data: DashboardData }) {
           <div className="px-4 py-8 text-center">
             <p className="text-xs text-muted-foreground">
               {isSessionsLoading
-                ? 'Loading sessions...'
+                ? t('loadingSessions')
                 : isLocal
-                  ? 'No active sessions'
-                  : 'No gateway sessions'}
+                  ? t('noActiveSessions')
+                  : t('noGatewaySessions')}
             </p>
             <p className="text-2xs text-muted-foreground/60 mt-1">
               {isLocal
-                ? 'Start a Claude or Codex session to see it here.'
-                : 'Sessions appear when gateway agents connect.'}
+                ? t('startSession')
+                : t('sessionsAppear')}
             </p>
           </div>
         ) : (
