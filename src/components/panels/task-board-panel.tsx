@@ -2054,6 +2054,8 @@ function CreateTaskModal({
     tags: '',
     target_session: '',
   })
+  const [taskImages, setTaskImages] = useState<Array<{ name: string; dataUrl: string }>>([])
+  const taskFileRef = useRef<HTMLInputElement>(null)
   const t = useTranslations('taskBoard')
   const agentSessions = useAgentSessions(formData.assigned_to || undefined)
   const [isRecurring, setIsRecurring] = useState(false)
@@ -2099,6 +2101,13 @@ function CreateTaskModal({
     }
     if (formData.target_session) {
       metadata.target_session = formData.target_session
+    }
+    if (taskImages.length > 0) {
+      metadata.attachments = taskImages.map(img => ({
+        name: img.name,
+        type: 'image',
+        dataUrl: img.dataUrl,
+      }))
     }
 
     try {
@@ -2160,7 +2169,66 @@ function CreateTaskModal({
               />
               <p className="text-[11px] text-muted-foreground mt-1">Tip: type <span className="font-mono">@</span> for mention autocomplete.</p>
             </div>
-            
+
+            {/* Image attachments */}
+            <div>
+              <label className="block text-sm text-muted-foreground mb-1">Attachments</label>
+              <div
+                className="border border-dashed border-border/60 rounded-md p-2 min-h-[40px] cursor-pointer hover:border-primary/40 transition-colors"
+                onClick={() => taskFileRef.current?.click()}
+                onPaste={(e) => {
+                  const items = e.clipboardData?.items;
+                  if (!items) return;
+                  for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.startsWith('image/')) {
+                      const file = items[i].getAsFile();
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = () => setTaskImages(prev => [...prev, { name: file.name, dataUrl: reader.result as string }]);
+                        reader.readAsDataURL(file);
+                      }
+                    }
+                  }
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  for (const file of Array.from(e.dataTransfer.files)) {
+                    if (file.type.startsWith('image/')) {
+                      const reader = new FileReader();
+                      reader.onload = () => setTaskImages(prev => [...prev, { name: file.name, dataUrl: reader.result as string }]);
+                      reader.readAsDataURL(file);
+                    }
+                  }
+                }}
+              >
+                {taskImages.length === 0 ? (
+                  <p className="text-xs text-muted-foreground/50 text-center py-1">Paste, drag, or click to add images</p>
+                ) : (
+                  <div className="flex gap-2 flex-wrap">
+                    {taskImages.map((img, i) => (
+                      <div key={i} className="relative group">
+                        <img src={img.dataUrl} alt={img.name} className="h-16 w-16 object-cover rounded border border-border/40" />
+                        <button
+                          type="button"
+                          className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] leading-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => { e.stopPropagation(); setTaskImages(prev => prev.filter((_, j) => j !== i)); }}
+                        >x</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <input ref={taskFileRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
+                for (const file of Array.from(e.target.files || [])) {
+                  const reader = new FileReader();
+                  reader.onload = () => setTaskImages(prev => [...prev, { name: file.name, dataUrl: reader.result as string }]);
+                  reader.readAsDataURL(file);
+                }
+                e.target.value = '';
+              }} />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="create-priority" className="block text-sm text-muted-foreground mb-1">{t('fieldPriority')}</label>
