@@ -499,10 +499,10 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
         {/* Secretary — always pinned at top */}
         <div className="border-b border-border/50">
           <Button
-            onClick={() => handleSelect('agent_secretary')}
+            onClick={() => handleSelect('agent_main')}
             variant="ghost"
             className={`w-full justify-start h-auto px-3 py-2.5 rounded-none ${
-              activeConversation === 'agent_secretary'
+              activeConversation === 'agent_main'
                 ? 'bg-accent/60 border-l-2 border-primary'
                 : 'border-l-2 border-transparent'
             }`}
