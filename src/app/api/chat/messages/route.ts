@@ -335,9 +335,12 @@ export async function POST(request: NextRequest) {
 
     const requestedFrom = typeof body.from === 'string' ? body.from.trim() : ''
     const isCoordinatorOverride = requestedFrom.toLowerCase() === COORDINATOR_AGENT.toLowerCase()
+    const isHumanSender = requestedFrom.toLowerCase() === 'human'
     const from = isCoordinatorOverride
       ? COORDINATOR_AGENT
-      : (auth.user.display_name || auth.user.username || 'system')
+      : isHumanSender
+        ? 'human'
+        : (requestedFrom || auth.user.display_name || auth.user.username || 'system')
     const to = body.to ? (body.to as string).trim() : null
     const content = (body.content || '').trim()
     const message_type = body.message_type || 'text'
