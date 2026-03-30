@@ -515,20 +515,11 @@ export async function POST(request: NextRequest) {
               }
               invokeParams.agentId = openclawAgentId
 
-              const invokeResult = await runOpenClaw(
-                [
-                  'gateway',
-                  'call',
-                  'agent',
-                  '--timeout',
-                  '10000',
-                  '--params',
-                  JSON.stringify(invokeParams),
-                  '--json',
-                ],
-                { timeoutMs: 12000 }
+              const acceptedPayload = await callOpenClawGateway<any>(
+                'agent',
+                invokeParams,
+                12000,
               )
-              const acceptedPayload = parseGatewayJson(invokeResult.stdout)
               forwardInfo.delivered = true
               forwardInfo.session = openclawAgentId || undefined
               if (typeof acceptedPayload?.runId === 'string' && acceptedPayload.runId) {
