@@ -67,6 +67,7 @@ function initializeSchema() {
   try {
     runMigrations(db);
     seedAdminUserFromEnv(db);
+    ensureGatewayFromEnv(db);
 
     // Initialize webhook event listener (once)
     if (!webhookListenerInitialized) {
@@ -134,6 +135,37 @@ export function resolveSeedAuthPassword(env: NodeJS.ProcessEnv = process.env): s
   }
 
   return env.AUTH_PASS || null
+}
+
+/**
+ * Ensure gateway from OPENCLAW_GATEWAY_URL is registered and primary.
+ * Runs on every server start (not just migration) to fix Cloud Run stateless issue.
+ */
+function ensureGatewayFromEnv(dbConn: Database.Database): void {
+  if (process.env.NEXT_PHASE === 'phase-production-build') return
+  const gwUrl = (process.env.OPENCLAW_GATEWAY_URL || '').trim()
+  if (!gwUrl) return
+
+  try {
+    // Check if gateways table exists
+    const tableCheck = dbConn.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='gateways'").get()
+    if (!tableCheck) return
+
+    const isWss = gwUrl.startsWith('wss://') || gwUrl.startsWith('https://')
+    const host = gwUrl.replace(/^wss?:\/\//, '').replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/:\d+$/, '')
+    const fullHost = (isWss ? 'https://' : 'http://') + host
+    const port = isWss ? 443 : 18789
+
+    const existing = dbConn.prepare('SELECT id, is_primary FROM gateways WHERE host = ? AND workspace_id = 1').get(fullHost) as any
+    if (existing) {
+      if (!existing.is_primary) {
+        dbConn.prepare('UPDATE gateways SET is_primary = 1 WHERE id = ?').run(existing.id)
+      }
+    } else {
+      dbConn.prepare('UPDATE gateways SET is_primary = 0 WHERE workspace_id = 1').run()
+      dbConn.prepare(`INSERT INTO gateways (name, host, port, is_primary, status, workspace_id) VALUES ('lobster-gateway', ?, ?, 1, 'unknown', 1)`).run(fullHost, port)
+    }
+  } catch { /* gateways table may not exist yet */ }
 }
 
 function seedAdminUserFromEnv(dbConn: Database.Database): void {
