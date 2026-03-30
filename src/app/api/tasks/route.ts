@@ -187,6 +187,7 @@ export async function POST(request: NextRequest) {
       parent_task_id,
       blocked_by = [],
       team,
+      source = 'mc_dashboard',
     } = body;
     const normalizedStatus = normalizeTaskCreateStatus(status, assigned_to)
 
@@ -221,8 +222,8 @@ export async function POST(request: NextRequest) {
           title, description, status, priority, project_id, project_ticket_no, assigned_to, created_by,
           created_at, updated_at, due_date, estimated_hours, actual_hours,
           outcome, error_message, resolution, feedback_rating, feedback_notes, retry_count, completed_at,
-          tags, metadata, workspace_id, parent_task_id, blocked_by, team
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          tags, metadata, workspace_id, parent_task_id, blocked_by, team, source
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
 
       const dbResult = insertStmt.run(
@@ -252,6 +253,7 @@ export async function POST(request: NextRequest) {
         parent_task_id || null,
         JSON.stringify(blocked_by),
         team || null,
+        source || 'mc_dashboard',
       )
       return Number(dbResult.lastInsertRowid)
     })

@@ -34,7 +34,7 @@ const taskMetadataSchema = z.object({
 export const createTaskSchema = z.object({
   title: z.string().min(1, 'Title is required').max(500),
   description: z.string().max(5000).optional(),
-  status: z.enum(['inbox', 'assigned', 'in_progress', 'review', 'quality_review', 'done']).default('inbox'),
+  status: z.enum(['inbox', 'assigned', 'in_progress', 'review', 'quality_review', 'awaiting_owner', 'done']).default('inbox'),
   priority: z.enum(['critical', 'urgent', 'high', 'medium', 'low']).default('medium'),
   project_id: z.number().int().positive().optional(),
   assigned_to: z.string().max(100).optional(),
@@ -54,6 +54,7 @@ export const createTaskSchema = z.object({
   parent_task_id: z.number().int().positive().optional(),
   blocked_by: z.array(z.number().int().positive()).max(50).optional(),
   team: z.string().max(100).optional(),
+  source: z.enum(['mc_dashboard', 'telegram', 'discord', 'api']).optional(),
 })
 
 export const updateTaskSchema = createTaskSchema.partial()
@@ -78,7 +79,7 @@ export const createAgentSchema = z.object({
 export const bulkUpdateTaskStatusSchema = z.object({
   tasks: z.array(z.object({
     id: z.number().int().positive(),
-    status: z.enum(['inbox', 'assigned', 'in_progress', 'review', 'quality_review', 'done']),
+    status: z.enum(['inbox', 'assigned', 'in_progress', 'review', 'quality_review', 'awaiting_owner', 'done']),
   })).min(1, 'At least one task is required').max(100),
 })
 

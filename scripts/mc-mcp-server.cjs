@@ -314,7 +314,7 @@ const TOOLS = [
   },
   {
     name: 'mc_create_task',
-    description: 'Create a new task. Supports sub-tasks (parent_task_id), dependency ordering (blocked_by), and team assignment.',
+    description: 'Create a new task. Supports sub-tasks (parent_task_id), dependency ordering (blocked_by), team assignment, and source tracking.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -325,6 +325,7 @@ const TOOLS = [
         parent_task_id: { type: 'number', description: 'Parent task ID — makes this a sub-task' },
         blocked_by: { type: 'array', items: { type: 'number' }, description: 'Array of task IDs that must complete before this task can start' },
         team: { type: 'string', description: 'Team name: engineering, design, research, communications, marketing, finance, operations, security, product' },
+        source: { type: 'string', description: 'Where the task originated: mc_dashboard, telegram, discord, api' },
       },
       required: ['title'],
     },

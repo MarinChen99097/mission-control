@@ -1715,6 +1715,16 @@ const migrations: Migration[] = [
         }
       }
     }
+  },
+  {
+    id: '056_task_source',
+    up(db: Database.Database) {
+      const taskCols = db.prepare('PRAGMA table_info(tasks)').all() as Array<{ name: string }>
+      if (!taskCols.some(c => c.name === 'source')) {
+        db.exec(`ALTER TABLE tasks ADD COLUMN source TEXT NOT NULL DEFAULT 'mc_dashboard'`)
+      }
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_tasks_source ON tasks(source)`)
+    }
   }
 ]
 
