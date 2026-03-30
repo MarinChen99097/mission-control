@@ -1,0 +1,6 @@
+dbs:
+  - path: /app/.data/mission-control.db
+    replicas:
+      - type: gcs
+        bucket: gen-lang-client-0747655769-ai-asset
+        path: litestream/mission-control
