@@ -795,28 +795,31 @@ export function ActivityTab({ agent }: { agent: Agent }) {
 
 // Template data for the wizard (client-side mirror of agent-templates.ts)
 const TEMPLATES = [
-  { type: 'orchestrator', label: 'Orchestrator', emoji: '\ud83e\udded', description: 'Primary coordinator with full tool access', modelTier: 'opus' as const, toolCount: 23, theme: 'operator strategist' },
-  { type: 'developer', label: 'Developer', emoji: '\ud83d\udee0\ufe0f', description: 'Full-stack builder with Docker bridge', modelTier: 'sonnet' as const, toolCount: 21, theme: 'builder engineer' },
-  { type: 'specialist-dev', label: 'Specialist Dev', emoji: '\u2699\ufe0f', description: 'Focused developer for specific domains', modelTier: 'sonnet' as const, toolCount: 15, theme: 'specialist developer' },
-  { type: 'reviewer', label: 'Reviewer / QA', emoji: '\ud83d\udd2c', description: 'Read-only code review and quality gates', modelTier: 'haiku' as const, toolCount: 7, theme: 'quality reviewer' },
-  { type: 'researcher', label: 'Researcher', emoji: '\ud83d\udd0d', description: 'Browser and web access for research', modelTier: 'sonnet' as const, toolCount: 8, theme: 'research analyst' },
-  { type: 'content-creator', label: 'Content Creator', emoji: '\u270f\ufe0f', description: 'Write and edit for content generation', modelTier: 'haiku' as const, toolCount: 9, theme: 'content creator' },
-  { type: 'security-auditor', label: 'Security Auditor', emoji: '\ud83d\udee1\ufe0f', description: 'Read-only + bash for security scanning', modelTier: 'sonnet' as const, toolCount: 10, theme: 'security auditor' },
+  { type: 'orchestrator', label: 'Orchestrator', emoji: '\ud83e\udded', description: 'Primary coordinator with full tool access', modelTier: 'gemini' as const, toolCount: 23, theme: 'operator strategist' },
+  { type: 'developer', label: 'Developer', emoji: '\ud83d\udee0\ufe0f', description: 'Full-stack builder with Docker bridge', modelTier: 'gemini' as const, toolCount: 21, theme: 'builder engineer' },
+  { type: 'specialist-dev', label: 'Specialist Dev', emoji: '\u2699\ufe0f', description: 'Focused developer for specific domains', modelTier: 'gemini' as const, toolCount: 15, theme: 'specialist developer' },
+  { type: 'reviewer', label: 'Reviewer / QA', emoji: '\ud83d\udd2c', description: 'Read-only code review and quality gates', modelTier: 'gemini' as const, toolCount: 7, theme: 'quality reviewer' },
+  { type: 'researcher', label: 'Researcher', emoji: '\ud83d\udd0d', description: 'Browser and web access for research', modelTier: 'gemini' as const, toolCount: 8, theme: 'research analyst' },
+  { type: 'content-creator', label: 'Content Creator', emoji: '\u270f\ufe0f', description: 'Write and edit for content generation', modelTier: 'gemini' as const, toolCount: 9, theme: 'content creator' },
+  { type: 'security-auditor', label: 'Security Auditor', emoji: '\ud83d\udee1\ufe0f', description: 'Read-only + bash for security scanning', modelTier: 'gemini' as const, toolCount: 10, theme: 'security auditor' },
 ]
 
 const MODEL_TIER_COLORS: Record<string, string> = {
+  gemini: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
   opus: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
   sonnet: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
   haiku: 'bg-green-500/20 text-green-400 border-green-500/30',
 }
 
 const MODEL_TIER_LABELS: Record<string, string> = {
+  gemini: 'Gemini Flash Lite $',
   opus: 'Opus $$$',
   sonnet: 'Sonnet $$',
   haiku: 'Haiku $',
 }
 
-const DEFAULT_MODEL_BY_TIER: Record<'opus' | 'sonnet' | 'haiku', string> = {
+const DEFAULT_MODEL_BY_TIER: Record<'gemini' | 'opus' | 'sonnet' | 'haiku', string> = {
+  gemini: 'google/gemini-3.1-flash-lite-preview',
   opus: 'anthropic/claude-opus-4-5',
   sonnet: 'anthropic/claude-sonnet-4-20250514',
   haiku: 'anthropic/claude-haiku-4-5',
@@ -839,8 +842,8 @@ export function CreateAgentModal({
     id: '',
     role: '',
     emoji: '',
-    modelTier: 'sonnet' as 'opus' | 'sonnet' | 'haiku',
-    modelPrimary: DEFAULT_MODEL_BY_TIER.sonnet,
+    modelTier: 'gemini' as 'gemini' | 'opus' | 'sonnet' | 'haiku',
+    modelPrimary: DEFAULT_MODEL_BY_TIER.gemini,
     workspaceAccess: 'rw' as 'rw' | 'ro' | 'none',
     sandboxMode: 'all' as 'all' | 'non-main',
     dockerNetwork: 'none' as 'none' | 'bridge',
@@ -1126,7 +1129,7 @@ export function CreateAgentModal({
               <div>
                 <label className="block text-sm text-muted-foreground mb-1">{t('modelTier')}</label>
                 <div className="flex gap-2">
-                  {(['opus', 'sonnet', 'haiku'] as const).map(tier => (
+                  {(['gemini', 'opus', 'sonnet', 'haiku'] as const).map(tier => (
                     <Button
                       key={tier}
                       onClick={() => setFormData(prev => ({

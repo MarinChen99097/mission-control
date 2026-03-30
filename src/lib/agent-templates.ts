@@ -61,7 +61,7 @@ export interface AgentTemplate {
   label: string
   description: string
   emoji: string
-  modelTier: 'opus' | 'sonnet' | 'haiku'
+  modelTier: 'opus' | 'sonnet' | 'haiku' | 'gemini'
   toolCount: number
   config: Omit<OpenClawAgentConfig, 'id' | 'workspace' | 'agentDir'>
 }
@@ -125,18 +125,25 @@ const HAIKU_FALLBACKS = [
   'openai/codex-mini-latest',
 ]
 
+const GEMINI_PRIMARY = 'google/gemini-3.1-flash-lite-preview'
+const GEMINI_FALLBACKS = [
+  'google/gemini-3.1-flash-preview',
+  'anthropic/claude-sonnet-4-20250514',
+  'openai/codex-mini-latest',
+]
+
 export const AGENT_TEMPLATES: AgentTemplate[] = [
   {
     type: 'orchestrator',
     label: 'Orchestrator',
     description: 'Primary coordinator with full tool access. Routes tasks to specialist agents and manages workflows.',
     emoji: '\ud83e\udded',
-    modelTier: 'opus',
+    modelTier: 'gemini',
     toolCount: 23,
     config: {
       model: {
-        primary: 'anthropic/claude-opus-4-5',
-        fallbacks: OPUS_FALLBACKS,
+        primary: GEMINI_PRIMARY,
+        fallbacks: GEMINI_FALLBACKS,
       },
       identity: {
         name: '',
@@ -173,12 +180,12 @@ export const AGENT_TEMPLATES: AgentTemplate[] = [
     label: 'Developer',
     description: 'Full-stack builder with Docker bridge networking, exec/write access, and subagent spawning.',
     emoji: '\ud83d\udee0\ufe0f',
-    modelTier: 'sonnet',
+    modelTier: 'gemini',
     toolCount: 21,
     config: {
       model: {
-        primary: 'anthropic/claude-sonnet-4-20250514',
-        fallbacks: SONNET_FALLBACKS,
+        primary: GEMINI_PRIMARY,
+        fallbacks: GEMINI_FALLBACKS,
       },
       identity: {
         name: '',
@@ -217,12 +224,12 @@ export const AGENT_TEMPLATES: AgentTemplate[] = [
     label: 'Specialist Dev',
     description: 'Focused developer for specific domains (frontend, backend, blockchain). Docker bridge + write access.',
     emoji: '\u2699\ufe0f',
-    modelTier: 'sonnet',
+    modelTier: 'gemini',
     toolCount: 15,
     config: {
       model: {
-        primary: 'anthropic/claude-sonnet-4-20250514',
-        fallbacks: SONNET_FALLBACKS,
+        primary: GEMINI_PRIMARY,
+        fallbacks: GEMINI_FALLBACKS,
       },
       identity: {
         name: '',
@@ -257,14 +264,14 @@ export const AGENT_TEMPLATES: AgentTemplate[] = [
   {
     type: 'reviewer',
     label: 'Reviewer / QA',
-    description: 'Read-only access for code review, quality gates, and auditing. Lightweight Haiku model.',
+    description: 'Read-only access for code review, quality gates, and auditing.',
     emoji: '\ud83d\udd2c',
-    modelTier: 'haiku',
+    modelTier: 'gemini',
     toolCount: 7,
     config: {
       model: {
-        primary: 'anthropic/claude-haiku-4-5',
-        fallbacks: HAIKU_FALLBACKS,
+        primary: GEMINI_PRIMARY,
+        fallbacks: GEMINI_FALLBACKS,
       },
       identity: {
         name: '',
@@ -297,12 +304,12 @@ export const AGENT_TEMPLATES: AgentTemplate[] = [
     label: 'Researcher',
     description: 'Browser and web access for research tasks. No workspace or code execution.',
     emoji: '\ud83d\udd0d',
-    modelTier: 'sonnet',
+    modelTier: 'gemini',
     toolCount: 8,
     config: {
       model: {
-        primary: 'anthropic/claude-sonnet-4-20250514',
-        fallbacks: SONNET_FALLBACKS,
+        primary: GEMINI_PRIMARY,
+        fallbacks: GEMINI_FALLBACKS,
       },
       identity: {
         name: '',
@@ -336,12 +343,12 @@ export const AGENT_TEMPLATES: AgentTemplate[] = [
     label: 'Content Creator',
     description: 'Write and edit access for content generation. No code execution or browser.',
     emoji: '\u270f\ufe0f',
-    modelTier: 'haiku',
+    modelTier: 'gemini',
     toolCount: 9,
     config: {
       model: {
-        primary: 'anthropic/claude-haiku-4-5',
-        fallbacks: HAIKU_FALLBACKS,
+        primary: GEMINI_PRIMARY,
+        fallbacks: GEMINI_FALLBACKS,
       },
       identity: {
         name: '',
@@ -378,12 +385,12 @@ export const AGENT_TEMPLATES: AgentTemplate[] = [
     label: 'Security Auditor',
     description: 'Read-only workspace with bash for security scanning. No write access to prevent tampering.',
     emoji: '\ud83d\udee1\ufe0f',
-    modelTier: 'sonnet',
+    modelTier: 'gemini',
     toolCount: 10,
     config: {
       model: {
-        primary: 'anthropic/claude-sonnet-4-20250514',
-        fallbacks: SONNET_FALLBACKS,
+        primary: GEMINI_PRIMARY,
+        fallbacks: GEMINI_FALLBACKS,
       },
       identity: {
         name: '',
@@ -467,6 +474,7 @@ export function buildAgentConfig(
 
 /** Model tier display info for UI */
 export const MODEL_TIERS = {
+  gemini: { label: 'Gemini Flash Lite', color: 'cyan', costIndicator: '$' },
   opus: { label: 'Opus', color: 'purple', costIndicator: '$$$' },
   sonnet: { label: 'Sonnet', color: 'blue', costIndicator: '$$' },
   haiku: { label: 'Haiku', color: 'green', costIndicator: '$' },
