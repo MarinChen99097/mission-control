@@ -16,7 +16,11 @@ CREATE TABLE IF NOT EXISTS tasks (
     estimated_hours INTEGER,
     actual_hours INTEGER,
     tags TEXT, -- JSON array of tags
-    metadata TEXT -- JSON for additional data
+    metadata TEXT, -- JSON for additional data
+    parent_task_id INTEGER,
+    blocked_by TEXT DEFAULT '[]',
+    team TEXT,
+    source TEXT NOT NULL DEFAULT 'mc_dashboard'
 );
 
 -- Agents Table - Squad management
