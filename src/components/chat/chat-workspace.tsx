@@ -225,7 +225,12 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
 
   useEffect(() => {
     const sessionMeta = selectedSession
-    if (!sessionMeta) {
+
+    // Lobster conversations (Telegram/Discord) — pull from lobster via gateway
+    const isLobsterConvo = activeConversation?.startsWith('lobster:') ?? false
+    const lobsterConvoId = isLobsterConvo && activeConversation ? activeConversation.replace('lobster:', '') : null
+
+    if (!sessionMeta && !lobsterConvoId) {
       setSessionTranscript([])
       setSessionTranscriptError(null)
       return
@@ -235,16 +240,12 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
     setSessionTranscriptLoading(true)
     setSessionTranscriptError(null)
 
-    // Lobster conversations (Telegram/Discord) — pull from lobster via gateway
-    const isLobsterConvo = activeConversation?.startsWith('lobster:') ?? false
-    const lobsterConvoId = isLobsterConvo && activeConversation ? activeConversation.replace('lobster:', '') : null
-
-    // Gateway sessions use the gateway transcript API
+    // Build fetch URL
     const url = lobsterConvoId
       ? `/api/lobster/conversation/${encodeURIComponent(lobsterConvoId)}`
-      : sessionMeta.sessionKind === 'gateway'
+      : sessionMeta?.sessionKind === 'gateway'
         ? `/api/sessions/transcript/gateway?key=${encodeURIComponent(sessionMeta.sessionKey || sessionMeta.sessionId)}&limit=50`
-        : `/api/sessions/transcript?kind=${encodeURIComponent(sessionMeta.sessionKind)}&id=${encodeURIComponent(sessionMeta.sessionId)}&limit=40`
+        : `/api/sessions/transcript?kind=${encodeURIComponent(sessionMeta?.sessionKind || '')}&id=${encodeURIComponent(sessionMeta?.sessionId || '')}&limit=40`
 
     fetch(url)
       .then(async (res) => {
