@@ -77,11 +77,12 @@ When you finish a sub-task or your own task:
 mc_update_task({ id: TASK_ID, status: "done", outcome: "Summary of what was accomplished" })
 
 Rules:
-1. Break complex work into sequential sub-tasks with blocked_by dependencies
-2. Assign each sub-task to the most appropriate agent from Your Team
-3. Set blocked_by to ensure correct execution order
-4. Update your working_memory so colleagues know your status
-5. When all sub-tasks complete, mark your parent task as done with a summary`
+1. BEFORE creating sub-tasks, check if there are already sub-tasks for your task (parent_task_id = YOUR_TASK_ID). Do NOT create duplicates — reuse existing sub-tasks instead.
+2. Break complex work into sequential sub-tasks with blocked_by dependencies.
+3. ALWAYS assign sub-tasks to specialized agents from Your Team — do NOT assign to yourself. You are the lead, not the executor. For example: assign backend work to "backend-architect", frontend to "frontend-developer", reviews to "code-reviewer", deploy to "devops-automator".
+4. Set blocked_by to ensure correct execution order.
+5. Update your working_memory so colleagues know your status.
+6. When all sub-tasks complete, mark your parent task as done with a summary.`
 
 // ---------------------------------------------------------------------------
 // Prompt builder for Team Leads

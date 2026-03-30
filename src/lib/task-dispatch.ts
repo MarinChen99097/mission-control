@@ -113,7 +113,14 @@ function buildTaskPrompt(task: DispatchableTask, rejectionFeedback?: string | nu
     lines.push('', '## Previous Review Feedback', rejectionFeedback, '', 'Please address this feedback in your response.')
   }
 
-  lines.push('', 'Complete this task and provide your response. Be concise and actionable.')
+  // Add sub-task awareness to prevent duplicates and encourage delegation
+  lines.push(
+    '',
+    '## Important Rules',
+    '1. BEFORE creating sub-tasks, use mc_list_tasks or check if sub-tasks already exist for this task. Do NOT create duplicates.',
+    '2. If you are a Team Lead, ALWAYS delegate implementation work to specialized agents (e.g. backend-architect, frontend-developer, code-reviewer). Do NOT do the work yourself — your role is to plan, delegate, and coordinate.',
+    '3. Complete this task and provide your response. Be concise and actionable.',
+  )
   return lines.join('\n')
 }
 
@@ -656,10 +663,10 @@ export async function dispatchAssignedTasks(): Promise<{ ok: boolean; message: s
     try {
       const blockedByIds: number[] = JSON.parse(blockedByRaw)
       if (!Array.isArray(blockedByIds) || blockedByIds.length === 0) return true
-      // Check if all blocking tasks are done
+      // Check if all blocking tasks are completed (done, review, or quality_review count as unblocked)
       const placeholders = blockedByIds.map(() => '?').join(',')
       const pending = db.prepare(
-        `SELECT COUNT(*) as c FROM tasks WHERE id IN (${placeholders}) AND status != 'done'`
+        `SELECT COUNT(*) as c FROM tasks WHERE id IN (${placeholders}) AND status NOT IN ('done', 'review', 'quality_review')`
       ).get(...blockedByIds) as { c: number }
       return pending.c === 0
     } catch {
@@ -717,7 +724,7 @@ export async function dispatchAssignedTasks(): Promise<{ ok: boolean; message: s
         ? taskMeta.target_session
         : null
 
-      let agentResponse: AgentResponseParsed
+      let agentResponse: AgentResponseParsed = { text: null, sessionId: null }
       const useDirectApi = !isGatewayAvailable() && getAnthropicApiKey()
 
       if (useDirectApi && !targetSession) {
@@ -759,21 +766,60 @@ export async function dispatchAssignedTasks(): Promise<{ ok: boolean; message: s
         // null = no override, agent uses its own configured default model.
         if (dispatchModel) invokeParams.model = dispatchModel
 
-        // Use --expect-final to block until the agent completes and returns the full
-        // response payload (result.payloads[0].text). The two-step agent → agent.wait
-        // pattern only returns lifecycle metadata and never includes the agent's text.
-        const finalResult = await runOpenClaw(
-          ['gateway', 'call', 'agent', '--expect-final', '--timeout', '120000', '--params', JSON.stringify(invokeParams), '--json'],
-          { timeoutMs: 125_000 }
-        )
-        const finalPayload = parseGatewayJson(finalResult.stdout)
-          ?? parseGatewayJson(String((finalResult as any)?.stderr || ''))
+        // Try gateway WS/HTTP RPC first (works in Cloud Run without local CLI).
+        // Falls back to local `openclaw` CLI only if RPC fails for non-ENOENT reasons.
+        let agentResponseResolved = false
+        try {
+          logger.info({ taskId: task.id, agent: task.agent_name, gatewayAgentId }, 'Dispatching task via gateway RPC (agent method)')
+          const rpcResult = await callOpenClawGateway<any>(
+            'agent',
+            invokeParams,
+            125_000,
+          )
 
-        agentResponse = parseAgentResponse(
-          finalPayload?.result ? JSON.stringify(finalPayload.result) : finalResult.stdout
-        )
-        if (!agentResponse.sessionId && finalPayload?.result?.meta?.agentMeta?.sessionId) {
-          agentResponse.sessionId = finalPayload.result.meta.agentMeta.sessionId
+          const text = rpcResult?.payloads?.[0]?.text
+            || rpcResult?.result?.payloads?.[0]?.text
+            || (rpcResult?.result ? JSON.stringify(rpcResult.result) : null)
+            || (typeof rpcResult === 'string' ? rpcResult : JSON.stringify(rpcResult))
+
+          agentResponse = {
+            text,
+            sessionId: rpcResult?.meta?.agentMeta?.sessionId
+              || rpcResult?.sessionId
+              || rpcResult?.session_id
+              || null,
+          }
+          agentResponseResolved = true
+        } catch (rpcErr: any) {
+          logger.warn({ taskId: task.id, err: rpcErr?.message }, 'Gateway RPC dispatch failed, falling back to CLI')
+        }
+
+        if (!agentResponseResolved) {
+          // Fallback: local openclaw CLI (only works if binary is installed)
+          try {
+            const finalResult = await runOpenClaw(
+              ['gateway', 'call', 'agent', '--expect-final', '--timeout', '120000', '--params', JSON.stringify(invokeParams), '--json'],
+              { timeoutMs: 125_000 }
+            )
+            const finalPayload = parseGatewayJson(finalResult.stdout)
+              ?? parseGatewayJson(String((finalResult as any)?.stderr || ''))
+
+            agentResponse = parseAgentResponse(
+              finalPayload?.result ? JSON.stringify(finalPayload.result) : finalResult.stdout
+            )
+            if (!agentResponse.sessionId && finalPayload?.result?.meta?.agentMeta?.sessionId) {
+              agentResponse.sessionId = finalPayload.result.meta.agentMeta.sessionId
+            }
+          } catch (cliErr: any) {
+            // If CLI also fails (e.g. ENOENT), try direct Claude API as last resort
+            const apiKey = getAnthropicApiKey()
+            if (apiKey && cliErr?.message?.includes('ENOENT')) {
+              logger.warn({ taskId: task.id }, 'OpenClaw CLI not found (ENOENT), falling back to direct Claude API')
+              agentResponse = await callClaudeDirectly(task, prompt)
+            } else {
+              throw cliErr
+            }
+          }
         }
       } // end else (new session dispatch)
 
