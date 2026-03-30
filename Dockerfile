@@ -18,6 +18,7 @@ RUN if [ -f pnpm-lock.yaml ]; then \
 FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+ENV NEXT_PUBLIC_GATEWAY_OPTIONAL=true
 RUN pnpm build
 
 FROM node:22.22.0-slim AS runtime
