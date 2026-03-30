@@ -2286,7 +2286,12 @@
     "searchPlaceholder": "搜尋...",
     "selectConversationToView": "選擇對話以查看訊息",
     "inputDisabledPlaceholder": "選擇對話...",
-    "inputPlaceholder": "輸入訊息...（@ 提及，Enter 發送）"
+    "inputPlaceholder": "輸入訊息...（@ 提及，Enter 發送）",
+    "noConversationsYet": "尚無對話",
+    "active": "活躍中",
+    "activeLocal": "本機活躍中",
+    "recent": "最近",
+    "recentLocal": "本機最近"
   },
   "settingsForm": {
     "interfaceMode": "介面模式",

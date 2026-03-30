@@ -1992,6 +1992,28 @@
     "wake": "起動",
     "spawn": "スポーン"
   },
+  "agentNames": {
+    "engineering-lead": "エンジニアリング",
+    "design-lead": "デザイン",
+    "research-lead": "リサーチ",
+    "communications-lead": "コミュニケーション",
+    "marketing-lead": "マーケティング",
+    "finance-lead": "ファイナンス",
+    "operations-lead": "オペレーション",
+    "security-lead": "セキュリティ",
+    "product-lead": "プロダクト",
+    "secretary": "秘書",
+    "engineering-lead_desc": "開発・デプロイ・デバッグ・コードレビュー",
+    "design-lead_desc": "UI/UXデザイン・デザインシステム・ビジュアル監査",
+    "research-lead_desc": "市場調査・競合分析・深層リサーチ",
+    "communications-lead_desc": "メール・SNS・対外コミュニケーション",
+    "marketing-lead_desc": "SEO・キャンペーン・分析",
+    "finance-lead_desc": "コスト追跡・価格戦略・財務レポート",
+    "operations-lead_desc": "スケジュール・ドキュメント・プロセス",
+    "security-lead_desc": "セキュリティ監査・脆弱性スキャン・コンプライアンス",
+    "product-lead_desc": "プロダクト企画・ユーザーリサーチ・スプリント管理",
+    "secretary_desc": "タスクルーティング・指示解析・作業分配"
+  },
   "orchestration": {
     "tabCommand": "コマンド",
     "tabWorkflows": "ワークフロー",

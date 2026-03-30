@@ -129,6 +129,7 @@ interface ConversationListProps {
 
 export function ConversationList({ onNewConversation: _onNewConversation }: ConversationListProps) {
   const t = useTranslations('chat')
+  const ta = useTranslations('agentNames')
   const {
     conversations,
     setConversations,
@@ -479,7 +480,7 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
       {/* Header */}
       <div className="p-3 border-b border-border flex-shrink-0">
         <div className="mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-      Sessions
+      {t('sessions')}
         </div>
         <div className="relative">
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground/50">
@@ -512,7 +513,7 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
             <div className="flex items-center gap-2 w-full">
               <div className="w-7 h-7 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-sm flex-shrink-0">S</div>
               <div className="flex-1 min-w-0 text-left">
-                <span className="text-xs font-medium text-foreground">Secretary</span>
+                <span className="text-xs font-medium text-foreground">{(() => { try { return ta('secretary') } catch { return 'Secretary' } })()}</span>
                 <p className="text-[11px] text-muted-foreground/60 truncate mt-0.5">{t('talkToSecretary')}</p>
               </div>
             </div>
@@ -521,14 +522,14 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
 
         {filteredConversations.length === 0 ? (
           <div className="p-4 text-center text-xs text-muted-foreground/50">
-            No conversations yet
+            {t('noConversationsYet')}
           </div>
         ) : (
           <>
             {lobsterRows.length > 0 && (
               <div>
                 <div className="px-3 pt-2 py-1 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-blue-400/70">
-                  Lobster Conversations
+                  {t('lobsterConversations')}
                 </div>
                 {lobsterRows.map(renderConversationItem)}
               </div>
@@ -537,7 +538,7 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
               <div>
                 <div className="px-3 pt-2 py-1 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-green-400/70">
                   <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                  Active
+                  {t('active')}
                 </div>
                 {activeGatewayRows.map(renderConversationItem)}
               </div>
@@ -546,7 +547,7 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
               <div>
                 <div className="px-3 pt-2 py-1 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-green-400/70">
                   <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                  Active Local
+                  {t('activeLocal')}
                 </div>
                 {activeLocalRows.map(renderConversationItem)}
               </div>
@@ -554,7 +555,7 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
             {inactiveGatewayRows.length > 0 && (
               <div>
                 <div className="px-3 pt-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground/40">
-                  Recent
+                  {t('recent')}
                 </div>
                 {inactiveGatewayRows.map(renderConversationItem)}
               </div>

@@ -1725,6 +1725,26 @@ const migrations: Migration[] = [
       }
       db.exec(`CREATE INDEX IF NOT EXISTS idx_tasks_source ON tasks(source)`)
     }
+  },
+  {
+    id: '057_hide_non_lead_agents',
+    up(db: Database.Database) {
+      // Keep only Team Leads and Secretary visible; hide all other agents by default
+      const visibleAgents = [
+        'engineering-lead',
+        'design-lead',
+        'research-lead',
+        'communications-lead',
+        'marketing-lead',
+        'finance-lead',
+        'operations-lead',
+        'security-lead',
+        'product-lead',
+        'secretary',
+      ]
+      const placeholders = visibleAgents.map(() => '?').join(', ')
+      db.prepare(`UPDATE agents SET hidden = 1 WHERE name NOT IN (${placeholders})`).run(...visibleAgents)
+    }
   }
 ]
 

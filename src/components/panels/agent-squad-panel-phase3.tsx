@@ -93,8 +93,24 @@ const statusCardStyles: Record<string, { edge: string; glow: string; dot: string
   },
 }
 
+function useAgentDisplayName() {
+  const ta = useTranslations('agentNames')
+  return (name: string) => {
+    try { return ta(name as any) } catch { return name }
+  }
+}
+
+function useAgentDescription() {
+  const ta = useTranslations('agentNames')
+  return (name: string) => {
+    try { return ta(`${name}_desc` as any) } catch { return null }
+  }
+}
+
 export function AgentSquadPanelPhase3() {
   const t = useTranslations('agentSquadPhase3')
+  const getDisplayName = useAgentDisplayName()
+  const getAgentDesc = useAgentDescription()
   const { agents, setAgents } = useMissionControl()
   const [loading, setLoading] = useState(agents.length === 0)
   const [error, setError] = useState<string | null>(null)
@@ -435,7 +451,7 @@ export function AgentSquadPanelPhase3() {
                       <AgentAvatar name={agent.name} size="md" />
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <h3 className="font-semibold text-foreground truncate">{agent.name}</h3>
+                          <h3 className="font-semibold text-foreground truncate">{getDisplayName(agent.name)}</h3>
                           {(agent as any).source && (agent as any).source !== 'manual' && (
                             <span className={`text-2xs px-1.5 py-0.5 rounded-full border ${
                               (agent as any).source === 'local'
@@ -449,7 +465,7 @@ export function AgentSquadPanelPhase3() {
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground truncate">
-                          {agent.role}{modelName && <> · <span className="font-mono text-muted-foreground/80">{modelName}</span></>}
+                          {getAgentDesc(agent.name) || agent.role}{modelName && <> · <span className="font-mono text-muted-foreground/80">{modelName}</span></>}
                         </p>
                       </div>
                     </div>
@@ -594,6 +610,8 @@ function AgentDetailModalPhase3({
   onWakeAgent: (name: string, sessionKey: string) => Promise<void>
   onDelete: (agentId: number, removeWorkspace: boolean) => Promise<void>
 }) {
+  const getDisplayName = useAgentDisplayName()
+  const getAgentDesc = useAgentDescription()
   const [agentState, setAgentState] = useState<Agent & { config?: any; working_memory?: string }>(agent as Agent & { config?: any; working_memory?: string })
   const [activeTab, setActiveTab] = useState<'overview' | 'soul' | 'memory' | 'config' | 'tasks' | 'activity' | 'files' | 'tools' | 'channels' | 'cron' | 'models'>('overview')
   const [editing, setEditing] = useState(false)
@@ -867,7 +885,7 @@ function AgentDetailModalPhase3({
               <AgentAvatar name={agent.name} size="md" />
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-semibold text-foreground leading-tight truncate">{agentState.name}</h3>
+                  <h3 className="text-lg font-semibold text-foreground leading-tight truncate">{getDisplayName(agentState.name)}</h3>
                   <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border ${statusBadgeStyles[agentState.status]}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${statusColors[agentState.status]}`} />
                     {agentState.status}
@@ -1059,6 +1077,7 @@ function QuickSpawnModal({
   onClose: () => void
   onSpawned: () => void
 }) {
+  const getDisplayName = useAgentDisplayName()
   const [taskDescription, setTaskDescription] = useState('')
   const [priority, setPriority] = useState('medium')
   const [isSpawning, setIsSpawning] = useState(false)
@@ -1109,7 +1128,7 @@ function QuickSpawnModal({
       <div className="bg-card border border-border rounded-lg max-w-md w-full p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold text-foreground">
-            Assign Task to {agent.name}
+            Assign Task to {getDisplayName(agent.name)}
           </h3>
           <Button onClick={onClose} variant="ghost" size="icon-sm" className="text-2xl">×</Button>
         </div>
@@ -1121,7 +1140,7 @@ function QuickSpawnModal({
             </div>
             <div className="text-sm text-foreground/80">
               <p><strong>Task ID:</strong> #{spawnResult.task?.id || spawnResult.id}</p>
-              <p><strong>Assigned to:</strong> {agent.name}</p>
+              <p><strong>Assigned to:</strong> {getDisplayName(agent.name)}</p>
               <p><strong>Runtime:</strong> {runtimeLabel}</p>
             </div>
           </div>
@@ -1141,7 +1160,7 @@ function QuickSpawnModal({
               <textarea
                 value={taskDescription}
                 onChange={(e) => setTaskDescription(e.target.value)}
-                placeholder={`What should ${agent.name} do?`}
+                placeholder={`What should ${getDisplayName(agent.name)} do?`}
                 className="w-full h-24 px-3 py-2 bg-surface-1 border border-border rounded text-foreground placeholder-muted-foreground focus:border-primary/50 focus:ring-1 focus:ring-primary/50 resize-none"
               />
             </div>

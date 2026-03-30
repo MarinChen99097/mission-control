@@ -2279,14 +2279,19 @@
     "agentChat": "Agent Chat",
     "online": "{count} online",
     "sessions": "SESSIONS",
-    "lobsterConversations": "LOBSTER CONVERSATIONS",
+    "lobsterConversations": "Lobster Conversations",
     "selectConversation": "Select a conversation",
     "startNewConversation": "or start a new one with an agent",
     "talkToSecretary": "Talk to the secretary agent",
     "searchPlaceholder": "Search...",
     "selectConversationToView": "Select a conversation to view messages",
     "inputDisabledPlaceholder": "Select a conversation...",
-    "inputPlaceholder": "Message... (@ to mention, Enter to send)"
+    "inputPlaceholder": "Message... (@ to mention, Enter to send)",
+    "noConversationsYet": "No conversations yet",
+    "active": "Active",
+    "activeLocal": "Active Local",
+    "recent": "Recent",
+    "recentLocal": "Recent Local"
   },
   "settingsForm": {
     "interfaceMode": "Interface Mode",
