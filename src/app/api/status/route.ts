@@ -624,7 +624,14 @@ async function getCapabilities(request?: NextRequest) {
     // ignore — fall through to default probe
   }
 
-  const gateway = gatewayReachable || await isPortOpen(config.gatewayHost, config.gatewayPort)
+  // Check local gateway port OR if a primary gateway is registered in DB
+  let hasRegisteredGateway = false
+  try {
+    const db = getDatabase()
+    const row = db.prepare("SELECT COUNT(*) as c FROM gateways WHERE is_primary = 1").get() as { c: number } | undefined
+    hasRegisteredGateway = (row?.c ?? 0) > 0
+  } catch { /* gateways table may not exist */ }
+  const gateway = gatewayReachable || hasRegisteredGateway || await isPortOpen(config.gatewayHost, config.gatewayPort)
 
   const openclawHome = Boolean(
     (config.openclawStateDir && existsSync(config.openclawStateDir)) ||
