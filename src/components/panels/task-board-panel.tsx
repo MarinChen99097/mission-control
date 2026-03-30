@@ -383,10 +383,13 @@ interface SpawnFormData {
   timeoutSeconds: number
 }
 
+import { TaskTreePanel } from './task-tree-panel'
+
 export function TaskBoardPanel() {
   const t = useTranslations('taskBoard')
   const statusColumns = STATUS_COLUMN_KEYS.map(col => ({ ...col, title: t(col.titleKey as any) }))
   const { tasks: storeTasks, setTasks: storeSetTasks, selectedTask, setSelectedTask, activeProject, availableModels, spawnRequests, addSpawnRequest, updateSpawnRequest, dashboardMode } = useMissionControl()
+  const [viewMode, setViewMode] = useState<'board' | 'tree'>('board')
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -775,6 +778,16 @@ export function TaskBoardPanel() {
       <div className="flex justify-between items-center p-4 border-b border-border flex-shrink-0">
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-bold text-foreground">{t('title')}</h2>
+          <div className="flex rounded-lg border border-border/50 overflow-hidden">
+            <button
+              className={`px-2.5 py-1 text-xs font-medium transition-colors ${viewMode === 'board' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => setViewMode('board')}
+            >Board</button>
+            <button
+              className={`px-2.5 py-1 text-xs font-medium transition-colors ${viewMode === 'tree' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => setViewMode('tree')}
+            >Tree</button>
+          </div>
           {gnapStatus?.enabled && (
             <button
               onClick={handleGnapSync}
@@ -950,8 +963,15 @@ export function TaskBoardPanel() {
         )
       })()}
 
+      {/* Tree View */}
+      {viewMode === 'tree' && (
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <TaskTreePanel />
+        </div>
+      )}
+
       {/* Kanban Board */}
-      <div className="flex-1 min-h-0 flex gap-4 p-4 overflow-x-auto" role="region" aria-label={t('taskBoard')}>
+      {viewMode === 'board' && <div className="flex-1 min-h-0 flex gap-4 p-4 overflow-x-auto" role="region" aria-label={t('taskBoard')}>
         {statusColumns.map(column => (
           <div
             key={column.key}
@@ -1174,7 +1194,7 @@ export function TaskBoardPanel() {
             </div>
           </div>
         ))}
-      </div>
+      </div>}
 
       {/* Claude Code Tasks */}
       <ClaudeCodeTasksSection />
