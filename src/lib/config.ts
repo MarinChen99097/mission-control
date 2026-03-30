@@ -80,7 +80,7 @@ export const config = {
   openclawBin: process.env.OPENCLAW_BIN || 'openclaw',
   clawdbotBin: process.env.CLAWDBOT_BIN || 'clawdbot',
   gatewayHost: process.env.OPENCLAW_GATEWAY_HOST || '127.0.0.1',
-  gatewayPort: clampInt(Number(process.env.OPENCLAW_GATEWAY_PORT || '18789'), 1, 65535, 18789),
+  gatewayPort: clampInt(Number(process.env.OPENCLAW_GATEWAY_PORT || process.env.NEXT_PUBLIC_GATEWAY_PORT || '18789'), 1, 65535, 18789),
   /** Full gateway base URL with correct protocol (https for port 443 or external hosts). */
   get gatewayUrl(): string {
     const host = this.gatewayHost
