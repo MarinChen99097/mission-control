@@ -66,6 +66,13 @@ function initializeSchema() {
   if (!db) return;
   try {
     runMigrations(db);
+    // Ensure critical columns exist (fix for Cloud Run stateless races)
+    try {
+      const taskCols = db.prepare('PRAGMA table_info(tasks)').all() as Array<{ name: string }>
+      if (!taskCols.some(c => c.name === 'source')) {
+        db.exec(`ALTER TABLE tasks ADD COLUMN source TEXT NOT NULL DEFAULT 'mc_dashboard'`)
+      }
+    } catch { /* table may not exist yet */ }
     seedAdminUserFromEnv(db);
     ensureGatewayFromEnv(db);
 
@@ -222,8 +229,9 @@ export interface Task {
   id: number;
   title: string;
   description?: string;
-  status: 'inbox' | 'assigned' | 'in_progress' | 'review' | 'quality_review' | 'done';
+  status: 'inbox' | 'assigned' | 'in_progress' | 'review' | 'quality_review' | 'awaiting_owner' | 'done';
   priority: 'low' | 'medium' | 'high' | 'urgent';
+  source?: 'mc_dashboard' | 'telegram' | 'discord' | 'api';
   project_id?: number;
   project_ticket_no?: number;
   project_name?: string;
