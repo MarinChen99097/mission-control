@@ -69,8 +69,16 @@ function initializeSchema() {
     // Ensure critical columns exist (fix for Cloud Run stateless races)
     try {
       const taskCols = db.prepare('PRAGMA table_info(tasks)').all() as Array<{ name: string }>
-      if (!taskCols.some(c => c.name === 'source')) {
-        db.exec(`ALTER TABLE tasks ADD COLUMN source TEXT NOT NULL DEFAULT 'mc_dashboard'`)
+      const needed = [
+        { name: 'parent_task_id', sql: 'ALTER TABLE tasks ADD COLUMN parent_task_id INTEGER' },
+        { name: 'blocked_by', sql: "ALTER TABLE tasks ADD COLUMN blocked_by TEXT DEFAULT '[]'" },
+        { name: 'team', sql: 'ALTER TABLE tasks ADD COLUMN team TEXT' },
+        { name: 'source', sql: "ALTER TABLE tasks ADD COLUMN source TEXT NOT NULL DEFAULT 'mc_dashboard'" },
+      ]
+      for (const col of needed) {
+        if (!taskCols.some(c => c.name === col.name)) {
+          db.exec(col.sql)
+        }
       }
     } catch { /* table may not exist yet */ }
     seedAdminUserFromEnv(db);
