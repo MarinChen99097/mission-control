@@ -135,6 +135,11 @@ export function useServerEvents() {
         // Chat events
         case 'chat.message':
           if (event.data?.id) {
+            // Skip human messages — already handled by optimistic update in chat-workspace
+            if (event.data.from_agent === 'human') {
+              console.debug('[CHAT-DEBUG] SSE chat.message SKIPPED (human) id=', event.data.id)
+              break
+            }
             console.debug('[CHAT-DEBUG] SSE chat.message id=', event.data.id, 'from=', event.data.from_agent, 'content=', event.data.content?.slice(0, 30))
             addChatMessage({
               id: event.data.id,

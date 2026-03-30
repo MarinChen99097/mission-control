@@ -516,7 +516,10 @@ export function useWebSocket() {
       } else if (frame.event === 'chat.message') {
         // Real-time chat message from gateway
         const msg = frame.payload
-        if (msg) {
+        if (msg && msg.from_agent === 'human') {
+          // Skip human messages — already handled by optimistic update
+          console.debug('[CHAT-DEBUG] WS chat.message SKIPPED (human) id=', msg.id)
+        } else if (msg) {
           console.debug('[CHAT-DEBUG] WS chat.message id=', msg.id, 'from=', msg.from_agent, 'content=', msg.content?.slice(0, 30))
           addChatMessage({
             id: msg.id,
