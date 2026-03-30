@@ -1006,7 +1006,7 @@ export function SettingsPanel() {
 }
 
 function InterfaceModeSelector() {
-  const ts = useTranslations('settings')
+  const t = useTranslations('settings')
   const { interfaceMode, setInterfaceMode } = useMissionControl()
   const [saving, setSaving] = useState(false)
   const navigateToPanel = useNavigateToPanel()
@@ -1034,14 +1034,14 @@ function InterfaceModeSelector() {
 
   return (
     <div className="bg-card border border-border rounded-lg p-4">
-      <h3 className="text-sm font-medium text-foreground mb-1">{ts('interfaceMode')}</h3>
+      <h3 className="text-sm font-medium text-foreground mb-1">{t('interfaceMode')}</h3>
       <p className="text-xs text-muted-foreground mb-3">
-        {ts('interfaceModeDesc')}
+        {t('interfaceModeDesc')}
       </p>
       <div className="space-y-2">
         {([
-          { value: 'essential' as const, label: ts('interfaceModeEssential'), desc: ts('interfaceModeEssentialDesc') },
-          { value: 'full' as const, label: ts('interfaceModeFull'), desc: ts('interfaceModeFullDesc') },
+          { value: 'essential' as const, label: t('interfaceModeEssential'), desc: t('interfaceModeEssentialDesc') },
+          { value: 'full' as const, label: t('interfaceModeFull'), desc: t('interfaceModeFullDesc') },
         ]).map(option => (
           <button
             key={option.value}
@@ -1067,19 +1067,19 @@ function InterfaceModeSelector() {
           </button>
         ))}
       </div>
-      <p className="text-2xs text-muted-foreground/60 mt-2">{ts('interfaceModeSwitchHint')}</p>
+      <p className="text-2xs text-muted-foreground/60 mt-2">{t('interfaceModeSwitchHint')}</p>
     </div>
   )
 }
 
 function LanguageSection() {
-  const ts = useTranslations('settings')
+  const t = useTranslations('settings')
   return (
     <div className="bg-card border border-border rounded-lg p-4">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-foreground">{ts('language')}</p>
-          <p className="text-2xs text-muted-foreground mt-0.5">{ts('languageDescription')}</p>
+          <p className="text-sm font-medium text-foreground">{t('language')}</p>
+          <p className="text-2xs text-muted-foreground mt-0.5">{t('languageDescription')}</p>
         </div>
         <LanguageSwitcherSelect />
       </div>
