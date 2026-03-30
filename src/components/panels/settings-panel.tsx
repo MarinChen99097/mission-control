@@ -1006,6 +1006,7 @@ export function SettingsPanel() {
 }
 
 function InterfaceModeSelector() {
+  const ts = useTranslations('settings')
   const { interfaceMode, setInterfaceMode } = useMissionControl()
   const [saving, setSaving] = useState(false)
   const navigateToPanel = useNavigateToPanel()

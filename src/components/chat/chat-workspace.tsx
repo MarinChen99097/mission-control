@@ -127,26 +127,44 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOverlay, onClose])
 
-  // Forward message to Gateway via WebSocket RPC (with retry queue for disconnects)
-  const forwardViaWebSocket = useCallback((to: string, content: string, idempotencyKey: string) => {
-    const sent = wsSend({
-      type: 'req',
-      method: 'agent',
-      id: `mc-chat-${idempotencyKey}`,
-      params: {
-        agentId: to,
-        message: `Message from Admin: ${content}`,
-        idempotencyKey,
-        deliver: false,
-      },
-    })
-    if (!sent) {
-      // Queue for retry when WebSocket reconnects
-      forwardQueueRef.current.push({ to, content, idempotencyKey })
-      log.warn('WebSocket not connected, queued forward for retry')
+  // Forward message to Gateway via HTTP API (reliable) or WebSocket (if session key available)
+  const forwardViaApi = useCallback(async (to: string, content: string, idempotencyKey: string) => {
+    // Use the sessionKey from the selected conversation's session if available
+    const sessionKey = selectedSession?.sessionKey
+    if (sessionKey && wsConnected) {
+      // Prefer WebSocket with proper sessionKey for active sessions
+      const sent = wsSend({
+        type: 'req',
+        method: 'chat.send',
+        id: `mc-chat-${idempotencyKey}`,
+        params: {
+          sessionKey,
+          message: `Message from Admin: ${content}`,
+          idempotencyKey,
+          deliver: false,
+        },
+      })
+      if (sent) return
     }
-    return sent
-  }, [wsSend])
+    // Fallback: HTTP API with forward=true (server-side handles routing)
+    try {
+      await fetch('/api/chat/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: 'human',
+          to,
+          content,
+          conversation_id: `agent_${to}`,
+          message_type: 'text',
+          forward: true,
+          sessionKey: sessionKey || undefined,
+        }),
+      })
+    } catch (err) {
+      log.warn('Failed to forward message via API:', err)
+    }
+  }, [wsSend, wsConnected, selectedSession])
 
   // Drain forward queue when WebSocket reconnects
   useEffect(() => {
@@ -154,9 +172,9 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
     const queue = [...forwardQueueRef.current]
     forwardQueueRef.current = []
     for (const item of queue) {
-      forwardViaWebSocket(item.to, item.content, item.idempotencyKey)
+      forwardViaApi(item.to, item.content, item.idempotencyKey)
     }
-  }, [wsConnected, forwardViaWebSocket])
+  }, [wsConnected, forwardViaApi])
 
   // Send message handler with optimistic updates
   const handleSend = async (content: string, attachments?: ChatAttachment[]) => {
@@ -211,9 +229,9 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
         console.debug('[CHAT-DEBUG] POST response ok, message id=', data.message?.id, 'tempId=', tempId)
         if (data.message) {
           replacePendingMessage(tempId, data.message)
-          // Forward to Gateway via front-end WebSocket (self-healing: queued on disconnect)
+          // Forward to Gateway via API (with WebSocket upgrade when session available)
           if (to) {
-            forwardViaWebSocket(to, cleanContent, `mc-${data.message.id}-${Date.now()}`)
+            forwardViaApi(to, cleanContent, `mc-${data.message.id}-${Date.now()}`)
           }
         }
       } else {
