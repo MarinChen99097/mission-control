@@ -176,9 +176,8 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
     }
   }, [wsConnected, forwardViaApi])
 
-  // Send message handler with optimistic updates
+  // Send message handler — no optimistic update, single source of truth from POST response
   const handleSend = async (content: string, attachments?: ChatAttachment[]) => {
-    console.debug('[CHAT-DEBUG] handleSend called, content=', content?.slice(0, 30), 'sendingRef=', sendingRef.current, 'conv=', activeConversation)
     if (!activeConversation || sendingRef.current) return
     sendingRef.current = true
 
@@ -190,26 +189,9 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
       to = activeConversation.replace('agent_', '')
     }
 
-    // Create optimistic message with negative temp ID
-    pendingIdRef.current -= 1
-    const tempId = pendingIdRef.current
-    const optimisticMessage = {
-      id: tempId,
-      conversation_id: activeConversation,
-      from_agent: 'human',
-      to_agent: to,
-      content: cleanContent,
-      message_type: 'text' as const,
-      attachments,
-      created_at: Math.floor(Date.now() / 1000),
-      pendingStatus: 'sending' as const,
-    }
-
-    addChatMessage(optimisticMessage)
     setIsGenerating(true)
 
     try {
-      // Store message in DB (no server-side forward — we forward via WebSocket below)
       const res = await fetch('/api/chat/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -226,20 +208,16 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
 
       if (res.ok) {
         const data = await res.json()
-        console.debug('[CHAT-DEBUG] POST response ok, message id=', data.message?.id, 'tempId=', tempId)
         if (data.message) {
-          replacePendingMessage(tempId, data.message)
-          // Forward to Gateway via API (with WebSocket upgrade when session available)
+          addChatMessage(data.message)
+          // Forward to Gateway via API
           if (to) {
             forwardViaApi(to, cleanContent, `mc-${data.message.id}-${Date.now()}`)
           }
         }
-      } else {
-        updatePendingMessage(tempId, { pendingStatus: 'failed' })
       }
     } catch (err) {
       log.error('Failed to send message:', err)
-      updatePendingMessage(tempId, { pendingStatus: 'failed' })
     } finally {
       setIsGenerating(false)
       sendingRef.current = false
