@@ -14,6 +14,7 @@
  */
 
 import type Database from 'better-sqlite3'
+import { lobsterFetch } from './lobster-api'
 
 export interface TeamLeadRow {
   id: number
@@ -84,6 +85,24 @@ Rules:
 5. When all sub-tasks complete, mark your parent task as done with a summary`
 
 // ---------------------------------------------------------------------------
+// Guide fragment fetcher — pulls from lobster via gateway
+// ---------------------------------------------------------------------------
+
+export async function fetchGuideFragments(names: string[]): Promise<string> {
+  if (!names || names.length === 0) return ''
+  try {
+    const data = await lobsterFetch(`/api/guide-fragments/${names.join(',')}`)
+    if (data?.fragments) {
+      return data.fragments
+        .filter((f: any) => f.content)
+        .map((f: any) => f.content)
+        .join('\n\n---\n\n')
+    }
+  } catch { /* gateway unreachable — skip fragments */ }
+  return ''
+}
+
+// ---------------------------------------------------------------------------
 // Prompt builder for Team Leads
 // ---------------------------------------------------------------------------
 
@@ -91,6 +110,7 @@ export function buildTeamLeadSystemPrompt(
   teamLead: TeamLeadRow,
   task: DispatchableTaskExt,
   db: Database.Database,
+  guideContent?: string,
 ): string {
   const parts: string[] = []
 
@@ -101,6 +121,12 @@ export function buildTeamLeadSystemPrompt(
   if (teamLead.sop_content) {
     parts.push('\n## Your SOP / Playbook\n')
     parts.push(teamLead.sop_content)
+  }
+
+  // B2. Guide Fragments (from PROFESSIONAL_ENGINEERING_TEAM_GUIDE)
+  if (guideContent) {
+    parts.push('\n## Professional Standards (from Team Guide)\n')
+    parts.push(guideContent)
   }
 
   // C. Your Team — agent_types
@@ -142,6 +168,7 @@ export function buildTeamLeadSystemPrompt(
 export function buildAgentSystemPrompt(
   task: DispatchableTaskExt,
   db: Database.Database,
+  guideContent?: string,
 ): string | null {
   // Read agent's soul_content and config
   const agentRow = db.prepare(
@@ -172,6 +199,12 @@ export function buildAgentSystemPrompt(
     for (const at of agentTypes) {
       parts.push(`- ${at}`)
     }
+  }
+
+  // D2. Guide Fragments
+  if (guideContent) {
+    parts.push('\n## Professional Standards (from Team Guide)\n')
+    parts.push(guideContent)
   }
 
   // D. MCP tools
