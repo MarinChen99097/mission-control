@@ -36,10 +36,8 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
     notifications,
   } = useMissionControl()
 
-  const { sendMessage: wsSend, isConnected: wsConnected } = useWebSocket()
-  const pendingIdRef = useRef(-1)
+  const { sendMessage: wsSend } = useWebSocket()
   const sendingRef = useRef(false)
-  const forwardQueueRef = useRef<Array<{ to: string; content: string; idempotencyKey: string }>>([])
 
   const [showConversations, setShowConversations] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
@@ -127,33 +125,6 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOverlay, onClose])
 
-  // Forward message to Gateway via WebSocket RPC (with retry queue for disconnects)
-  const forwardViaGateway = useCallback((to: string, content: string, idempotencyKey: string) => {
-    const sessionKey = selectedSession?.sessionKey
-    // Use chat.send if we have a sessionKey, otherwise use agent RPC
-    const method = sessionKey ? 'chat.send' : 'agent'
-    const params = sessionKey
-      ? { sessionKey, message: `Message from Admin: ${content}`, idempotencyKey, deliver: false }
-      : { agentId: to, message: `Message from Admin: ${content}`, idempotencyKey, deliver: false }
-
-    const sent = wsSend({ type: 'req', method, id: `mc-chat-${idempotencyKey}`, params })
-    if (!sent) {
-      forwardQueueRef.current.push({ to, content, idempotencyKey })
-      log.warn('WebSocket not connected, queued forward for retry')
-    }
-    return sent
-  }, [wsSend, selectedSession])
-
-  // Drain forward queue when WebSocket reconnects
-  useEffect(() => {
-    if (!wsConnected || forwardQueueRef.current.length === 0) return
-    const queue = [...forwardQueueRef.current]
-    forwardQueueRef.current = []
-    for (const item of queue) {
-      forwardViaGateway(item.to, item.content, item.idempotencyKey)
-    }
-  }, [wsConnected, forwardViaGateway])
-
   // Send message handler — no optimistic update, single source of truth from POST response
   const handleSend = async (content: string, attachments?: ChatAttachment[]) => {
     if (!activeConversation || sendingRef.current) return
@@ -180,7 +151,7 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
           conversation_id: activeConversation,
           message_type: 'text',
           attachments,
-          forward: false,
+          forward: true,
         }),
       })
 
@@ -188,10 +159,6 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
         const data = await res.json()
         if (data.message) {
           addChatMessage(data.message)
-          // Forward to Gateway via API
-          if (to) {
-            forwardViaGateway(to, cleanContent, `mc-${data.message.id}-${Date.now()}`)
-          }
         }
       }
     } catch (err) {
