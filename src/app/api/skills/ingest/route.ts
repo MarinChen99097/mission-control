@@ -26,8 +26,8 @@ export async function POST(request: NextRequest) {
 
     const db = getDatabase()
     const upsert = db.prepare(`
-      INSERT INTO skills (name, source, path, description, content_hash, installed_at, updated_at, workspace_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+      INSERT INTO skills (name, source, path, description, content_hash, installed_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(source, name) DO UPDATE SET
         path = excluded.path,
         description = excluded.description,
