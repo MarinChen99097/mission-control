@@ -141,6 +141,14 @@ const TOOLS = [
     },
   },
 
+  // --- Agent Health ---
+  {
+    name: 'mc_agents_health_summary',
+    description: 'Get aggregate health summary for all agents: total, healthy, degraded, offline, unknown counts plus per-agent details. Cached for 30s.',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+    handler: async () => api('GET', '/api/agents/health-summary'),
+  },
+
   // --- Agent Memory ---
   {
     name: 'mc_read_memory',
