@@ -1033,14 +1033,14 @@ function InterfaceModeSelector() {
 
   return (
     <div className="bg-card border border-border rounded-lg p-4">
-      <h3 className="text-sm font-medium text-foreground mb-1">Interface Mode</h3>
+      <h3 className="text-sm font-medium text-foreground mb-1">{ts('interfaceMode')}</h3>
       <p className="text-xs text-muted-foreground mb-3">
-        Controls how many panels appear in the sidebar.
+        {ts('interfaceModeDesc')}
       </p>
       <div className="space-y-2">
         {([
-          { value: 'essential' as const, label: 'Essential', desc: 'Focused view with core panels only — Overview, Agents, Tasks, Chat, Activity, Logs, Settings.' },
-          { value: 'full' as const, label: 'Full', desc: 'All panels and advanced features including Memory, Cron, Webhooks, Alerts, Audit, and more.' },
+          { value: 'essential' as const, label: ts('interfaceModeEssential'), desc: ts('interfaceModeEssentialDesc') },
+          { value: 'full' as const, label: ts('interfaceModeFull'), desc: ts('interfaceModeFullDesc') },
         ]).map(option => (
           <button
             key={option.value}
@@ -1066,7 +1066,7 @@ function InterfaceModeSelector() {
           </button>
         ))}
       </div>
-      <p className="text-2xs text-muted-foreground/60 mt-2">You can also switch from the sidebar footer.</p>
+      <p className="text-2xs text-muted-foreground/60 mt-2">{ts('interfaceModeSwitchHint')}</p>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useCallback, useState, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { useMissionControl, type Conversation, type ChatAttachment } from '@/store'
 import { useWebSocket } from '@/lib/websocket'
 import { useSmartPoll } from '@/lib/use-smart-poll'
@@ -20,6 +21,7 @@ interface ChatWorkspaceProps {
 }
 
 export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps) {
+  const t = useTranslations('chat')
   const {
     activeConversation,
     setActiveConversation,
@@ -386,10 +388,10 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
               <path d="M14 10c0 .37-.1.7-.28 1-.53.87-2.2 3-5.72 3-4.42 0-6-3-6-4V4a2 2 0 012-2h8a2 2 0 012 2v6z" />
               <path d="M6 7h.01M10 7h.01" />
             </svg>
-            <span className="text-sm font-semibold text-foreground">Agent Chat</span>
+            <span className="text-sm font-semibold text-foreground">{t('agentChat')}</span>
           </div>
           <span className="hidden text-xs text-muted-foreground sm:inline">
-            {agents.filter(a => a.status === 'busy' || a.status === 'idle').length} online
+            {t('online', { count: agents.filter(a => a.status === 'busy' || a.status === 'idle').length })}
           </span>
         </div>
 

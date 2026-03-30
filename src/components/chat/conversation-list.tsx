@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { useMissionControl, Conversation } from '@/store'
 import { useSmartPoll } from '@/lib/use-smart-poll'
 import { createClientLogger } from '@/lib/client-logger'
@@ -127,6 +128,7 @@ interface ConversationListProps {
 }
 
 export function ConversationList({ onNewConversation: _onNewConversation }: ConversationListProps) {
+  const t = useTranslations('chat')
   const {
     conversations,
     setConversations,
@@ -488,7 +490,7 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search..."
+            placeholder={t('searchPlaceholder')}
             className="w-full bg-surface-1 rounded-md pl-7 pr-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary/30"
           />
         </div>
@@ -511,7 +513,7 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
               <div className="w-7 h-7 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-sm flex-shrink-0">S</div>
               <div className="flex-1 min-w-0 text-left">
                 <span className="text-xs font-medium text-foreground">Secretary</span>
-                <p className="text-[11px] text-muted-foreground/60 truncate mt-0.5">Talk to the secretary agent</p>
+                <p className="text-[11px] text-muted-foreground/60 truncate mt-0.5">{t('talkToSecretary')}</p>
               </div>
             </div>
           </Button>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useEffect, useState, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { useMissionControl, ChatMessage } from '@/store'
 import { MessageBubble } from './message-bubble'
 import { Button } from '@/components/ui/button'
@@ -47,6 +48,7 @@ function isGroupedWithPrevious(messages: ChatMessage[], index: number): boolean 
 }
 
 export function MessageList() {
+  const t = useTranslations('chat')
   const { chatMessages, activeConversation, isSendingMessage, updatePendingMessage, removePendingMessage, addChatMessage } = useMissionControl()
   const bottomRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -136,8 +138,8 @@ export function MessageList() {
               <path d="M6 7h.01M10 7h.01" />
             </svg>
           </div>
-          <p className="text-sm text-muted-foreground">Select a conversation</p>
-          <p className="text-xs text-muted-foreground/50 mt-1">or start a new one with an agent</p>
+          <p className="text-sm text-muted-foreground">{t('selectConversation')}</p>
+          <p className="text-xs text-muted-foreground/50 mt-1">{t('startNewConversation')}</p>
         </div>
       </div>
     )

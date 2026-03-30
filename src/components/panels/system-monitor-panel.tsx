@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { useSmartPoll } from '@/lib/use-smart-poll'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from 'recharts'
 
@@ -93,6 +94,7 @@ function formatTime(ts: number): string {
 }
 
 export function SystemMonitorPanel() {
+  const t = useTranslations('systemMonitor')
   const [latest, setLatest] = useState<Snapshot | null>(null)
   const [history, setHistory] = useState<TimePoint[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -163,7 +165,7 @@ export function SystemMonitorPanel() {
   if (!latest) {
     return (
       <div className="p-5 flex items-center justify-center h-64 text-muted-foreground">
-        {error ? `Error: ${error}` : 'Loading system metrics...'}
+        {error ? `Error: ${error}` : t('loadingMetrics')}
       </div>
     )
   }
@@ -171,7 +173,7 @@ export function SystemMonitorPanel() {
   return (
     <div className="p-5 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">System Monitor</h2>
+        <h2 className="text-lg font-semibold">{t('title')}</h2>
         {error && <span className="text-xs text-red-500">{error}</span>}
       </div>
 
@@ -251,7 +253,7 @@ export function SystemMonitorPanel() {
             <h3 className="text-sm font-medium">Disk</h3>
           </div>
           {latest.disk.length === 0 ? (
-            <div className="text-xs text-muted-foreground">No disk data available</div>
+            <div className="text-xs text-muted-foreground">{t('noDiskData')}</div>
           ) : (
             <div className="space-y-3">
               {latest.disk.map(d => (
@@ -284,7 +286,7 @@ export function SystemMonitorPanel() {
           </div>
           {!latest.gpu ? (
             <div className="flex items-center justify-center h-40 text-xs text-muted-foreground">
-              No GPU detected
+              {t('noGpuDetected')}
             </div>
           ) : (
             <>
@@ -319,7 +321,7 @@ export function SystemMonitorPanel() {
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-40 text-xs text-muted-foreground">
-                  GPU detected but live memory usage unavailable
+                  {t('gpuNoMemory')}
                 </div>
               )}
             </>
@@ -328,12 +330,12 @@ export function SystemMonitorPanel() {
         {/* Processes */}
         <section className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium">Top Processes</h3>
-            <span className="text-xs text-muted-foreground">{latest.processes.length} shown</span>
+            <h3 className="text-sm font-medium">{t('topProcesses')}</h3>
+            <span className="text-xs text-muted-foreground">{t('shown', { count: latest.processes.length })}</span>
           </div>
           {latest.processes.length === 0 ? (
             <div className="flex items-center justify-center h-40 text-xs text-muted-foreground">
-              No process data available
+              {t('noProcessData')}
             </div>
           ) : (
             <div className="space-y-0">
@@ -378,7 +380,7 @@ export function SystemMonitorPanel() {
           </div>
           {latest.network.length === 0 ? (
             <div className="flex items-center justify-center h-40 text-xs text-muted-foreground">
-              No network data available
+              {t('noNetworkData')}
             </div>
           ) : (
             <>
