@@ -131,7 +131,7 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
   const forwardViaWebSocket = useCallback((to: string, content: string, idempotencyKey: string) => {
     const sent = wsSend({
       type: 'req',
-      method: 'chat.send',
+      method: 'agent',
       id: `mc-chat-${idempotencyKey}`,
       params: {
         agentId: to,
