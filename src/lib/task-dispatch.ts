@@ -629,6 +629,13 @@ export async function requeueStaleTasks(): Promise<{ ok: boolean; message: strin
 }
 
 export async function dispatchAssignedTasks(): Promise<{ ok: boolean; message: string }> {
+  // When a gateway is connected, the lobster's task-executor.js handles dispatch
+  // by polling assigned tasks and spawning real Claude Code sessions locally.
+  // MC should NOT compete — only dispatch when no gateway is available (standalone mode).
+  if (isGatewayAvailable()) {
+    return { ok: true, message: 'Gateway connected — task dispatch delegated to lobster task-executor' }
+  }
+
   const db = getDatabase()
 
   const tasks = db.prepare(`
