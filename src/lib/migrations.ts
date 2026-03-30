@@ -1655,6 +1655,32 @@ const migrations: Migration[] = [
     }
   },
   {
+    id: '055_ensure_gateway_primary',
+    up(db: Database.Database) {
+      // Ensure the gateway from OPENCLAW_GATEWAY_URL is always primary
+      // This runs every migration cycle, fixing the race between bridge registration and migration seed
+      const gwUrl = (process.env.OPENCLAW_GATEWAY_URL || '').trim()
+      if (!gwUrl) return
+      const isWss = gwUrl.startsWith('wss://') || gwUrl.startsWith('https://')
+      const host = gwUrl.replace(/^wss?:\/\//, '').replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/:\d+$/, '')
+      const fullHost = (isWss ? 'https://' : 'http://') + host
+      const port = isWss ? 443 : 18789
+
+      // Reset all gateways to non-primary first
+      db.prepare('UPDATE gateways SET is_primary = 0 WHERE workspace_id = 1').run()
+
+      const existing = db.prepare('SELECT id FROM gateways WHERE host = ? AND workspace_id = 1').get(fullHost) as any
+      if (existing) {
+        db.prepare('UPDATE gateways SET is_primary = 1, port = ? WHERE id = ?').run(port, existing.id)
+      } else {
+        db.prepare(`
+          INSERT INTO gateways (name, host, port, is_primary, status, workspace_id)
+          VALUES ('lobster-gateway', ?, ?, 1, 'unknown', 1)
+        `).run(fullHost, port)
+      }
+    }
+  },
+  {
     id: '054_auto_seed_gateway_agents',
     up(db: Database.Database) {
       // Auto-seed gateway from env vars so Cloud Run doesn't lose config on redeploy
@@ -1664,12 +1690,16 @@ const migrations: Migration[] = [
         const host = gwUrl.replace(/^wss?:\/\//, '').replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/:\d+$/, '')
         const port = isWss ? 443 : 18789
 
+        const fullHost = (isWss ? 'https://' : 'http://') + host
+        // Upsert: always ensure gateway exists AND is primary
         const existing = db.prepare('SELECT id FROM gateways WHERE name = ? AND workspace_id = 1').get('lobster-gateway') as any
         if (!existing) {
           db.prepare(`
             INSERT INTO gateways (name, host, port, is_primary, status, workspace_id)
             VALUES (?, ?, ?, 1, 'unknown', 1)
-          `).run('lobster-gateway', (isWss ? 'https://' : 'http://') + host, port)
+          `).run('lobster-gateway', fullHost, port)
+        } else {
+          db.prepare('UPDATE gateways SET host = ?, port = ?, is_primary = 1 WHERE id = ?').run(fullHost, port, existing.id)
         }
       }
 
