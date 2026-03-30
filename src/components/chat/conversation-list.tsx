@@ -377,6 +377,7 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
     )
   })
 
+  const lobsterRows = filteredConversations.filter((c) => (c as any).source === 'lobster')
   const gatewayRows = filteredConversations.filter((c) => c.source === 'session' && c.session?.sessionKind === 'gateway')
   const activeGatewayRows = gatewayRows.filter((c) => c.session?.active)
   const inactiveGatewayRows = gatewayRows.filter((c) => !c.session?.active)
@@ -501,6 +502,14 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
           </div>
         ) : (
           <>
+            {lobsterRows.length > 0 && (
+              <div>
+                <div className="px-3 pt-2 py-1 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-blue-400/70">
+                  Lobster Conversations
+                </div>
+                {lobsterRows.map(renderConversationItem)}
+              </div>
+            )}
             {activeGatewayRows.length > 0 && (
               <div>
                 <div className="px-3 pt-2 py-1 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-green-400/70">
