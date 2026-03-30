@@ -1,6 +1,5 @@
 import { config } from './config'
 import { logger } from './logger'
-import { runOpenClaw } from './command'
 
 export function parseGatewayJsonOutput(raw: string): unknown | null {
   const trimmed = String(raw || '').trim()
@@ -65,7 +64,7 @@ export async function callOpenClawGateway<T = unknown>(
       params: params ?? {},
     }
 
-    const res = await fetch(`${gatewayUrl}/rpc`, {
+    const res = await fetch(`${gatewayUrl}/api/mc-task`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -77,43 +76,14 @@ export async function callOpenClawGateway<T = unknown>(
 
     if (res.ok) {
       const data = await res.json()
+      logger.info({ method, status: data?.status || data?.ok }, 'Gateway HTTP forward successful')
       if (data?.result !== undefined) return data.result as T
-      if (data?.error) throw new Error(`Gateway RPC error: ${JSON.stringify(data.error)}`)
       return data as T
     }
 
-    // If /rpc returns 404, try posting params directly as REST
-    if (res.status === 404) {
-      logger.debug('Gateway /rpc returned 404, trying CLI fallback')
-    } else {
-      throw new Error(`Gateway HTTP ${res.status}: ${await res.text().catch(() => '')}`)
-    }
+    throw new Error(`Gateway HTTP ${res.status}: ${await res.text().catch(() => '')}`)
   } catch (err: any) {
-    if (err?.name === 'AbortError' || err?.message?.includes('Gateway HTTP')) {
-      throw err
-    }
-    logger.debug({ err }, 'HTTP RPC failed, trying CLI fallback')
+    logger.error({ err, method }, 'Gateway HTTP forward failed')
+    throw err
   }
-
-  // Fallback: local CLI (works in local dev, fails in Cloud Run)
-  const result = await runOpenClaw(
-    [
-      'gateway',
-      'call',
-      method,
-      '--timeout',
-      String(Math.max(1000, Math.floor(timeoutMs))),
-      '--params',
-      JSON.stringify(params ?? {}),
-      '--json',
-    ],
-    { timeoutMs: timeoutMs + 2000 },
-  )
-
-  const payload = parseGatewayJsonOutput(result.stdout)
-  if (payload == null) {
-    throw new Error(`Invalid JSON response from gateway method ${method}`)
-  }
-
-  return payload as T
 }
