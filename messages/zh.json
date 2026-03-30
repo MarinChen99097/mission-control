@@ -2260,7 +2260,13 @@
     "sessions": "工作階段",
     "claudeCodex": "Claude + Codex",
     "orchestration": "編排",
-    "workflowsPipelines": "工作流程 + 管線"
+    "workflowsPipelines": "工作流程 + 管線",
+    "agentHealthTitle": "智能體健康",
+    "agentHealthOnline": "線上",
+    "agentHealthIdle": "閒置",
+    "agentHealthBusy": "忙碌",
+    "agentHealthError": "異常",
+    "agentTotal": "總計"
   },
   "systemMonitor": {
     "title": "系統監控",

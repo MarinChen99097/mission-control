@@ -2260,7 +2260,13 @@
     "sessions": "Sessions",
     "claudeCodex": "Claude + Codex",
     "orchestration": "Orchestration",
-    "workflowsPipelines": "Workflows + pipelines"
+    "workflowsPipelines": "Workflows + pipelines",
+    "agentHealthTitle": "Agent Health",
+    "agentHealthOnline": "Online",
+    "agentHealthIdle": "Idle",
+    "agentHealthBusy": "Busy",
+    "agentHealthError": "Error",
+    "agentTotal": "Total"
   },
   "systemMonitor": {
     "title": "System Monitor",

@@ -2156,5 +2156,13 @@
     "tabStatus": "สถานะ",
     "unhealthy": "ผิดปกติ",
     "unreachable": "เข้าถึงไม่ได้"
+  },
+  "dashboard": {
+    "agentHealthTitle": "สุขภาพเอเจนต์",
+    "agentHealthOnline": "ออนไลน์",
+    "agentHealthIdle": "ว่าง",
+    "agentHealthBusy": "ยุ่ง",
+    "agentHealthError": "ข้อผิดพลาด",
+    "agentTotal": "ทั้งหมด"
   }
 }

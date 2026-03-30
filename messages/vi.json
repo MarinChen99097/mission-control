@@ -2156,5 +2156,13 @@
     "tabStatus": "Trạng thái",
     "unhealthy": "Bất thường",
     "unreachable": "Không thể truy cập"
+  },
+  "dashboard": {
+    "agentHealthTitle": "Sức khỏe Agent",
+    "agentHealthOnline": "Trực tuyến",
+    "agentHealthIdle": "Rảnh",
+    "agentHealthBusy": "Bận",
+    "agentHealthError": "Lỗi",
+    "agentTotal": "Tổng"
   }
 }

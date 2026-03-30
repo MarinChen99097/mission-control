@@ -91,6 +91,15 @@ export const WIDGET_CATALOG: DashboardWidget[] = [
     component: 'MaintenanceWidget',
   },
   {
+    id: 'agent-health',
+    label: 'Agent Health',
+    description: 'Agent status donut — online, idle, busy, error',
+    category: 'health',
+    modes: ['local', 'full'],
+    defaultSize: 'sm',
+    component: 'AgentHealthWidget',
+  },
+  {
     id: 'quick-actions',
     label: 'Quick Actions',
     description: 'Navigation shortcuts to key panels',
@@ -107,6 +116,7 @@ export const LOCAL_DEFAULT_LAYOUT = [
   'session-workbench',
   'event-stream',
   'task-flow',
+  'agent-health',
   'github-signal',
   'quick-actions',
 ]
@@ -117,6 +127,7 @@ export const GATEWAY_DEFAULT_LAYOUT = [
   'session-workbench',
   'event-stream',
   'task-flow',
+  'agent-health',
   'security-audit',
   'maintenance',
   'quick-actions',

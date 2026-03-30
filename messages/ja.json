@@ -2178,5 +2178,13 @@
     "tabStatus": "ステータス",
     "unhealthy": "異常",
     "unreachable": "到達不能"
+  },
+  "dashboard": {
+    "agentHealthTitle": "エージェントヘルス",
+    "agentHealthOnline": "オンライン",
+    "agentHealthIdle": "アイドル",
+    "agentHealthBusy": "ビジー",
+    "agentHealthError": "エラー",
+    "agentTotal": "合計"
   }
 }

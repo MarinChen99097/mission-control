@@ -2156,5 +2156,13 @@
     "tabStatus": "الحالة",
     "unhealthy": "غير سليم",
     "unreachable": "غير قابل للوصول"
+  },
+  "dashboard": {
+    "agentHealthTitle": "صحة الوكيل",
+    "agentHealthOnline": "متصل",
+    "agentHealthIdle": "خامل",
+    "agentHealthBusy": "مشغول",
+    "agentHealthError": "خطأ",
+    "agentTotal": "المجموع"
   }
 }

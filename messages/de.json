@@ -2156,5 +2156,13 @@
     "tabStatus": "Status",
     "unhealthy": "Fehlerhaft",
     "unreachable": "Nicht erreichbar"
+  },
+  "dashboard": {
+    "agentHealthTitle": "Agent-Gesundheit",
+    "agentHealthOnline": "Online",
+    "agentHealthIdle": "Leerlauf",
+    "agentHealthBusy": "Beschäftigt",
+    "agentHealthError": "Fehler",
+    "agentTotal": "Gesamt"
   }
 }
