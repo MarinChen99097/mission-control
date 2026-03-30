@@ -146,6 +146,8 @@ function ensureGatewayFromEnv(dbConn: Database.Database): void {
   const gwUrl = (process.env.OPENCLAW_GATEWAY_URL || '').trim()
   if (!gwUrl) return
 
+  const gwToken = (process.env.OPENCLAW_TOKEN || process.env.OPENCLAW_GATEWAY_TOKEN || '').trim()
+
   try {
     // Check if gateways table exists
     const tableCheck = dbConn.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='gateways'").get()
@@ -156,14 +158,13 @@ function ensureGatewayFromEnv(dbConn: Database.Database): void {
     const fullHost = (isWss ? 'https://' : 'http://') + host
     const port = isWss ? 443 : 18789
 
-    const existing = dbConn.prepare('SELECT id, is_primary FROM gateways WHERE host = ? AND workspace_id = 1').get(fullHost) as any
+    const existing = dbConn.prepare('SELECT id, is_primary, token FROM gateways WHERE host = ? AND workspace_id = 1').get(fullHost) as any
     if (existing) {
-      if (!existing.is_primary) {
-        dbConn.prepare('UPDATE gateways SET is_primary = 1 WHERE id = ?').run(existing.id)
-      }
+      // Always ensure primary + token
+      dbConn.prepare('UPDATE gateways SET is_primary = 1, token = COALESCE(NULLIF(?, ""), token) WHERE id = ?').run(gwToken, existing.id)
     } else {
       dbConn.prepare('UPDATE gateways SET is_primary = 0 WHERE workspace_id = 1').run()
-      dbConn.prepare(`INSERT INTO gateways (name, host, port, is_primary, status, workspace_id) VALUES ('lobster-gateway', ?, ?, 1, 'unknown', 1)`).run(fullHost, port)
+      dbConn.prepare(`INSERT INTO gateways (name, host, port, is_primary, token, status, workspace_id) VALUES ('lobster-gateway', ?, ?, 1, ?, 'unknown', 1)`).run(fullHost, port, gwToken)
     }
   } catch { /* gateways table may not exist yet */ }
 }
