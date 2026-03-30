@@ -130,6 +130,7 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
 
   // Send message handler with optimistic updates
   const handleSend = async (content: string, attachments?: ChatAttachment[]) => {
+    console.debug('[CHAT-DEBUG] handleSend called, content=', content?.slice(0, 30), 'sendingRef=', sendingRef.current, 'conv=', activeConversation)
     if (!activeConversation || sendingRef.current) return
     sendingRef.current = true
 
@@ -176,6 +177,7 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
 
       if (res.ok) {
         const data = await res.json()
+        console.debug('[CHAT-DEBUG] POST response ok, message id=', data.message?.id, 'tempId=', tempId)
         if (data.message) {
           replacePendingMessage(tempId, data.message)
         }

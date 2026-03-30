@@ -517,6 +517,7 @@ export function useWebSocket() {
         // Real-time chat message from gateway
         const msg = frame.payload
         if (msg) {
+          console.debug('[CHAT-DEBUG] WS chat.message id=', msg.id, 'from=', msg.from_agent, 'content=', msg.content?.slice(0, 30))
           addChatMessage({
             id: msg.id,
             conversation_id: msg.conversation_id,

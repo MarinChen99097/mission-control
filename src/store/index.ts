@@ -1099,8 +1099,10 @@ export const useMissionControl = create<MissionControlStore>()(
       set((state) => {
         // Deduplicate: skip if a message with the same server ID already exists
         if (message.id > 0 && state.chatMessages.some(m => m.id === message.id)) {
+          console.debug('[CHAT-DEBUG] addChatMessage DEDUPED id=', message.id, 'from=', message.from_agent, 'content=', message.content?.slice(0, 30))
           return state
         }
+        console.debug('[CHAT-DEBUG] addChatMessage ADDED id=', message.id, 'from=', message.from_agent, 'content=', message.content?.slice(0, 30), 'total=', state.chatMessages.length + 1)
         const messages = [...state.chatMessages, message].slice(-500)
         const conversations = state.conversations.map((conv) =>
           conv.id === message.conversation_id
@@ -1110,11 +1112,20 @@ export const useMissionControl = create<MissionControlStore>()(
         return { chatMessages: messages, conversations }
       }),
     replacePendingMessage: (tempId, message) =>
-      set((state) => ({
-        chatMessages: state.chatMessages.map(m =>
-          m.id === tempId ? { ...message, pendingStatus: 'sent' } : m
-        ),
-      })),
+      set((state) => {
+        // If the real message was already added by SSE/WS, just remove the pending one
+        const alreadyExists = message.id > 0 && state.chatMessages.some(m => m.id === message.id && m.id !== tempId)
+        if (alreadyExists) {
+          console.debug('[CHAT-DEBUG] replacePending REMOVED tempId=', tempId, 'realId=', message.id, '(already exists from SSE/WS)')
+          return { chatMessages: state.chatMessages.filter(m => m.id !== tempId) }
+        }
+        console.debug('[CHAT-DEBUG] replacePending REPLACED tempId=', tempId, 'realId=', message.id)
+        return {
+          chatMessages: state.chatMessages.map(m =>
+            m.id === tempId ? { ...message, pendingStatus: 'sent' } : m
+          ),
+        }
+      }),
     updatePendingMessage: (tempId, updates) =>
       set((state) => ({
         chatMessages: state.chatMessages.map(m =>
