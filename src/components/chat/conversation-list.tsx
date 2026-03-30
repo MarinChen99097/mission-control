@@ -252,8 +252,46 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
       ]
 
       const [sessionsRes, prefsRes] = await Promise.all(requests)
+
+      // Fetch lobster conversations separately (may fail if gateway is down)
+      let lobsterRes: Response | null = null
+      try { lobsterRes = await fetch('/api/lobster/conversations') } catch {}
       const sessionsData = sessionsRes.ok ? readSessions(await sessionsRes.json()) : []
       const prefs = prefsRes.ok ? readSessionPrefs(await prefsRes.json().catch(() => null)) : {}
+
+      // Merge lobster's Telegram/Discord conversations
+      let lobsterConvos: any[] = []
+      if (lobsterRes && lobsterRes.ok) {
+        try {
+          const lobsterData = await lobsterRes.json()
+          lobsterConvos = (lobsterData.conversations || []).map((lc: any, idx: number) => ({
+            id: `lobster:${lc.id}`,
+            name: `${lc.channel === 'telegram' ? 'TG' : 'Discord'} ${'\u00B7'} ${lc.origin || lc.channel}`,
+            kind: 'gateway' as const,
+            source: 'lobster' as const,
+            session: {
+              prefKey: `lobster:${lc.id}`,
+              sessionId: lc.sessionId || lc.id,
+              sessionKind: 'gateway' as const,
+              displayName: `${lc.channel} ${'\u00B7'} ${lc.origin || ''}`,
+              model: lc.model,
+              active: lc.active,
+            },
+            participants: [],
+            lastMessage: {
+              id: Date.now() + 10000 + idx,
+              conversation_id: `lobster:${lc.id}`,
+              from_agent: lc.lastMessage?.role === 'user' ? (lc.origin || 'user') : 'secretary',
+              to_agent: null,
+              content: lc.lastMessage?.text?.slice(0, 200) || `${lc.messageCount} messages`,
+              message_type: 'text' as const,
+              created_at: lc.updatedAt ? Math.floor(lc.updatedAt / 1000) : Math.floor(Date.now() / 1000),
+            },
+            unreadCount: 0,
+            updatedAt: lc.updatedAt ? Math.floor(lc.updatedAt / 1000) : 0,
+          }))
+        } catch {}
+      }
 
       const providerSessions = sessionsData
         .map((s, idx: number) => {
@@ -314,7 +352,7 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
         })
 
       setConversations(
-        providerSessions.sort((a: Conversation, b: Conversation) => b.updatedAt - a.updatedAt)
+        [...providerSessions, ...lobsterConvos].sort((a: Conversation, b: Conversation) => b.updatedAt - a.updatedAt)
       )
     } catch (err) {
       log.error('Failed to load conversations:', err)

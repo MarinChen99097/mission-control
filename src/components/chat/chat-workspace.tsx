@@ -235,10 +235,16 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
     setSessionTranscriptLoading(true)
     setSessionTranscriptError(null)
 
+    // Lobster conversations (Telegram/Discord) — pull from lobster via gateway
+    const isLobsterConvo = activeConversation?.startsWith('lobster:') ?? false
+    const lobsterConvoId = isLobsterConvo && activeConversation ? activeConversation.replace('lobster:', '') : null
+
     // Gateway sessions use the gateway transcript API
-    const url = sessionMeta.sessionKind === 'gateway'
-      ? `/api/sessions/transcript/gateway?key=${encodeURIComponent(sessionMeta.sessionKey || sessionMeta.sessionId)}&limit=50`
-      : `/api/sessions/transcript?kind=${encodeURIComponent(sessionMeta.sessionKind)}&id=${encodeURIComponent(sessionMeta.sessionId)}&limit=40`
+    const url = lobsterConvoId
+      ? `/api/lobster/conversation/${encodeURIComponent(lobsterConvoId)}`
+      : sessionMeta.sessionKind === 'gateway'
+        ? `/api/sessions/transcript/gateway?key=${encodeURIComponent(sessionMeta.sessionKey || sessionMeta.sessionId)}&limit=50`
+        : `/api/sessions/transcript?kind=${encodeURIComponent(sessionMeta.sessionKind)}&id=${encodeURIComponent(sessionMeta.sessionId)}&limit=40`
 
     fetch(url)
       .then(async (res) => {
@@ -250,7 +256,22 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
       })
       .then((data) => {
         if (cancelled) return
-        setSessionTranscript(Array.isArray(data?.messages) ? data.messages : [])
+        // Lobster conversations return { messages: [{ role, text, ... }] }
+        // Normalize to the transcript format expected by SessionMessage
+        if (lobsterConvoId && Array.isArray(data?.messages)) {
+          const normalized = data.messages.map((m: any, i: number) => ({
+            id: `lob-${i}`,
+            role: m.role,
+            content: m.text,
+            toolCalls: m.toolCalls,
+            model: m.model,
+            usage: m.usage,
+            timestamp: m.timestamp,
+          }))
+          setSessionTranscript(normalized)
+        } else {
+          setSessionTranscript(Array.isArray(data?.messages) ? data.messages : [])
+        }
       })
       .catch((err) => {
         if (cancelled) return
