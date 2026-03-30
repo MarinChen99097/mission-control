@@ -563,7 +563,7 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
             {inactiveLocalRows.length > 0 && (
               <div>
                 <div className="px-3 pt-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground/40">
-                  Recent Local
+                  {t('recentLocal')}
                 </div>
                 {inactiveLocalRows.map(renderConversationItem)}
               </div>

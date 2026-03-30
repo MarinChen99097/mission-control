@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useRef, useEffect, useState, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { useMissionControl, type ChatAttachment } from '@/store'
 import { Button } from '@/components/ui/button'
 
@@ -14,6 +15,7 @@ interface ChatInputProps {
 }
 
 export function ChatInput({ onSend, onAbort, disabled, agents = [], isGenerating }: ChatInputProps) {
+  const t = useTranslations('chat')
   const { chatInput, setChatInput, isSendingMessage } = useMissionControl()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -304,7 +306,7 @@ export function ChatInput({ onSend, onAbort, disabled, agents = [], isGenerating
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
-          placeholder={disabled ? 'Select a conversation...' : 'Message... (@ to mention, Enter to send)'}
+          placeholder={disabled ? t('inputDisabledPlaceholder') : t('inputPlaceholder')}
           disabled={disabled || isSendingMessage}
           rows={1}
           className="flex-1 resize-none bg-surface-1 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-40 transition-all"
