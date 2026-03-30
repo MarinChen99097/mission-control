@@ -257,18 +257,19 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
       })
       .then((data) => {
         if (cancelled) return
-        // Lobster conversations return { messages: [{ role, text, ... }] }
-        // Normalize to the transcript format expected by SessionMessage
+        // Lobster conversations return { messages: [{ role, text, toolCalls, ... }] }
+        // Normalize to SessionTranscriptMessage format: { role, parts[], timestamp }
         if (lobsterConvoId && Array.isArray(data?.messages)) {
-          const normalized = data.messages.map((m: any, i: number) => ({
-            id: `lob-${i}`,
-            role: m.role,
-            content: m.text,
-            toolCalls: m.toolCalls,
-            model: m.model,
-            usage: m.usage,
-            timestamp: m.timestamp,
-          }))
+          const normalized = data.messages.map((m: any) => {
+            const parts: any[] = []
+            if (m.text) parts.push({ type: 'text', text: m.text })
+            if (m.toolCalls) {
+              for (const tc of m.toolCalls) {
+                parts.push({ type: 'tool_use', id: tc.id || '', name: tc.name, input: '' })
+              }
+            }
+            return { role: m.role, parts, timestamp: m.timestamp }
+          })
           setSessionTranscript(normalized)
         } else {
           setSessionTranscript(Array.isArray(data?.messages) ? data.messages : [])
