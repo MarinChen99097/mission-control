@@ -40,6 +40,7 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
   } = useMissionControl()
 
   const pendingIdRef = useRef(-1)
+  const sendingRef = useRef(false)
 
   const [showConversations, setShowConversations] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
@@ -129,7 +130,8 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
 
   // Send message handler with optimistic updates
   const handleSend = async (content: string, attachments?: ChatAttachment[]) => {
-    if (!activeConversation) return
+    if (!activeConversation || sendingRef.current) return
+    sendingRef.current = true
 
     const mentionMatch = content.match(/^@(\w+)\s/)
     let to = mentionMatch ? mentionMatch[1] : null
@@ -185,6 +187,7 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
       updatePendingMessage(tempId, { pendingStatus: 'failed' })
     } finally {
       setIsGenerating(false)
+      sendingRef.current = false
     }
   }
 
