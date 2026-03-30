@@ -74,7 +74,7 @@ const tokenOnlyFallbackTriedRef: { current: boolean } = { current: false }
 const wsPathFallbackTriedRef: { current: Set<string> } = { current: new Set() }
 
 export function useWebSocket() {
-  const maxReconnectAttempts = 10
+  const maxReconnectAttempts = 999
 
   const {
     connection,
