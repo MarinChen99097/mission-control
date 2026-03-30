@@ -12,7 +12,7 @@ async function isGatewayReachable(): Promise<boolean> {
   const timeout = setTimeout(() => controller.abort(), GATEWAY_TIMEOUT)
   try {
     const res = await fetch(
-      `http://${config.gatewayHost}:${config.gatewayPort}/health`,
+      `${config.gatewayUrl}/health`,
       { signal: controller.signal },
     )
     return res.ok

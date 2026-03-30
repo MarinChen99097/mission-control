@@ -81,6 +81,19 @@ export const config = {
   clawdbotBin: process.env.CLAWDBOT_BIN || 'clawdbot',
   gatewayHost: process.env.OPENCLAW_GATEWAY_HOST || '127.0.0.1',
   gatewayPort: clampInt(Number(process.env.OPENCLAW_GATEWAY_PORT || '18789'), 1, 65535, 18789),
+  /** Full gateway base URL with correct protocol (https for port 443 or external hosts). */
+  get gatewayUrl(): string {
+    const host = this.gatewayHost
+    const port = this.gatewayPort
+    const isExternal = host !== '127.0.0.1' && host !== 'localhost'
+    const useHttps = port === 443 || isExternal
+    const proto = useHttps ? 'https' : 'http'
+    // Omit port for standard ports
+    if ((useHttps && port === 443) || (!useHttps && port === 80)) {
+      return `${proto}://${host}`
+    }
+    return `${proto}://${host}:${port}`
+  },
   logsDir:
     process.env.OPENCLAW_LOG_DIR ||
     (openclawStateDir ? path.join(openclawStateDir, 'logs') : ''),

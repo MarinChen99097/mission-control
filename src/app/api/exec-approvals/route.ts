@@ -6,7 +6,7 @@ import { logger } from '@/lib/logger'
 import path from 'node:path'
 
 function gatewayUrl(p: string): string {
-  return `http://${config.gatewayHost}:${config.gatewayPort}${p}`
+  return `${config.gatewayUrl}${p}`
 }
 
 function execApprovalsPath(): string {

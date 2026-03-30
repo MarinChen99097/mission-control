@@ -3,7 +3,7 @@ import { requireRole } from '@/lib/auth'
 import { config } from '@/lib/config'
 import { logger } from '@/lib/logger'
 
-const GATEWAY_BASE = `http://${config.gatewayHost}:${config.gatewayPort}`
+const GATEWAY_BASE = config.gatewayUrl
 
 async function gatewayFetch(
   path: string,

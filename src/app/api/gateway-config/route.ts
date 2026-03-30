@@ -12,7 +12,7 @@ function getConfigPath(): string | null {
 }
 
 function gatewayUrl(path: string): string {
-  return `http://${config.gatewayHost}:${config.gatewayPort}${path}`
+  return `${config.gatewayUrl}${path}`
 }
 
 function gatewayHeaders(): Record<string, string> {

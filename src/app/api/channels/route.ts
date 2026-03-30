@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger'
 import { getDetectedGatewayToken } from '@/lib/gateway-runtime'
 import { callOpenClawGateway } from '@/lib/openclaw-gateway'
 
-const gatewayInternalUrl = `http://${config.gatewayHost}:${config.gatewayPort}`
+const gatewayInternalUrl = config.gatewayUrl
 
 function gatewayHeaders(): Record<string, string> {
   const token = getDetectedGatewayToken()
