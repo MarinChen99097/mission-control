@@ -2180,9 +2180,9 @@ function CreateTaskModal({
                   const items = e.clipboardData?.items;
                   if (!items) return;
                   for (let i = 0; i < items.length; i++) {
-                    if (items[i].type.startsWith('image/')) {
+                    if (items[i].kind === 'file') {
                       const file = items[i].getAsFile();
-                      if (file) {
+                      if (file && file.size < 10 * 1024 * 1024) {
                         const reader = new FileReader();
                         reader.onload = () => setTaskImages(prev => [...prev, { name: file.name, dataUrl: reader.result as string }]);
                         reader.readAsDataURL(file);
@@ -2194,7 +2194,7 @@ function CreateTaskModal({
                 onDrop={(e) => {
                   e.preventDefault();
                   for (const file of Array.from(e.dataTransfer.files)) {
-                    if (file.type.startsWith('image/')) {
+                    if (file.size < 10 * 1024 * 1024) {
                       const reader = new FileReader();
                       reader.onload = () => setTaskImages(prev => [...prev, { name: file.name, dataUrl: reader.result as string }]);
                       reader.readAsDataURL(file);
@@ -2208,7 +2208,21 @@ function CreateTaskModal({
                   <div className="flex gap-2 flex-wrap">
                     {taskImages.map((img, i) => (
                       <div key={i} className="relative group">
-                        <img src={img.dataUrl} alt={img.name} className="h-16 w-16 object-cover rounded border border-border/40" />
+                        {img.dataUrl.startsWith('data:image') ? (
+                          <img src={img.dataUrl} alt={img.name} className="h-16 w-16 object-cover rounded border border-border/40" />
+                        ) : (
+                          <div className="h-16 w-16 flex flex-col items-center justify-center rounded border border-border/40 bg-surface-1">
+                            <span className="text-lg">{
+                              img.name.match(/\.pdf$/i) ? '📄' :
+                              img.name.match(/\.docx?$/i) ? '📝' :
+                              img.name.match(/\.xlsx?$|\.csv$/i) ? '📊' :
+                              img.name.match(/\.pptx?$/i) ? '📋' :
+                              img.name.match(/\.mp4$|\.mov$|\.avi$/i) ? '🎬' :
+                              '📎'
+                            }</span>
+                            <span className="text-[8px] text-muted-foreground truncate w-full text-center px-0.5">{img.name}</span>
+                          </div>
+                        )}
                         <button
                           type="button"
                           className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] leading-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -2219,7 +2233,7 @@ function CreateTaskModal({
                   </div>
                 )}
               </div>
-              <input ref={taskFileRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
+              <input ref={taskFileRef} type="file" multiple className="hidden" onChange={(e) => {
                 for (const file of Array.from(e.target.files || [])) {
                   const reader = new FileReader();
                   reader.onload = () => setTaskImages(prev => [...prev, { name: file.name, dataUrl: reader.result as string }]);

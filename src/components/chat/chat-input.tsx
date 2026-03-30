@@ -90,17 +90,18 @@ export function ChatInput({ onSend, onAbort, disabled, agents = [], isGenerating
     const items = e.clipboardData?.items
     if (!items) return
 
-    const imageItems: File[] = []
+    const fileItems: File[] = []
     for (let i = 0; i < items.length; i++) {
-      if (items[i].type.startsWith('image/')) {
+      // Accept any file type (images, PDFs, docs, etc.)
+      if (items[i].kind === 'file') {
         const file = items[i].getAsFile()
-        if (file) imageItems.push(file)
+        if (file) fileItems.push(file)
       }
     }
 
-    if (imageItems.length > 0) {
+    if (fileItems.length > 0) {
       e.preventDefault()
-      addFiles(imageItems)
+      addFiles(fileItems)
     }
   }, [addFiles])
 
@@ -238,7 +239,16 @@ export function ChatInput({ onSend, onAbort, disabled, agents = [], isGenerating
                 />
               ) : (
                 <div className="h-16 w-16 flex flex-col items-center justify-center px-1">
-                  <span className="text-lg">F</span>
+                  <span className="text-lg">{
+                    att.type.includes('pdf') ? '📄' :
+                    att.type.includes('word') || att.name.endsWith('.docx') || att.name.endsWith('.doc') ? '📝' :
+                    att.type.includes('sheet') || att.name.endsWith('.xlsx') || att.name.endsWith('.xls') || att.name.endsWith('.csv') ? '📊' :
+                    att.type.includes('presentation') || att.name.endsWith('.pptx') || att.name.endsWith('.ppt') ? '📋' :
+                    att.type.includes('video') ? '🎬' :
+                    att.type.includes('audio') ? '🎵' :
+                    att.type.includes('zip') || att.type.includes('rar') ? '📦' :
+                    '📎'
+                  }</span>
                   <span className="text-[9px] text-muted-foreground truncate w-full text-center">{att.name}</span>
                 </div>
               )}
