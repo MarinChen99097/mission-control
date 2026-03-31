@@ -418,6 +418,10 @@ export function TaskBoardPanel() {
   const isLocal = dashboardMode === 'local'
   const dragCounter = useRef(0)
   const selectedTaskIdFromUrl = Number.parseInt(searchParams.get('taskId') || '', 10)
+  const parentIdFromUrl = searchParams.get('parentId')
+  const [selectedParentId, setSelectedParentId] = useState<number | null>(
+    parentIdFromUrl ? Number.parseInt(parentIdFromUrl, 10) || null : null
+  )
 
   const updateTaskUrl = useCallback((taskId: number | null, mode: 'push' | 'replace' = 'push') => {
     const params = new URLSearchParams(searchParams.toString())
@@ -434,6 +438,34 @@ export function TaskBoardPanel() {
     }
     router.push(href)
   }, [pathname, router, searchParams])
+
+  const updateParentUrl = useCallback((parentId: number | null) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (typeof parentId === 'number' && Number.isFinite(parentId)) {
+      params.set('parentId', String(parentId))
+    } else {
+      params.delete('parentId')
+    }
+    params.delete('taskId')
+    const query = params.toString()
+    const href = query ? `${pathname}?${query}` : pathname
+    router.push(href)
+  }, [pathname, router, searchParams])
+
+  const handleSelectParent = useCallback((parentId: number | null) => {
+    setSelectedParentId(parentId)
+    updateParentUrl(parentId)
+  }, [updateParentUrl])
+
+  // Sync parentId from URL on navigation
+  useEffect(() => {
+    const urlParentId = searchParams.get('parentId')
+    const parsed = urlParentId ? Number.parseInt(urlParentId, 10) : null
+    if (parsed !== selectedParentId) {
+      setSelectedParentId(parsed && Number.isFinite(parsed) ? parsed : null)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   // Augment store tasks with aegisApproved flag (computed, not stored)
   const tasks: Task[] = storeTasks.map(t => ({
@@ -553,9 +585,103 @@ export function TaskBoardPanel() {
   // Poll as SSE fallback — pauses when SSE is delivering events
   useSmartPoll(fetchData, 30000, { pauseWhenSseConnected: true })
 
+  // ── Mission Groups (Layer 1) computation ──
+  // Group subtasks by parent_task_id
+  const subtasksByParent = tasks.reduce<Record<number, Task[]>>((acc, task) => {
+    const pid = (task as any).parent_task_id
+    if (pid) {
+      (acc[pid] ||= []).push(task)
+    }
+    return acc
+  }, {})
+
+  // Identify parent tasks (have children) and standalone tasks (no parent, no children)
+  const parentTasks = tasks.filter(task => {
+    const pid = (task as any).parent_task_id
+    return !pid && subtasksByParent[task.id]?.length > 0
+  })
+
+  const standaloneTasks = tasks.filter(task => {
+    const pid = (task as any).parent_task_id
+    return !pid && !subtasksByParent[task.id]?.length
+  })
+
+  // Compute aggregated status for a parent task based on its subtasks
+  const computeParentStatus = (parentId: number): 'not_started' | 'in_progress' | 'awaiting_review' | 'completed' => {
+    const subs = subtasksByParent[parentId] || []
+    if (subs.length === 0) return 'not_started'
+
+    const statuses = subs.map(s => detectAwaitingOwner(s) ? 'awaiting_owner' : s.status)
+    const allDone = statuses.every(s => s === 'done')
+    if (allDone) return 'completed'
+
+    const anyAwaitingOwner = statuses.some(s => s === 'awaiting_owner')
+    const allReviewLike = statuses.every(s => s === 'review' || s === 'quality_review' || s === 'done' || s === 'awaiting_owner')
+    if (anyAwaitingOwner || allReviewLike) return 'awaiting_review'
+
+    const anyInProgress = statuses.some(s => s === 'in_progress' || s === 'review' || s === 'quality_review')
+    if (anyInProgress) return 'in_progress'
+
+    return 'not_started'
+  }
+
+  // Compute standalone task aggregated status (treat as single-subtask group)
+  const computeStandaloneStatus = (task: Task): 'not_started' | 'in_progress' | 'awaiting_review' | 'completed' => {
+    const effectiveStatus = detectAwaitingOwner(task) ? 'awaiting_owner' : task.status
+    if (effectiveStatus === 'done') return 'completed'
+    if (effectiveStatus === 'awaiting_owner' || effectiveStatus === 'review' || effectiveStatus === 'quality_review') return 'awaiting_review'
+    if (effectiveStatus === 'in_progress') return 'in_progress'
+    return 'not_started'
+  }
+
+  const MISSION_COLUMNS = [
+    { key: 'not_started', titleKey: 'notStarted', color: 'bg-secondary text-foreground' },
+    { key: 'in_progress', titleKey: 'inProgress', color: 'bg-yellow-500/20 text-yellow-400' },
+    { key: 'awaiting_review', titleKey: 'awaitingReview', color: 'bg-orange-500/20 text-orange-400' },
+    { key: 'completed', titleKey: 'completed', color: 'bg-green-500/20 text-green-400' },
+  ] as const
+
+  type MissionCard = { task: Task; status: string; isStandalone: boolean; subtaskCount: number; doneCount: number }
+
+  const missionCards: MissionCard[] = [
+    ...parentTasks.map(task => {
+      const subs = subtasksByParent[task.id] || []
+      return {
+        task,
+        status: computeParentStatus(task.id),
+        isStandalone: false,
+        subtaskCount: subs.length,
+        doneCount: subs.filter(s => s.status === 'done').length,
+      }
+    }),
+    ...standaloneTasks.map(task => ({
+      task,
+      status: computeStandaloneStatus(task),
+      isStandalone: true,
+      subtaskCount: 0,
+      doneCount: 0,
+    })),
+  ]
+
+  const missionsByColumn = MISSION_COLUMNS.reduce<Record<string, MissionCard[]>>((acc, col) => {
+    acc[col.key] = missionCards.filter(mc => mc.status === col.key)
+    return acc
+  }, {})
+
+  // ── Layer 2: filtered tasks for selected parent ──
+  const layer2Tasks = selectedParentId !== null
+    ? tasks.filter(task => (task as any).parent_task_id === selectedParentId)
+    : []
+
+  const selectedParentTask = selectedParentId !== null
+    ? tasks.find(task => task.id === selectedParentId) || null
+    : null
+
   // Group tasks by status, overriding for awaiting_owner detection
+  // In Layer 2 mode, only show subtasks of the selected parent
+  const filteredTasksForBoard = selectedParentId !== null ? layer2Tasks : tasks
   const tasksByStatus = statusColumns.reduce((acc, column) => {
-    acc[column.key] = tasks.filter(task => {
+    acc[column.key] = filteredTasksForBoard.filter(task => {
       const effectiveStatus = detectAwaitingOwner(task) ? 'awaiting_owner' : task.status
       return effectiveStatus === column.key
     })
@@ -777,17 +903,36 @@ export function TaskBoardPanel() {
       {/* Header */}
       <div className="flex justify-between items-center p-4 border-b border-border flex-shrink-0">
         <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-foreground">{t('title')}</h2>
-          <div className="flex rounded-lg border border-border/50 overflow-hidden">
-            <button
-              className={`px-2.5 py-1 text-xs font-medium transition-colors ${viewMode === 'board' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-              onClick={() => setViewMode('board')}
-            >Board</button>
-            <button
-              className={`px-2.5 py-1 text-xs font-medium transition-colors ${viewMode === 'tree' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-              onClick={() => setViewMode('tree')}
-            >Tree</button>
-          </div>
+          {selectedParentId !== null ? (
+            <>
+              <button
+                onClick={() => handleSelectParent(null)}
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10 12L6 8l4-4" />
+                </svg>
+                {t('backToMissions')}
+              </button>
+              <h2 className="text-xl font-bold text-foreground">
+                {selectedParentTask ? t('subtasksOf', { title: selectedParentTask.title }) : t('title')}
+              </h2>
+              <div className="flex rounded-lg border border-border/50 overflow-hidden">
+                <button
+                  className={`px-2.5 py-1 text-xs font-medium transition-colors ${viewMode === 'board' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                  onClick={() => setViewMode('board')}
+                >Board</button>
+                <button
+                  className={`px-2.5 py-1 text-xs font-medium transition-colors ${viewMode === 'tree' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                  onClick={() => setViewMode('tree')}
+                >Tree</button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-xl font-bold text-foreground">{t('missionGroups')}</h2>
+            </>
+          )}
           {gnapStatus?.enabled && (
             <button
               onClick={handleGnapSync}
@@ -938,8 +1083,8 @@ export function TaskBoardPanel() {
         </div>
       )}
 
-      {/* Team Filter */}
-      {(() => {
+      {/* Team Filter (Layer 2 only) */}
+      {selectedParentId !== null && (() => {
         const allTeams = new Set<string>()
         for (const col of Object.values(tasksByStatus)) {
           if (Array.isArray(col)) col.forEach((t: any) => { if (t.team) allTeams.add(t.team) })
@@ -963,15 +1108,128 @@ export function TaskBoardPanel() {
         )
       })()}
 
-      {/* Tree View */}
-      {viewMode === 'tree' && (
+      {/* ── Layer 1: Mission Groups ── */}
+      {selectedParentId === null && (
+        <div className="flex-1 min-h-0 flex gap-4 p-4 overflow-x-auto" role="region" aria-label={t('missionGroups')}>
+          {MISSION_COLUMNS.map(col => {
+            const cards = missionsByColumn[col.key] || []
+            return (
+              <div key={col.key} className="flex-1 min-w-72 min-h-0 bg-surface-0 border border-border/60 rounded-xl flex flex-col">
+                <div className={`${col.color} px-4 py-3 rounded-t-xl flex justify-between items-center border-b border-border/30`}>
+                  <h3 className="font-semibold text-sm tracking-wide">{t(col.titleKey as any)}</h3>
+                  <span className="text-xs font-mono bg-white/10 px-2 py-0.5 rounded-md min-w-[1.75rem] text-center">
+                    {cards.length}
+                  </span>
+                </div>
+                <div className="flex-1 p-2.5 space-y-2.5 min-h-32 h-full overflow-y-auto">
+                  {cards.map(({ task, isStandalone, subtaskCount, doneCount }) => (
+                    <div
+                      key={task.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => {
+                        if (isStandalone) {
+                          setSelectedTask(task)
+                          updateTaskUrl(task.id)
+                        } else {
+                          handleSelectParent(task.id)
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          if (isStandalone) {
+                            setSelectedTask(task)
+                            updateTaskUrl(task.id)
+                          } else {
+                            handleSelectParent(task.id)
+                          }
+                        }
+                      }}
+                      className={`group bg-card rounded-lg p-3 cursor-pointer border border-border/40 shadow-sm hover:shadow-md hover:shadow-black/10 hover:border-border/70 transition-all duration-200 ease-out border-l-4 ${priorityColors[task.priority]} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background`}
+                    >
+                      {/* Title row */}
+                      <div className="flex items-start gap-2 mb-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start gap-2">
+                            <h4 className="text-foreground font-medium text-sm leading-tight line-clamp-2">
+                              {task.title}
+                            </h4>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {task.ticket_ref && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/15 text-primary font-mono">
+                                  {task.ticket_ref}
+                                </span>
+                              )}
+                              {isStandalone && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted-foreground/10 text-muted-foreground font-mono">
+                                  {t('standalone')}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Progress bar for parent tasks */}
+                      {!isStandalone && subtaskCount > 0 && (
+                        <div className="mb-2">
+                          <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
+                            <span>{t('progress', { done: doneCount, total: subtaskCount })} {t('subtasks')}</span>
+                            <span>{Math.round((doneCount / subtaskCount) * 100)}%</span>
+                          </div>
+                          <div className="h-1.5 bg-border/30 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-green-500 rounded-full transition-all duration-300"
+                              style={{ width: `${(doneCount / subtaskCount) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Footer: assignee + timestamp */}
+                      <div className="flex items-center justify-between gap-2 mt-auto pt-2 border-t border-border/20">
+                        <span className="flex items-center gap-1.5 min-w-0 text-xs text-muted-foreground">
+                          {task.assigned_to ? (
+                            <>
+                              <AgentAvatar name={getAgentName(task.assigned_to)} size="xs" />
+                              <span className="truncate max-w-[8rem]">{getAgentName(task.assigned_to)}</span>
+                            </>
+                          ) : (
+                            <span className="text-muted-foreground/50 italic">{t('unassigned')}</span>
+                          )}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground/60">{formatTaskTimestamp(task.created_at)}</span>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Empty State */}
+                  {cards.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-10 text-muted-foreground/30">
+                      <svg className="w-8 h-8 mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <path d="M9 12h6M12 9v6" strokeLinecap="round" />
+                      </svg>
+                      <span className="text-xs">{t('dropTasksHere')}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── Layer 2: Tree View ── */}
+      {selectedParentId !== null && viewMode === 'tree' && (
         <div className="flex-1 min-h-0 overflow-hidden">
           <TaskTreePanel />
         </div>
       )}
 
-      {/* Kanban Board */}
-      {viewMode === 'board' && <div className="flex-1 min-h-0 flex gap-4 p-4 overflow-x-auto" role="region" aria-label={t('taskBoard')}>
+      {/* ── Layer 2: Kanban Board (filtered to subtasks of selected parent) ── */}
+      {selectedParentId !== null && viewMode === 'board' && <div className="flex-1 min-h-0 flex gap-4 p-4 overflow-x-auto" role="region" aria-label={t('taskBoard')}>
         {statusColumns.map(column => (
           <div
             key={column.key}
@@ -1289,8 +1547,11 @@ function TaskDetailModal({
   const [reviewNotes, setReviewNotes] = useState('')
   const [reviewError, setReviewError] = useState<string | null>(null)
   const mentionTargets = useMentionTargets()
-  const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'quality' | 'session'>('details')
+  const isAwaitingOwner = task.status === 'awaiting_owner' || detectAwaitingOwner(task)
+  const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'quality' | 'session' | 'plan_review'>(isAwaitingOwner ? 'plan_review' : 'details')
   const [reviewer, setReviewer] = useState('aegis')
+  const [planFeedback, setPlanFeedback] = useState('')
+  const [planActionStatus, setPlanActionStatus] = useState<string | null>(null)
 
   const fetchReviews = useCallback(async () => {
     try {
@@ -1550,6 +1811,19 @@ function TaskDetailModal({
                 )}
               </Button>
             )}
+            {isAwaitingOwner && (
+              <Button
+                role="tab"
+                size="sm"
+                variant={activeTab === 'plan_review' ? 'default' : 'secondary'}
+                aria-selected={activeTab === 'plan_review'}
+                aria-controls="tabpanel-plan-review"
+                onClick={() => setActiveTab('plan_review')}
+                className={activeTab === 'plan_review' ? '' : 'border border-orange-500/30 text-orange-400'}
+              >
+                {t('planReview')}
+              </Button>
+            )}
           </div>
 
           {activeTab === 'details' && (
@@ -1797,6 +2071,161 @@ function TaskDetailModal({
               />
             </div>
           )}
+
+          {activeTab === 'plan_review' && (
+            <PlanReviewPanel
+              task={task}
+              comments={comments}
+              planFeedback={planFeedback}
+              setPlanFeedback={setPlanFeedback}
+              planActionStatus={planActionStatus}
+              setPlanActionStatus={setPlanActionStatus}
+              onUpdate={onUpdate}
+              onClose={onClose}
+              commentAuthor={commentAuthor}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PlanReviewPanel({
+  task,
+  comments,
+  planFeedback,
+  setPlanFeedback,
+  planActionStatus,
+  setPlanActionStatus,
+  onUpdate,
+  onClose,
+  commentAuthor,
+}: {
+  task: Task
+  comments: Comment[]
+  planFeedback: string
+  setPlanFeedback: (v: string) => void
+  planActionStatus: string | null
+  setPlanActionStatus: (v: string | null) => void
+  onUpdate: () => void
+  onClose: () => void
+  commentAuthor: string
+}) {
+  const t = useTranslations('taskBoard')
+
+  // Find the latest comment containing a plan (## heading or plan keywords)
+  const planComment = [...comments].reverse().find(c => {
+    const content = c.content || ''
+    return /^##\s/m.test(content) || /plan|計畫/i.test(content)
+  })
+
+  const planContent = planComment?.content || null
+
+  const handleApprove = async () => {
+    try {
+      setPlanActionStatus(null)
+      // Set task status to assigned (resumes pipeline)
+      const res = await fetch(`/api/tasks/${task.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'assigned' }),
+      })
+      if (!res.ok) throw new Error('Failed to approve')
+      // Post approval comment
+      await fetch(`/api/tasks/${task.id}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          author: commentAuthor,
+          content: `**Plan Approved** -- pipeline will resume.`,
+        }),
+      })
+      setPlanActionStatus(t('planApproved'))
+      onUpdate()
+      setTimeout(() => onClose(), 1500)
+    } catch {
+      setPlanActionStatus('Failed to approve plan')
+    }
+  }
+
+  const handleRequestChanges = async () => {
+    if (!planFeedback.trim()) return
+    try {
+      setPlanActionStatus(null)
+      // Post feedback comment
+      await fetch(`/api/tasks/${task.id}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          author: commentAuthor,
+          content: `**Changes Requested:**\n\n${planFeedback}`,
+        }),
+      })
+      // Set task status to rework_requested (or assigned to trigger rework)
+      await fetch(`/api/tasks/${task.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'assigned' }),
+      })
+      setPlanActionStatus(t('changesRequested'))
+      setPlanFeedback('')
+      onUpdate()
+      setTimeout(() => onClose(), 1500)
+    } catch {
+      setPlanActionStatus('Failed to request changes')
+    }
+  }
+
+  return (
+    <div id="tabpanel-plan-review" role="tabpanel" aria-label={t('planReview')} className="mt-4 space-y-4">
+      <h4 className="text-lg font-semibold text-foreground flex items-center gap-2">
+        {t('planReview')}
+        <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400 border border-orange-500/30 font-mono">
+          awaiting_owner
+        </span>
+      </h4>
+
+      {planContent ? (
+        <div className="bg-surface-1 border border-border rounded-lg p-4 max-h-[40vh] overflow-y-auto prose prose-invert prose-sm max-w-none">
+          <MarkdownRenderer content={planContent} />
+        </div>
+      ) : (
+        <div className="bg-surface-1 border border-border rounded-lg p-6 text-center text-muted-foreground">
+          {t('noPlanFound')}
+        </div>
+      )}
+
+      {planActionStatus && (
+        <div className="text-sm px-3 py-2 rounded bg-green-500/10 border border-green-500/20 text-green-400">
+          {planActionStatus}
+        </div>
+      )}
+
+      <div className="flex flex-col gap-3 pt-2 border-t border-border">
+        <Button
+          onClick={handleApprove}
+          className="bg-green-600 hover:bg-green-700 text-white"
+        >
+          {t('approvePlan')}
+        </Button>
+
+        <div className="space-y-2">
+          <textarea
+            value={planFeedback}
+            onChange={(e) => setPlanFeedback(e.target.value)}
+            placeholder={t('changesFeedback')}
+            rows={3}
+            className="w-full bg-surface-1 text-foreground border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder-muted-foreground"
+          />
+          <Button
+            onClick={handleRequestChanges}
+            disabled={!planFeedback.trim()}
+            variant="outline"
+            className="border-orange-500/30 text-orange-400 hover:bg-orange-500/10"
+          >
+            {t('requestChanges')}
+          </Button>
         </div>
       </div>
     </div>

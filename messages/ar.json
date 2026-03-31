@@ -137,7 +137,13 @@
     "onboarding": "الإعداد الأوّلي",
     "onboardingDescription": "أعد تشغيل معالج الإعداد وأعد تعيين قائمة تحقق لوحة التحكم",
     "replayOnboarding": "إعادة الإعداد الأوّلي",
-    "resetting": "جارٍ إعادة التعيين..."
+    "resetting": "جارٍ إعادة التعيين...",
+    "appearance": "المظهر",
+    "appearanceDesc": "اختر نظام الألوان والسمة المفضلة.",
+    "appearanceDark": "داكن",
+    "appearanceLight": "فاتح",
+    "appearanceSystem": "النظام",
+    "appearanceSystemHint": "يتبع إعدادات نظام التشغيل. يستخدم حاليًا {resolved}."
   },
   "boot": {
     "missionControl": "Mission Control",

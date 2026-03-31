@@ -20,11 +20,28 @@ export const THEMES: ThemeMeta[] = [
   { id: 'paper', label: 'Paper', group: 'light', swatch: '#8B6914' },
 ]
 
-/** All theme IDs for the next-themes `themes` prop. */
-export const THEME_IDS = THEMES.map(t => t.id)
+/** All theme IDs for the next-themes `themes` prop (includes 'system'). */
+export const THEME_IDS = [...THEMES.map(t => t.id), 'system']
 
-/** Look up whether a theme is dark or light. */
+/** Default theme for each color mode group. */
+export const DEFAULT_DARK_THEME = 'void'
+export const DEFAULT_LIGHT_THEME = 'light'
+
+/** Get the color mode group for a theme ID: 'dark', 'light', or 'system'. */
+export function getColorMode(themeId: string | undefined): 'dark' | 'light' | 'system' {
+  if (!themeId || themeId === 'system') return 'system'
+  return isThemeDark(themeId) ? 'dark' : 'light'
+}
+
+/** Look up whether a theme is dark or light.
+ *  For 'system', checks the OS preference via matchMedia. */
 export function isThemeDark(themeId: string): boolean {
+  if (themeId === 'system') {
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches
+    }
+    return true
+  }
   const meta = THEMES.find(t => t.id === themeId)
   return meta ? meta.group === 'dark' : true
 }

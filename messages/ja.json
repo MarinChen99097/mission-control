@@ -137,7 +137,15 @@
     "onboarding": "オンボーディング",
     "onboardingDescription": "セットアップウィザードを再生してダッシュボードチェックリストをリセットする",
     "replayOnboarding": "オンボーディングを再生",
-    "resetting": "リセット中..."
+    "resetting": "リセット中...",
+    "appearance": "外観テーマ",
+    "appearanceDesc": "お好みの配色を選択してください。",
+    "appearanceDark": "ダーク",
+    "appearanceLight": "ライト",
+    "appearanceSystem": "システム",
+    "appearanceSystemHint": "OSの設定に従います。現在は {resolved} を使用中。",
+    "appearanceChooseTheme": "テーマを選択",
+    "appearanceSystemThemes": "テーマ（システムと一致する場合に適用）"
   },
   "boot": {
     "missionControl": "Mission Control",

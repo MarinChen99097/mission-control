@@ -137,7 +137,13 @@
     "onboarding": "การเริ่มต้นใช้งาน",
     "onboardingDescription": "เล่นซ้ำวิซาร์ดการตั้งค่าและรีเซ็ตรายการตรวจสอบแดชบอร์ด",
     "replayOnboarding": "เล่นซ้ำการเริ่มต้นใช้งาน",
-    "resetting": "กำลังรีเซ็ต..."
+    "resetting": "กำลังรีเซ็ต...",
+    "appearance": "ธีม",
+    "appearanceDesc": "เลือกชุดสีที่ต้องการ",
+    "appearanceDark": "มืด",
+    "appearanceLight": "สว่าง",
+    "appearanceSystem": "ระบบ",
+    "appearanceSystemHint": "ตามการตั้งค่าระบบปฏิบัติการ ขณะนี้ใช้ {resolved}"
   },
   "boot": {
     "missionControl": "Mission Control",

@@ -144,7 +144,15 @@
     "interfaceModeEssentialDesc": "僅顯示核心面板 — 總覽、智能體、任務、聊天、活動、日誌、設定。",
     "interfaceModeFull": "完整",
     "interfaceModeFullDesc": "所有面板及進階功能，包含記憶、Cron、Webhooks、告警、稽核等。",
-    "interfaceModeSwitchHint": "也可從側邊欄底部切換。"
+    "interfaceModeSwitchHint": "也可從側邊欄底部切換。",
+    "appearance": "外觀主題",
+    "appearanceDesc": "選擇偏好的配色方案，挑選模式與主題。",
+    "appearanceDark": "深色",
+    "appearanceLight": "淺色",
+    "appearanceSystem": "跟隨系統",
+    "appearanceSystemHint": "跟隨作業系統設定，目前使用 {resolved}。",
+    "appearanceChooseTheme": "選擇主題",
+    "appearanceSystemThemes": "主題（系統匹配時套用）"
   },
   "boot": {
     "missionControl": "Mission Control",
@@ -829,7 +837,24 @@
     "submit": "提交",
     "loadingTranscript": "載入記錄中...",
     "noSessionMessages": "無工作階段訊息",
-    "dunkIt": "完成"
+    "dunkIt": "完成",
+    "missionGroups": "任務集",
+    "notStarted": "尚未進行",
+    "inProgress": "進行中",
+    "awaitingReview": "待審查",
+    "completed": "已完成",
+    "subtasks": "子任務",
+    "progress": "{done}/{total}",
+    "backToMissions": "返回任務集",
+    "subtasksOf": "{title} 的子任務",
+    "planReview": "計畫審查",
+    "approvePlan": "核准計畫",
+    "requestChanges": "要求修改",
+    "changesFeedback": "需要哪些修改？",
+    "planApproved": "計畫已核准 — 流程將繼續",
+    "changesRequested": "已要求修改 — 已退回修訂",
+    "noPlanFound": "評論中未找到計畫文件",
+    "standalone": "獨立任務"
   },
   "cronManagement": {
     "title": "定時任務管理",

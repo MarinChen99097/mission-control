@@ -137,7 +137,13 @@
     "onboarding": "Intégration",
     "onboardingDescription": "Relancez l'assistant de configuration et réinitialisez la liste de vérification du tableau de bord",
     "replayOnboarding": "Relancer l'intégration",
-    "resetting": "Réinitialisation..."
+    "resetting": "Réinitialisation...",
+    "appearance": "Apparence",
+    "appearanceDesc": "Choisissez votre palette et thème préféré.",
+    "appearanceDark": "Sombre",
+    "appearanceLight": "Clair",
+    "appearanceSystem": "Système",
+    "appearanceSystemHint": "Suit les paramètres du système. Utilise actuellement {resolved}."
   },
   "boot": {
     "missionControl": "Mission Control",

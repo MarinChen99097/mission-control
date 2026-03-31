@@ -56,6 +56,22 @@ export function ThemeSelector() {
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div className="absolute right-0 top-full mt-1 w-52 rounded-lg bg-card border border-border shadow-lg z-50 py-1 overflow-hidden">
+            <Button
+              onClick={() => { setTheme('system'); setOpen(false) }}
+              variant="ghost"
+              className={`w-full justify-start px-3 py-1.5 h-auto rounded-none text-sm gap-2.5 ${
+                theme === 'system' ? 'bg-primary/10 text-foreground' : ''
+              }`}
+            >
+              <SystemIcon />
+              <span className="flex-1 text-xs text-left">System</span>
+              {theme === 'system' && (
+                <svg className="w-3.5 h-3.5 text-primary shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 8.5l3.5 3.5L13 4" />
+                </svg>
+              )}
+            </Button>
+            <div className="my-1 border-t border-border" />
             <div className="px-3 py-1.5">
               <span className="text-2xs font-semibold text-muted-foreground uppercase tracking-wider">Dark</span>
             </div>
@@ -111,6 +127,15 @@ function ThemeRow({ meta, active, onSelect }: { meta: typeof THEMES[number]; act
   )
 }
 
+function SystemIcon() {
+  return (
+    <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="12" height="9" rx="1.5" />
+      <path d="M5.5 15h5M8 12v3" />
+    </svg>
+  )
+}
+
 function PaletteIcon() {
   return (
     <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -122,3 +147,4 @@ function PaletteIcon() {
     </svg>
   )
 }
+

@@ -137,7 +137,13 @@
     "onboarding": "Einarbeitung",
     "onboardingDescription": "Richten Sie den Setup-Assistenten erneut aus und setzen Sie die Dashboard-Checkliste zurück",
     "replayOnboarding": "Einarbeitung wiederholen",
-    "resetting": "Wird zurückgesetzt..."
+    "resetting": "Wird zurückgesetzt...",
+    "appearance": "Erscheinungsbild",
+    "appearanceDesc": "Wähle dein bevorzugtes Farbschema und Theme.",
+    "appearanceDark": "Dunkel",
+    "appearanceLight": "Hell",
+    "appearanceSystem": "System",
+    "appearanceSystemHint": "Folgt den OS-Einstellungen. Aktuell wird {resolved} verwendet."
   },
   "boot": {
     "missionControl": "Mission Control",

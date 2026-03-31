@@ -137,7 +137,13 @@
     "onboarding": "Integração",
     "onboardingDescription": "Reproduza o assistente de configuração e redefina a lista de verificação do painel",
     "replayOnboarding": "Repetir integração",
-    "resetting": "Redefinindo..."
+    "resetting": "Redefinindo...",
+    "appearance": "Aparência",
+    "appearanceDesc": "Escolha seu esquema de cores e tema preferido.",
+    "appearanceDark": "Escuro",
+    "appearanceLight": "Claro",
+    "appearanceSystem": "Sistema",
+    "appearanceSystemHint": "Segue a configuração do SO. Atualmente usando {resolved}."
   },
   "boot": {
     "missionControl": "Mission Control",

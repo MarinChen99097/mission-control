@@ -144,7 +144,15 @@
     "interfaceModeEssentialDesc": "Focused view with core panels only — Overview, Agents, Tasks, Chat, Activity, Logs, Settings.",
     "interfaceModeFull": "Full",
     "interfaceModeFullDesc": "All panels and advanced features including Memory, Cron, Webhooks, Alerts, Audit, and more.",
-    "interfaceModeSwitchHint": "You can also switch from the sidebar footer."
+    "interfaceModeSwitchHint": "You can also switch from the sidebar footer.",
+    "appearance": "Appearance",
+    "appearanceDesc": "Choose your preferred color scheme. Pick a mode and theme.",
+    "appearanceDark": "Dark",
+    "appearanceLight": "Light",
+    "appearanceSystem": "System",
+    "appearanceSystemHint": "Follows your OS setting. Currently using {resolved}.",
+    "appearanceChooseTheme": "Choose a theme",
+    "appearanceSystemThemes": "Themes (applies when system matches)"
   },
   "boot": {
     "missionControl": "Mission Control",
@@ -829,7 +837,24 @@
     "submit": "Submit",
     "loadingTranscript": "Loading transcript...",
     "noSessionMessages": "No session messages",
-    "dunkIt": "Dunk It"
+    "dunkIt": "Dunk It",
+    "missionGroups": "Mission Groups",
+    "notStarted": "Not Started",
+    "inProgress": "In Progress",
+    "awaitingReview": "Awaiting Review",
+    "completed": "Completed",
+    "subtasks": "sub-tasks",
+    "progress": "{done}/{total}",
+    "backToMissions": "Back to Missions",
+    "subtasksOf": "Sub-tasks of {title}",
+    "planReview": "Plan Review",
+    "approvePlan": "Approve Plan",
+    "requestChanges": "Request Changes",
+    "changesFeedback": "What changes are needed?",
+    "planApproved": "Plan approved — pipeline will resume",
+    "changesRequested": "Changes requested — sent back for revision",
+    "noPlanFound": "No plan document found in comments",
+    "standalone": "Standalone"
   },
   "cronManagement": {
     "title": "Cron Management",

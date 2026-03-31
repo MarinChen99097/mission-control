@@ -158,7 +158,7 @@ function TaskNode({
               <span className="text-[9px] px-1 py-px rounded bg-primary/15 text-primary font-mono shrink-0">{task.ticket_ref}</span>
             )}
             {blocked && (
-              <span className="text-[9px] px-1 py-px rounded bg-amber-500/20 text-amber-400 shrink-0">🔒 blocked</span>
+              <span className="text-[9px] px-1 py-px rounded bg-amber-500/20 text-amber-400 shrink-0">blocked</span>
             )}
           </div>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -171,8 +171,9 @@ function TaskNode({
                 {task.assigned_to}
               </span>
             )}
-            {task.team && <span className="text-[10px] text-blue-400/60">{task.team}</span>}
-            {agent?.runtime && <span className="text-[10px] text-muted-foreground/40 font-mono">{agent.runtime}</span>}
+            {/* Team only on root tasks */}
+            {task.team && !task.parent_task_id && <span className="text-[10px] text-blue-400/60">{task.team}</span>}
+            {/* Progress bar only on parent tasks with children */}
             {progress && progress.total > 0 && (
               <div className="flex items-center gap-1">
                 <div className="w-12 h-1 bg-zinc-700/50 rounded-full overflow-hidden">
@@ -182,7 +183,8 @@ function TaskNode({
                 <span className="text-[10px] text-muted-foreground/50">{progress.done}/{progress.total}</span>
               </div>
             )}
-            <span className="text-[10px] text-muted-foreground/30">{timeAgo(task.updated_at)}</span>
+            {/* Timestamp only on root tasks */}
+            {!task.parent_task_id && <span className="text-[10px] text-muted-foreground/30">{timeAgo(task.updated_at)}</span>}
           </div>
         </div>
       </div>
@@ -241,11 +243,7 @@ function TaskDetail({ task, agents, onClose }: { task: Task; agents: AgentInfo[]
               {task.priority}
             </div>
           </div>
-          {agent?.runtime && (
-            <div><span className="text-muted-foreground/60 text-xs">Runtime</span>
-              <div className="mt-0.5 font-mono text-xs text-foreground/70">{agent.runtime}</div>
-            </div>
-          )}
+          {/* Runtime removed — internal detail, not useful for users */}
           {blockedIds.length > 0 && (
             <div className="col-span-2"><span className="text-muted-foreground/60 text-xs">Blocked by</span>
               <div className="mt-0.5 text-amber-400 text-xs">{blockedIds.map(id => `TASK-${id}`).join(', ')}</div>
@@ -385,8 +383,8 @@ export function TaskTreePanel() {
           <div className="flex items-center gap-2 text-[10px]">
             <span className="text-muted-foreground/50">{totalTasks} total</span>
             {runningTasks > 0 && <span className="text-amber-400 flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />{runningTasks} running</span>}
-            {blockedTasks > 0 && <span className="text-amber-500/60">🔒 {blockedTasks} blocked</span>}
-            {doneTasks > 0 && <span className="text-emerald-400/60">✓ {doneTasks} done</span>}
+            {blockedTasks > 0 && <span className="text-amber-500/60">{blockedTasks} blocked</span>}
+            {doneTasks > 0 && <span className="text-emerald-400/60">{doneTasks} done</span>}
           </div>
         </div>
 

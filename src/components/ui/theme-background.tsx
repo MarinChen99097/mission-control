@@ -2,32 +2,38 @@
 
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
-import { THEMES, isThemeDark } from '@/lib/themes'
+import { THEMES } from '@/lib/themes'
 
 export function ThemeBackground() {
-  const { theme } = useTheme()
+  const { theme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  // Use resolvedTheme to handle 'system' mode correctly.
+  // When theme='system', resolvedTheme gives the actual theme based on OS preference.
+  const effectiveTheme = resolvedTheme || theme
+
   // Sync the "dark" class on <html> so Tailwind dark: variants work.
   // next-themes applies the theme id as a single class; we add/remove
   // "dark" separately based on the theme's group.
   useEffect(() => {
-    if (!mounted || !theme) return
+    if (!mounted || !effectiveTheme) return
+    const meta = THEMES.find(t => t.id === effectiveTheme)
+    if (!meta) return // Unknown theme — trust FOUC script's current state
     const el = document.documentElement
-    if (isThemeDark(theme)) {
+    if (meta.group === 'dark') {
       el.classList.add('dark')
     } else {
       el.classList.remove('dark')
     }
-  }, [mounted, theme])
+  }, [mounted, effectiveTheme])
 
   if (!mounted) return null
 
-  const meta = THEMES.find(t => t.id === theme)
+  const meta = THEMES.find(t => t.id === effectiveTheme)
   const bgClass = meta?.background
 
   if (!bgClass) return null

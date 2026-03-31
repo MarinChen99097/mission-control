@@ -137,7 +137,13 @@
     "onboarding": "Hướng dẫn ban đầu",
     "onboardingDescription": "Replay the setup wizard and Đặt lại the Bảng điều khiển checklist",
     "replayOnboarding": "Phát lại hướng dẫn ban đầu",
-    "resetting": "Đang đặt lại..."
+    "resetting": "Đang đặt lại...",
+    "appearance": "Giao diện",
+    "appearanceDesc": "Chọn bảng màu và chủ đề ưa thích.",
+    "appearanceDark": "Tối",
+    "appearanceLight": "Sáng",
+    "appearanceSystem": "Hệ thống",
+    "appearanceSystemHint": "Theo cài đặt hệ điều hành. Hiện đang dùng {resolved}."
   },
   "boot": {
     "missionControl": "Mission Control",

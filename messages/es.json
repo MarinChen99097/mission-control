@@ -137,7 +137,13 @@
     "onboarding": "Incorporación",
     "onboardingDescription": "Reproduzca el asistente de configuración y restablezca la lista de verificación del panel",
     "replayOnboarding": "Repetir incorporación",
-    "resetting": "Restableciendo..."
+    "resetting": "Restableciendo...",
+    "appearance": "Apariencia",
+    "appearanceDesc": "Elige tu esquema de colores y tema preferido.",
+    "appearanceDark": "Oscuro",
+    "appearanceLight": "Claro",
+    "appearanceSystem": "Sistema",
+    "appearanceSystemHint": "Sigue la configuración del SO. Actualmente usando {resolved}."
   },
   "boot": {
     "missionControl": "Mission Control",

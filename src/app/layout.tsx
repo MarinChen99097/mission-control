@@ -100,7 +100,7 @@ export default async function RootLayout({
         <script
           nonce={nonce}
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme')||'void';var light=['light','paper'];if(light.indexOf(t)===-1)document.documentElement.classList.add('dark')}catch(e){}})()`,
+            __html: `(function(){try{var t=localStorage.getItem('theme')||'void';var light=['light','paper'];var h=document.documentElement;if(t==='system'){if(window.matchMedia('(prefers-color-scheme:dark)').matches){h.classList.add('dark')}else{h.classList.remove('dark')}}else if(light.indexOf(t)===-1){h.classList.add('dark')}else{h.classList.remove('dark')}}catch(e){}})()`,
           }}
         />
       </head>
@@ -109,8 +109,8 @@ export default async function RootLayout({
           <ThemeProvider
             attribute="class"
             defaultTheme="void"
-            themes={THEME_IDS}
-            enableSystem={false}
+            themes={[...THEME_IDS, 'system']}
+            enableSystem
             disableTransitionOnChange
           >
             <ThemeBackground />
