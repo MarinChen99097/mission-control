@@ -49,7 +49,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'File too large for text preview', size: info.size, maxSize: MAX_TEXT_SIZE }, { status: 413 })
   }
 
-  const content = await readFile(safePath, 'utf-8')
+  const buf = await readFile(safePath)
+  let content: string
+  if (buf[0] === 0xFF && buf[1] === 0xFE) {
+    content = buf.slice(2).toString('utf16le')
+  } else if (buf[0] === 0xFE && buf[1] === 0xFF) {
+    const swapped = Buffer.alloc(buf.length - 2)
+    for (let i = 2; i < buf.length - 1; i += 2) { swapped[i - 2] = buf[i + 1]; swapped[i - 1] = buf[i] }
+    content = swapped.toString('utf16le')
+  } else {
+    content = buf.toString('utf-8')
+  }
   return NextResponse.json({
     content,
     size: info.size,
