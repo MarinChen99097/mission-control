@@ -441,7 +441,7 @@ function FilePreview({ file, workspacePath }: { file: FileNode; workspacePath: s
           ) : (
             <iframe
               srcDoc={content}
-              sandbox="allow-same-origin"
+              sandbox="allow-same-origin allow-scripts allow-popups"
               className="flex-1 w-full bg-white rounded-b"
               title={file.name}
             />
