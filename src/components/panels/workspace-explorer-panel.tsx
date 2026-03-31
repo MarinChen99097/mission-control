@@ -233,7 +233,7 @@ function CodePreview({ content, fileName }: { content: string; fileName: string 
 
 function MarkdownPreview({ content }: { content: string }) {
   return (
-    <div className="prose prose-invert prose-sm max-w-none px-4 py-3 [&_pre]:bg-surface-1 [&_pre]:border [&_pre]:border-border/30 [&_pre]:rounded-md [&_code]:text-cyan-300/90 [&_a]:text-primary [&_table]:text-xs">
+    <div className="prose prose-invert prose-base max-w-none px-6 py-6 leading-relaxed [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-4 [&_h1]:mt-6 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mb-3 [&_h2]:mt-5 [&_h2]:border-b [&_h2]:border-border/20 [&_h2]:pb-2 [&_h3]:text-lg [&_h3]:font-medium [&_h3]:mb-2 [&_h3]:mt-4 [&_p]:mb-3 [&_p]:leading-7 [&_li]:mb-1 [&_li]:leading-7 [&_ul]:mb-4 [&_ol]:mb-4 [&_pre]:bg-surface-1 [&_pre]:border [&_pre]:border-border/30 [&_pre]:rounded-md [&_pre]:my-4 [&_pre]:p-4 [&_code]:text-cyan-300/90 [&_:not(pre)>code]:bg-surface-1 [&_:not(pre)>code]:px-1.5 [&_:not(pre)>code]:py-0.5 [&_:not(pre)>code]:rounded [&_:not(pre)>code]:text-sm [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_table]:text-sm [&_table]:my-4 [&_th]:px-3 [&_th]:py-2 [&_td]:px-3 [&_td]:py-2 [&_tr]:border-b [&_tr]:border-border/20 [&_blockquote]:border-l-2 [&_blockquote]:border-primary/40 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_hr]:my-6 [&_hr]:border-border/30 [&_strong]:text-foreground [&_img]:rounded-md [&_img]:my-4">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight]}
