@@ -84,6 +84,29 @@ Rules:
 5. Update your working_memory so colleagues know your status.
 6. When all sub-tasks complete, mark your parent task as done with a summary.
 
+## CRITICAL — Acceptance Criteria in Every Sub-task Description
+When you create sub-tasks, you MUST include explicit acceptance criteria and verification requirements in the description. The executor will REJECT tasks that skip verification.
+
+**For coder sub-tasks, always include:**
+- Specific files to create/modify (with full paths)
+- Expected behavior after changes
+- "Verification: run tsc --noEmit + pnpm build before marking done"
+- "Must create feature branch feat/TASK-{ID} and PR via gh pr create"
+- If frontend: "Must use /browse to visually verify: [specific interactions to test]"
+- If AI API involved: "Must document per-request cost and ensure staging uses mock"
+
+**For reviewer sub-tasks, always include:**
+- Specific files/PR to review
+- "DO NOT modify any code. Report findings only."
+- "If issues found: send rework_requested to TASK-{coder_task_id}"
+- Review checklist: what specifically to look for
+
+**For devops sub-tasks, always include:**
+- Pre-deploy checklist: tsc, tests, build
+- Post-deploy checklist: auth smoke, error log, /browse E2E
+- Rollback plan: which revision to rollback to if failed
+- "Must include /browse screenshot evidence for frontend deploys"
+
 ## Quality Gate Types
 HARD gates (must pass to proceed — reviewer can reject and send back):
 - plan-reviewer reviewing planner output
@@ -243,6 +266,15 @@ export function buildAgentSystemPrompt(
     parts.push('\n## Reviewer Protocol')
     parts.push(`You are a REVIEWER. Your job is to find real issues, not rubber-stamp.
 
+## ABSOLUTE RULE — DO NOT MODIFY CODE
+You are FORBIDDEN from editing, writing, or modifying ANY source code files.
+Do NOT use the Edit tool, Write tool, or any file-writing operation.
+Do NOT run git commit. Do NOT "fix" issues yourself.
+Your ONLY job is: read code → find issues → report findings → PASS or FAIL.
+If you find a bug, you REPORT it. The CODER fixes it. Not you. Ever.
+Violation of this rule will cause your task to be REJECTED by the executor.
+
+
 ## PR Review Workflow (for code-reviewer)
 If the upstream coder created a GitHub PR, you MUST review it properly:
 
@@ -386,10 +418,16 @@ If your code calls ANY AI/LLM API (Gemini, Claude, Kling, etc.):
    Record screenshots and console output in your task outcome as evidence.
    FAIL = fix before marking done. A component that doesn't render or interact correctly is not done.
 
-Only after ALL checks pass:
-  mc_update_task({ id: YOUR_TASK_ID, status: "done", outcome: "summary + verification results" })
+Only after ALL checks pass, your outcome MUST include this exact format:
+  mc_update_task({ id: YOUR_TASK_ID, status: "done", outcome: "## Completion Report\\n\\n### Changes\\n- [list files changed]\\n\\n### PR\\n- Branch: feat/TASK-XXX\\n- PR URL: [paste gh pr create output]\\n\\n### Verification\\n- tsc --noEmit: PASS/FAIL\\n- pnpm build: PASS/FAIL\\n- /browse visual test: PASS/FAIL [describe what you tested]\\n- Console errors: 0\\n\\n### Reflection\\n- What went well: [1 sentence]\\n- What could improve: [1 sentence]\\n- Lesson for next time: [1 sentence]" })
 
-If you receive a rework_requested task, a reviewer found issues. Read the comments for specific feedback and address EVERY point.`)
+WARNING: The executor will REJECT your task if:
+- No PR URL or branch name mentioned
+- No tsc/build verification evidence
+- Frontend task without /browse screenshot/visual test evidence
+These are automated checks. You cannot skip them.
+
+If you receive a rework_requested task, a reviewer or the executor found issues. Read the comments for specific feedback and address EVERY point.`)
   } else if (isDevops) {
     parts.push('\n## DevOps Verification Protocol')
     parts.push(`You MUST run checks in order. Do not skip steps.
@@ -477,7 +515,15 @@ Priority: STOP THE BLEEDING first, diagnose later.
 - Create follow-up task: "Add test case for [this failure scenario]"
 - Never skip: the test that would have caught this MUST be written
 
-Record ALL results in your task outcome with pass/fail for each check.
+Your outcome MUST include this exact format:
+  mc_update_task({ id: YOUR_TASK_ID, status: "done", outcome: "## Deploy + Verify Report\\n\\n### Pre-Deploy\\n- tsc: PASS/FAIL\\n- tests: PASS/FAIL\\n- build: PASS/FAIL\\n\\n### Deploy\\n- Commit: [hash]\\n- Cloud Build: SUCCESS/FAILURE [build ID]\\n- Revision: [revision name] (100% traffic)\\n\\n### Post-Deploy Backend\\n- Auth smoke (no token → 401): PASS/FAIL\\n- Auth smoke (test token → 200): PASS/FAIL\\n- Modified endpoints: PASS/FAIL\\n- GCP error log: 0 errors / N errors\\n\\n### Post-Deploy Frontend (if applicable)\\n- /browse login: PASS/FAIL [screenshot description]\\n- Each interaction tested: [list what was clicked/submitted]\\n- Responsive (375px): PASS/FAIL\\n- Console errors: 0\\n- i18n switch: PASS/FAIL\\n\\n### Reflection\\n- What went well: [1 sentence]\\n- What was risky: [1 sentence]\\n- Test case to add: [describe 1 test that would catch regressions]" })
+
+WARNING: The executor will REJECT your task if:
+- No deploy evidence (Cloud Build status, revision name)
+- Frontend deploy without /browse verification evidence
+- No error log check mentioned
+These are automated checks. You cannot skip them.
+
 If post-deploy fails: execute Rollback SOP above, mark task FAILED with details.`)
   } else {
     parts.push('\n## When Done')
