@@ -126,8 +126,14 @@ export function OverviewTab({
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Failed to send message')
       setDirectMessage('')
-      setMessageStatus(t('messageSent'))
-      setTimeout(() => setMessageStatus(null), 2000)
+      if (data.forwarded) {
+        setMessageStatus(t('messageSent'))
+      } else {
+        setMessageStatus(data.forward_warning
+          ? `Saved locally (gateway: ${data.forward_warning})`
+          : t('messageSent'))
+      }
+      setTimeout(() => setMessageStatus(null), 4000)
     } catch (error) {
       setMessageStatus(t('messageFailed'))
     }
@@ -1737,7 +1743,7 @@ export function ConfigTab({
                       value={identity.name || ''}
                       onChange={(e) => updateIdentityField('name', e.target.value)}
                       className="w-full bg-surface-1 text-foreground rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50"
-                      placeholder="Agent name"
+                      placeholder={t('agentNamePlaceholder')}
                     />
                   </div>
                   <div>
@@ -1746,7 +1752,7 @@ export function ConfigTab({
                       value={identity.theme || ''}
                       onChange={(e) => updateIdentityField('theme', e.target.value)}
                       className="w-full bg-surface-1 text-foreground rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50"
-                      placeholder="e.g. backend engineer"
+                      placeholder={t('roleExamplePlaceholder')}
                     />
                   </div>
                 </div>
@@ -1757,7 +1763,7 @@ export function ConfigTab({
                     onChange={(e) => updateIdentityField('content', e.target.value)}
                     rows={4}
                     className="w-full bg-surface-1 text-foreground border border-border rounded-md px-3 py-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
-                    placeholder="Describe the agent's identity and personality..."
+                    placeholder={t('identityContentPlaceholder')}
                   />
                 </div>
               </div>
@@ -2230,7 +2236,7 @@ export function FilesTab({ agent }: { agent: Agent }) {
   if (loading && files.length === 0) {
     return (
       <div className="p-6 flex items-center justify-center py-8">
-        <Loader variant="inline" label="Loading files" />
+        <Loader variant="inline" label={t('loadingFiles')} />
       </div>
     )
   }
@@ -2563,7 +2569,7 @@ export function ChannelsTab({ agent }: { agent: Agent }) {
   if (loading && channels.length === 0) {
     return (
       <div className="p-6 flex items-center justify-center py-8">
-        <Loader variant="inline" label="Loading channels" />
+        <Loader variant="inline" label={t('loadingChannels')} />
       </div>
     )
   }
@@ -2681,7 +2687,7 @@ export function CronTab({ agent }: { agent: Agent }) {
   if (loading && allJobs.length === 0) {
     return (
       <div className="p-6 flex items-center justify-center py-8">
-        <Loader variant="inline" label="Loading cron jobs" />
+        <Loader variant="inline" label={t('loadingCronJobs')} />
       </div>
     )
   }

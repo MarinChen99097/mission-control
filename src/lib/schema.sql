@@ -35,7 +35,12 @@ CREATE TABLE IF NOT EXISTS agents (
     last_activity TEXT, -- Description of last activity
     created_at INTEGER NOT NULL DEFAULT (unixepoch()),
     updated_at INTEGER NOT NULL DEFAULT (unixepoch()),
-    config TEXT -- JSON for agent-specific configuration
+    config TEXT, -- JSON for agent-specific configuration
+    workspace_id INTEGER NOT NULL DEFAULT 1,
+    runtime TEXT NOT NULL DEFAULT 'claude-mcp',
+    aliases TEXT DEFAULT '[]',
+    working_memory TEXT,
+    hidden INTEGER NOT NULL DEFAULT 0
 );
 
 -- Comments Table - Task discussion threads

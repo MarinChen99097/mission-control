@@ -74,6 +74,7 @@ export const createAgentSchema = z.object({
   write_to_gateway: z.boolean().optional(),
   provision_openclaw_workspace: z.boolean().optional(),
   openclaw_workspace_path: z.string().min(1).max(500).optional(),
+  hidden: z.union([z.boolean(), z.number()]).optional(),
 })
 
 export const bulkUpdateTaskStatusSchema = z.object({

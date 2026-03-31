@@ -60,9 +60,27 @@ export async function GET(
 
     const agentConfig = agent.config ? JSON.parse(agent.config) : {}
     const candidates = getAgentWorkspaceCandidates(agentConfig, agent.name)
+
+    // If no local workspace (e.g. running on GCP Cloud Run), fallback to DB soul_content
     if (candidates.length === 0) {
-      return NextResponse.json({ error: 'Agent workspace is not configured' }, { status: 400 })
+      const payload: Record<string, { exists: boolean; content: string }> = {}
+      const defaultFiles = ['agent.md', 'identity.md', 'soul.md', 'WORKING.md', 'MEMORY.md', 'TOOLS.md', 'AGENTS.md', 'MISSION.md', 'USER.md']
+      for (const file of defaultFiles) {
+        if (file === 'soul.md' && agent.soul_content) {
+          payload[file] = { exists: true, content: agent.soul_content }
+        } else if (file === 'WORKING.md' && agent.working_memory) {
+          payload[file] = { exists: true, content: agent.working_memory }
+        } else {
+          payload[file] = { exists: false, content: '' }
+        }
+      }
+      return NextResponse.json({
+        agent: { id: agent.id, name: agent.name },
+        workspace: '(remote — synced from local)',
+        files: payload,
+      })
     }
+
     const safeWorkspace = candidates[0]
     const requested = (new URL(request.url).searchParams.get('file') || '').trim()
     const files = requested
@@ -118,14 +136,15 @@ export async function PUT(
     const agentConfig = agent.config ? JSON.parse(agent.config) : {}
     const candidates = getAgentWorkspaceCandidates(agentConfig, agent.name)
     const safeWorkspace = candidates[0]
-    if (!safeWorkspace) {
-      return NextResponse.json({ error: 'Agent workspace is not configured' }, { status: 400 })
+
+    // If local workspace exists, write to disk
+    if (safeWorkspace) {
+      const safePath = resolveWithin(safeWorkspace, file)
+      mkdirSync(dirname(safePath), { recursive: true })
+      writeFileSync(safePath, content, 'utf-8')
     }
 
-    const safePath = resolveWithin(safeWorkspace, file)
-    mkdirSync(dirname(safePath), { recursive: true })
-    writeFileSync(safePath, content, 'utf-8')
-
+    // Always persist soul.md / WORKING.md to DB (works on both local and GCP)
     if (file === 'soul.md') {
       db.prepare('UPDATE agents SET soul_content = ?, updated_at = unixepoch() WHERE id = ? AND workspace_id = ?')
         .run(content, agent.id, workspaceId)
@@ -135,13 +154,18 @@ export async function PUT(
         .run(content, agent.id, workspaceId)
     }
 
+    // For other files on GCP (no workspace), reject — only soul.md/WORKING.md can be saved to DB
+    if (!safeWorkspace && file !== 'soul.md' && file !== 'WORKING.md') {
+      return NextResponse.json({ error: `Cannot save ${file} remotely — only soul.md and WORKING.md are supported without local workspace` }, { status: 400 })
+    }
+
     db_helpers.logActivity(
       'agent_workspace_file_updated',
       'agent',
       agent.id,
       auth.user.username,
       `${file} updated for ${agent.name}`,
-      { file, size: content.length },
+      { file, size: content.length, remote: !safeWorkspace },
       workspaceId
     )
 

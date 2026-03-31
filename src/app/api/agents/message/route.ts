@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase, db_helpers } from '@/lib/db'
-import { runOpenClaw } from '@/lib/command'
 import { requireRole } from '@/lib/auth'
 import { validateBody, createMessageSchema } from '@/lib/validation'
 import { mutationLimiter } from '@/lib/rate-limit'
@@ -8,6 +7,7 @@ import { logger } from '@/lib/logger'
 import { scanForInjection } from '@/lib/injection-guard'
 import { scanForSecrets } from '@/lib/secret-scanner'
 import { logSecurityEvent } from '@/lib/security-events'
+import { getLobsterBaseUrl } from '@/lib/lobster-api'
 
 export async function POST(request: NextRequest) {
   const auth = requireRole(request, 'operator')
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const { to, message } = result.data
     const from = auth.user.display_name || auth.user.username || 'system'
 
-    // Scan message for injection — this gets forwarded directly to an agent
+    // Scan message for injection
     const injectionReport = scanForInjection(message, { context: 'prompt' })
     if (!injectionReport.safe) {
       const criticals = injectionReport.matches.filter(m => m.severity === 'critical')
@@ -48,25 +48,45 @@ export async function POST(request: NextRequest) {
     if (!agent) {
       return NextResponse.json({ error: 'Recipient agent not found' }, { status: 404 })
     }
-    if (!agent.session_key) {
-      return NextResponse.json(
-        { error: 'Recipient agent has no session key configured' },
-        { status: 400 }
-      )
+
+    // Forward message to lobster via Gateway (Cloudflare tunnel)
+    const lobsterUrl = getLobsterBaseUrl()
+    let forwarded = false
+    let forwardError: string | null = null
+
+    if (lobsterUrl) {
+      const gwToken = (
+        process.env.OPENCLAW_GATEWAY_TOKEN ||
+        process.env.OPENCLAW_TOKEN ||
+        process.env.GATEWAY_TOKEN ||
+        ''
+      ).trim()
+
+      try {
+        const res = await fetch(`${lobsterUrl}/api/agent-message`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(gwToken ? { Authorization: `Bearer ${gwToken}` } : {}),
+          },
+          body: JSON.stringify({ from, to, message }),
+          signal: AbortSignal.timeout(10_000),
+        })
+        if (res.ok) {
+          forwarded = true
+        } else {
+          forwardError = `Gateway returned ${res.status}`
+          logger.warn({ status: res.status }, 'Lobster agent-message endpoint returned error')
+        }
+      } catch (err: any) {
+        forwardError = err?.message || 'Gateway unreachable'
+        logger.warn({ err: err?.message }, 'Failed to forward message to lobster — saving locally only')
+      }
+    } else {
+      forwardError = 'No gateway URL configured'
     }
 
-    await runOpenClaw(
-      [
-        'gateway',
-        'sessions_send',
-        '--session',
-        agent.session_key,
-        '--message',
-        `Message from ${from}: ${message}`
-      ],
-      { timeoutMs: 10000 }
-    )
-
+    // Always save notification + activity locally regardless of gateway result
     db_helpers.createNotification(
       to,
       'message',
@@ -87,7 +107,11 @@ export async function POST(request: NextRequest) {
       workspaceId
     )
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({
+      success: true,
+      forwarded,
+      ...(forwardError ? { forward_warning: forwardError } : {}),
+    })
   } catch (error) {
     logger.error({ err: error }, 'POST /api/agents/message error')
     return NextResponse.json({ error: 'Failed to send message' }, { status: 500 })

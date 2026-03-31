@@ -9,6 +9,7 @@ import { useNavigateToPanel } from '@/lib/navigation'
 import { SecurityScanCard } from '@/components/onboarding/security-scan-card'
 import { AgentRuntimesSection } from '@/components/settings/agent-runtimes-section'
 import { AppearanceSection } from '@/components/settings/appearance-section'
+import { NotificationPreferencesSection } from '@/components/settings/notification-preferences-section'
 import { Loader } from '@/components/ui/loader'
 import { clearOnboardingDismissedThisSession, clearOnboardingReplayFromStart } from '@/lib/onboarding-session'
 import { resolveCoordinatorDeliveryTarget, type CoordinatorAgentRecord } from '@/lib/coordinator-routing'
@@ -653,6 +654,9 @@ export function SettingsPanel() {
 
       {/* Appearance */}
       <AppearanceSection />
+
+      {/* Notification Preferences */}
+      <NotificationPreferencesSection />
 
       {/* Language */}
       <LanguageSection />
