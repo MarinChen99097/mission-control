@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 
 // ─── Types ───
 
@@ -36,14 +37,15 @@ interface AgentInfo {
 
 // ─── Constants ───
 
-const STATUS_CONFIG: Record<string, { icon: string; color: string; bg: string; label: string; pulse?: boolean }> = {
-  inbox:          { icon: '○', color: 'text-zinc-400', bg: 'bg-zinc-500/20', label: '待處理' },
-  assigned:       { icon: '◔', color: 'text-cyan-400', bg: 'bg-cyan-500/20', label: '已分配' },
-  in_progress:    { icon: '●', color: 'text-amber-400', bg: 'bg-amber-500/20', label: '執行中', pulse: true },
-  review:         { icon: '◑', color: 'text-purple-400', bg: 'bg-purple-500/20', label: '審查中' },
-  quality_review: { icon: '◕', color: 'text-purple-400', bg: 'bg-purple-500/20', label: '品質審查' },
-  done:           { icon: '✓', color: 'text-emerald-400', bg: 'bg-emerald-500/20', label: '完成' },
-  failed:         { icon: '✕', color: 'text-red-400', bg: 'bg-red-500/20', label: '失敗' },
+const STATUS_CONFIG: Record<string, { icon: string; color: string; bg: string; labelKey: string; pulse?: boolean }> = {
+  inbox:          { icon: '○', color: 'text-zinc-400', bg: 'bg-zinc-500/20', labelKey: 'inbox' },
+  assigned:       { icon: '◔', color: 'text-cyan-400', bg: 'bg-cyan-500/20', labelKey: 'assigned' },
+  in_progress:    { icon: '●', color: 'text-amber-400', bg: 'bg-amber-500/20', labelKey: 'inProgress', pulse: true },
+  review:         { icon: '◑', color: 'text-purple-400', bg: 'bg-purple-500/20', labelKey: 'review' },
+  quality_review: { icon: '◕', color: 'text-purple-400', bg: 'bg-purple-500/20', labelKey: 'qualityReview' },
+  awaiting_owner: { icon: '◐', color: 'text-orange-400', bg: 'bg-orange-500/20', labelKey: 'awaitingOwner' },
+  done:           { icon: '✓', color: 'text-emerald-400', bg: 'bg-emerald-500/20', labelKey: 'done' },
+  failed:         { icon: '✕', color: 'text-red-400', bg: 'bg-red-500/20', labelKey: 'failed' },
 }
 
 const PRIORITY_ACCENT: Record<string, string> = {
@@ -321,7 +323,7 @@ function TaskDetail({ task, agents, onClose }: { task: Task; agents: AgentInfo[]
 
 // ─── Main ───
 
-export function TaskTreePanel() {
+export function TaskTreePanel({ parentId }: { parentId?: number | null } = {}) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [agents, setAgents] = useState<AgentInfo[]>([])
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
@@ -333,7 +335,21 @@ export function TaskTreePanel() {
       const [tRes, aRes] = await Promise.all([fetch('/api/tasks?limit=200'), fetch('/api/agents?limit=100')])
       const tData = await tRes.json()
       const aData = await aRes.json()
-      const taskList: Task[] = tData.tasks || []
+      let taskList: Task[] = tData.tasks || []
+      // When drilled into a parent, only show its subtasks
+      if (parentId != null) {
+        const childIds = new Set<number>()
+        const collectChildren = (pid: number) => {
+          for (const t of taskList) {
+            if (t.parent_task_id === pid && !childIds.has(t.id)) {
+              childIds.add(t.id)
+              collectChildren(t.id)
+            }
+          }
+        }
+        collectChildren(parentId)
+        taskList = taskList.filter(t => childIds.has(t.id))
+      }
       setTasks(taskList)
       setAgents((aData.agents || []).map((a: any) => ({ name: a.name, status: a.status, working_memory: a.working_memory, runtime: a.runtime || 'claude-mcp' })))
 

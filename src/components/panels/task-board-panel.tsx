@@ -615,9 +615,9 @@ export function TaskBoardPanel() {
     const allDone = statuses.every(s => s === 'done')
     if (allDone) return 'completed'
 
+    // Only awaiting_owner means "needs YOUR review" — internal review/quality_review is "in progress"
     const anyAwaitingOwner = statuses.some(s => s === 'awaiting_owner')
-    const allReviewLike = statuses.every(s => s === 'review' || s === 'quality_review' || s === 'done' || s === 'awaiting_owner')
-    if (anyAwaitingOwner || allReviewLike) return 'awaiting_review'
+    if (anyAwaitingOwner) return 'awaiting_review'
 
     const anyInProgress = statuses.some(s => s === 'in_progress' || s === 'review' || s === 'quality_review')
     if (anyInProgress) return 'in_progress'
@@ -629,8 +629,9 @@ export function TaskBoardPanel() {
   const computeStandaloneStatus = (task: Task): 'not_started' | 'in_progress' | 'awaiting_review' | 'completed' => {
     const effectiveStatus = detectAwaitingOwner(task) ? 'awaiting_owner' : task.status
     if (effectiveStatus === 'done') return 'completed'
-    if (effectiveStatus === 'awaiting_owner' || effectiveStatus === 'review' || effectiveStatus === 'quality_review') return 'awaiting_review'
-    if (effectiveStatus === 'in_progress') return 'in_progress'
+    // Only awaiting_owner = needs YOUR review. Internal review/quality_review = in progress.
+    if (effectiveStatus === 'awaiting_owner') return 'awaiting_review'
+    if (effectiveStatus === 'in_progress' || effectiveStatus === 'review' || effectiveStatus === 'quality_review') return 'in_progress'
     return 'not_started'
   }
 
@@ -772,16 +773,16 @@ export function TaskBoardPanel() {
     const now = new Date().getTime()
     const time = new Date(timestamp * 1000).getTime()
     const diff = now - time
-    
+
     const seconds = Math.floor(diff / 1000)
     const minutes = Math.floor(seconds / 60)
     const hours = Math.floor(minutes / 60)
     const days = Math.floor(hours / 24)
-    
-    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`
-    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`
-    if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`
-    return 'just now'
+
+    if (days > 0) return t('timeAgoDays', { count: days })
+    if (hours > 0) return t('timeAgoHours', { count: hours })
+    if (minutes > 0) return t('timeAgoMinutes', { count: minutes })
+    return t('timeAgoJustNow')
   }
 
   const handleSpawn = async () => {
@@ -1224,7 +1225,7 @@ export function TaskBoardPanel() {
       {/* ── Layer 2: Tree View ── */}
       {selectedParentId !== null && viewMode === 'tree' && (
         <div className="flex-1 min-h-0 overflow-hidden">
-          <TaskTreePanel />
+          <TaskTreePanel parentId={selectedParentId} />
         </div>
       )}
 
@@ -1970,7 +1971,7 @@ function TaskDetailModal({
                   rows={3}
                   mentionTargets={mentionTargets}
                 />
-                <p className="text-[11px] text-muted-foreground mt-1">Use <span className="font-mono">@</span> to mention users and agents.</p>
+                <p className="text-[11px] text-muted-foreground mt-1">{t.rich('mentionHint', { mention: (chunks) => <span className="font-mono">{chunks}</span> })}</p>
               </div>
               <div className="flex justify-end">
                 <Button type="submit">
@@ -1980,9 +1981,9 @@ function TaskDetailModal({
             </form>
 
             <div className="mt-5 bg-blue-500/5 border border-blue-500/15 rounded-lg p-3 text-xs text-muted-foreground space-y-1">
-              <div className="font-medium text-blue-300">How notifications work</div>
-              <div><strong className="text-foreground">Comments</strong> are persisted on the task and notify all subscribers. Subscribers are auto-added when they: create the task, are assigned to it, comment on it, or are @mentioned.</div>
-              <div><strong className="text-foreground">Broadcasts</strong> send a one-time notification to all current subscribers without creating a comment record.</div>
+              <div className="font-medium text-blue-300">{t('howNotificationsWork')}</div>
+              <div>{t.rich('notifCommentsExplain', { strong: (chunks) => <strong className="text-foreground">{chunks}</strong> })}</div>
+              <div>{t.rich('notifBroadcastsExplain', { strong: (chunks) => <strong className="text-foreground">{chunks}</strong> })}</div>
             </div>
 
             <div className="mt-6 border-t border-border pt-4">
@@ -2596,12 +2597,12 @@ function CreateTaskModal({
                 rows={3}
                 mentionTargets={mentionTargets}
               />
-              <p className="text-[11px] text-muted-foreground mt-1">Tip: type <span className="font-mono">@</span> for mention autocomplete.</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{t.rich('mentionTip', { mention: (chunks) => <span className="font-mono">{chunks}</span> })}</p>
             </div>
 
             {/* Image attachments */}
             <div>
-              <label className="block text-sm text-muted-foreground mb-1">Attachments</label>
+              <label className="block text-sm text-muted-foreground mb-1">{t('attachments')}</label>
               <div
                 className="border border-dashed border-border/60 rounded-md p-2 min-h-[40px] cursor-pointer hover:border-primary/40 transition-colors"
                 onClick={() => taskFileRef.current?.click()}
@@ -2632,7 +2633,7 @@ function CreateTaskModal({
                 }}
               >
                 {taskImages.length === 0 ? (
-                  <p className="text-xs text-muted-foreground/50 text-center py-1">Paste, drag, or click to add images</p>
+                  <p className="text-xs text-muted-foreground/50 text-center py-1">{t('pasteOrDragImages')}</p>
                 ) : (
                   <div className="flex gap-2 flex-wrap">
                     {taskImages.map((img, i) => (
@@ -2724,21 +2725,21 @@ function CreateTaskModal({
 
             {formData.assigned_to && agentSessions.length > 0 && (
               <div>
-                <label htmlFor="create-target-session" className="block text-sm text-muted-foreground mb-1">Target Session</label>
+                <label htmlFor="create-target-session" className="block text-sm text-muted-foreground mb-1">{t('targetSession')}</label>
                 <select
                   id="create-target-session"
                   value={formData.target_session}
                   onChange={(e) => setFormData(prev => ({ ...prev, target_session: e.target.value }))}
                   className="w-full bg-surface-1 text-foreground border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/50"
                 >
-                  <option value="">New session (default)</option>
+                  <option value="">{t('newSessionDefault')}</option>
                   {agentSessions.map(s => (
                     <option key={s.key} value={s.key}>
                       {s.displayLabel}
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-muted-foreground mt-1">Send task to an existing agent session instead of creating a new one.</p>
+                <p className="text-[11px] text-muted-foreground mt-1">{t('targetSessionHint')}</p>
               </div>
             )}
 
@@ -2750,7 +2751,7 @@ function CreateTaskModal({
                 value={formData.tags}
                 onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
                 className="w-full bg-surface-1 text-foreground border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/50"
-                placeholder="frontend, urgent, bug"
+                placeholder={t('tagsPlaceholder')}
               />
             </div>
 
@@ -2779,7 +2780,7 @@ function CreateTaskModal({
                     value={scheduleInput}
                     onChange={(e) => handleScheduleChange(e.target.value)}
                     className="w-full bg-surface-1 text-foreground border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50"
-                    placeholder='e.g. "every morning at 9am" or "every 2 hours"'
+                    placeholder={t('schedulePlaceholder')}
                   />
                   {parsedSchedule && (
                     <p className="text-xs text-cyan-400 mt-1">
@@ -2787,7 +2788,7 @@ function CreateTaskModal({
                     </p>
                   )}
                   {scheduleError && (
-                    <p className="text-xs text-red-400 mt-1">{scheduleError}. Try: &quot;daily at 9am&quot;, &quot;every 2 hours&quot;, &quot;weekly on monday&quot;</p>
+                    <p className="text-xs text-red-400 mt-1">{scheduleError}. {t('scheduleErrorHint')}</p>
                   )}
                 </div>
               )}
@@ -2905,7 +2906,7 @@ function EditTaskModal({
                 rows={3}
                 mentionTargets={mentionTargets}
               />
-              <p className="text-[11px] text-muted-foreground mt-1">Tip: type <span className="font-mono">@</span> for mention autocomplete.</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{t.rich('mentionTip', { mention: (chunks) => <span className="font-mono">{chunks}</span> })}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -2977,21 +2978,21 @@ function EditTaskModal({
 
             {formData.assigned_to && agentSessions.length > 0 && (
               <div>
-                <label htmlFor="edit-target-session" className="block text-sm text-muted-foreground mb-1">Target Session</label>
+                <label htmlFor="edit-target-session" className="block text-sm text-muted-foreground mb-1">{t('targetSession')}</label>
                 <select
                   id="edit-target-session"
                   value={formData.target_session}
                   onChange={(e) => setFormData(prev => ({ ...prev, target_session: e.target.value }))}
                   className="w-full bg-surface-1 text-foreground border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/50"
                 >
-                  <option value="">New session (default)</option>
+                  <option value="">{t('newSessionDefault')}</option>
                   {agentSessions.map(s => (
                     <option key={s.key} value={s.key}>
                       {s.displayLabel}
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-muted-foreground mt-1">Send task to an existing agent session instead of creating a new one.</p>
+                <p className="text-[11px] text-muted-foreground mt-1">{t('targetSessionHint')}</p>
               </div>
             )}
 
@@ -3003,7 +3004,7 @@ function EditTaskModal({
                 value={formData.tags}
                 onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
                 className="w-full bg-surface-1 text-foreground border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/50"
-                placeholder="frontend, urgent, bug"
+                placeholder={t('tagsPlaceholder')}
               />
             </div>
           </div>
