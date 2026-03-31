@@ -613,8 +613,18 @@ export async function runAegisReviews(): Promise<{ ok: boolean; message: string 
 /**
  * Requeue stale tasks stuck in 'in_progress' whose assigned agent is offline.
  * Prevents tasks from being permanently stuck when agents crash or disconnect.
+ *
+ * When gateway is connected, the lobster's task-executor manages its own stuck
+ * recovery on restart. MC should NOT interfere by killing tasks that the executor
+ * is actively running (executor spawns fresh Claude Code sessions that don't
+ * register heartbeats in MC, so agents appear "offline" even when working).
  */
 export async function requeueStaleTasks(): Promise<{ ok: boolean; message: string }> {
+  // When gateway is connected, let the lobster handle stuck task recovery
+  if (isGatewayAvailable()) {
+    return { ok: true, message: 'Gateway connected — stale task recovery delegated to lobster executor' }
+  }
+
   const db = getDatabase()
   const now = Math.floor(Date.now() / 1000)
   const staleThreshold = now - 10 * 60 // 10 minutes
