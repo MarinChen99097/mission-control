@@ -242,7 +242,8 @@ function MarkdownPreview({ content }: { content: string }) {
           {content}
         </ReactMarkdown>
       </div>
-      <style jsx global>{`
+      {/* eslint-disable-next-line react/no-unknown-property */}
+      <style>{`
         .md-notion {
           color: rgba(255,255,255,0.85);
           font-size: 15px;
