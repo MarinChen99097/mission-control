@@ -264,22 +264,44 @@ If the work has FINDINGS but is acceptable (SOFT gate — security-engineer, com
    Run: git diff
    Check for: hardcoded secrets, debug console.log, TODO/FIXME left in, any file you didn't intend to change.
 
-5. **Frontend visual verification** (if you changed any .tsx/.jsx component or CSS):
-   You MUST open the page in a browser and verify your changes visually.
+5. **Frontend visual + interaction verification** (if you changed any .tsx/.jsx component or CSS):
+   You MUST open the page in a real browser and verify AS A USER. Not just "it compiles".
    Use /browse or the gstack headless browser to:
-   a. Navigate to the page where your component appears
-   b. Take a screenshot — confirm it renders correctly, no layout breakage
-   c. Test EVERY interactive element you added or modified:
-      - Click buttons → verify navigation/action works
-      - Hover states → verify visual feedback
-      - Form inputs → type text, submit, verify response
-      - Toggle/switch → verify state changes
-      - Responsive: resize to mobile width, verify layout doesn't break
-   d. Check browser console for errors (0 errors expected)
-   e. If your component fetches data from an API, verify the data displays correctly
-   f. If i18n: switch language and verify all text changes
+
+   a. **Authentication flow** (if the page requires login):
+      - Navigate to the login page
+      - Create a test account if needed (use a random email like test-agent-XXXX@test.com, password: TestPass123!)
+      - Or log in with the designated test account (test1@test.com / 123)
+      - Verify login succeeds, redirected to the correct page
+      - After all tests, log out and verify redirect to login page
+
+   b. **Navigate to the page** where your component appears
+      - Take a screenshot — confirm it renders correctly, no layout breakage
+      - If the page is behind auth, you must be logged in first
+
+   c. **Test EVERY interactive element** you added or modified — walk through the complete user journey:
+      - Click each button → verify navigation/action works, take screenshot of result
+      - Fill form inputs → type realistic test data, submit, verify response/success message
+      - Dropdown/select → open, pick option, verify selection
+      - Toggle/switch → click, verify state changes visually
+      - Modal/dialog → trigger open, verify content, close it
+      - If there's a chart/visualization → verify it shows real data, not empty/zero/NaN
+      - If there's a list/table → verify data rows appear, test empty state too
+      - If there's pagination → click next/prev, verify page changes
+      - If there's search/filter → type a query, verify results update
+      - If there's drag-and-drop → attempt drag, verify it works
+      - Delete/destructive action → verify confirmation dialog appears
+
+   d. **Responsive layout**: resize to mobile width (~375px), take screenshot, verify no overflow or broken layout
+
+   e. **Console check**: check browser console for errors — expect 0 errors, 0 unhandled promise rejections
+
+   f. **i18n** (if applicable): switch language (en ↔ zh), verify ALL new text changes correctly
+
+   g. **Cross-page impact**: navigate to 2-3 other key pages to confirm nothing else broke
+
    Record screenshots and console output in your task outcome as evidence.
-   FAIL = fix before marking done. A component that doesn't render is not done.
+   FAIL = fix before marking done. A component that doesn't render or interact correctly is not done.
 
 Only after ALL checks pass:
   mc_update_task({ id: YOUR_TASK_ID, status: "done", outcome: "summary + verification results" })
@@ -305,23 +327,44 @@ If any fail: fix if trivial, otherwise mark task FAILED. Do NOT push broken code
 - [ ] Modified endpoints: happy path + one edge case (empty body, missing field)
 - [ ] GCP error log: severity>=ERROR in last 3 minutes → expect 0
 
-### Phase 4: Post-Deploy — Frontend Verification (HARD GATE if UI changes exist)
-If this deployment includes ANY frontend/UI changes (.tsx/.jsx/.css files), you MUST:
-- [ ] Use /browse to open the affected page on the live URL
-- [ ] Take a screenshot — confirm the page renders correctly
-- [ ] Walk through EVERY user interaction flow that was added or modified:
-  - Click each new button → verify it navigates or triggers the correct action
-  - Fill out any new form fields → submit → verify the response
-  - Hover interactive elements → verify visual feedback (tooltips, highlights)
-  - If there's a chart/visualization → verify it displays real data, not empty/broken
-  - If there's a list/table → verify it shows data rows, handles empty state
-- [ ] Test responsive layout: resize browser to mobile width (~375px), verify no overflow or broken layout
-- [ ] Check browser console: expect 0 errors, 0 unhandled promise rejections
-- [ ] If i18n was added: switch language (en ↔ zh), verify ALL new text changes correctly
-- [ ] Navigate to 2-3 other key pages to confirm nothing else broke (dashboard, agents, settings)
+### Phase 4: Post-Deploy — Frontend End-to-End Verification (HARD GATE if UI changes exist)
+If this deployment includes ANY frontend/UI changes (.tsx/.jsx/.css files), you MUST do a full end-to-end user journey test on the LIVE deployed URL using /browse:
 
-Each check must be recorded as PASS/FAIL with evidence (screenshot URL or console output).
-If ANY frontend check fails: do NOT route traffic. Mark task FAILED with the failing check.
+**Step 1: Authentication**
+- [ ] Navigate to the app's login page on the live URL
+- [ ] Create a test account (use test-agent-XXXX@test.com / TestPass123!) OR log in with test1@test.com / 123
+- [ ] Verify login succeeds — take screenshot of the landing page after login
+- [ ] If the app has signup: test the full signup flow too (fill every field, submit, verify success)
+
+**Step 2: Navigate to the changed page**
+- [ ] Navigate to the page where UI changes were made
+- [ ] Take screenshot — confirm it renders correctly on the live deployment
+
+**Step 3: Walk through EVERY user interaction flow**
+For each new or modified UI element, do what a real user would do:
+- [ ] Click every button → screenshot the result page/action
+- [ ] Fill every form field with realistic test data → submit → verify success/error message
+- [ ] Open dropdowns, select options, verify selection sticks
+- [ ] Toggle switches, verify state changes
+- [ ] Open/close modals and dialogs
+- [ ] If chart/visualization: verify it shows real data (not empty/zero/NaN)
+- [ ] If list/table: verify rows, test empty state, test with data
+- [ ] If pagination: click through pages
+- [ ] If search/filter: type a query, verify results
+- [ ] If delete/destructive: verify confirmation dialog
+
+**Step 4: Edge cases**
+- [ ] Responsive: resize to 375px width, screenshot, verify no overflow
+- [ ] Console: check for 0 JS errors and 0 unhandled promise rejections
+- [ ] i18n: switch language (en ↔ zh), verify all new text
+- [ ] Empty state: if applicable, test with no data
+
+**Step 5: Regression**
+- [ ] Navigate to 2-3 other key pages (dashboard, agents, settings) — verify they still work
+- [ ] Log out → verify redirect to login
+
+Each check: PASS/FAIL with screenshot evidence.
+ANY failure = do NOT route traffic. Mark task FAILED.
 
 ### Phase 5: Traffic
 - gcloud run services update-traffic --to-latest
