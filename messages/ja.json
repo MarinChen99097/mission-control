@@ -80,6 +80,7 @@
     "skills": "スキル",
     "mcpServers": "MCP Servers",
     "memory": "メモリ",
+    "folders": "フォルダ",
     "activity": "アクティビティ",
     "logs": "ログ",
     "costTracker": "コストトラッカー",
@@ -2249,5 +2250,25 @@
     "agentHealthBusy": "ビジー",
     "agentHealthError": "エラー",
     "agentTotal": "合計"
+  },
+  "workspaceExplorer": {
+    "title": "ワークスペースエクスプローラー",
+    "copyPath": "パスをコピー",
+    "copy": "コピー",
+    "sync": "同期",
+    "searchFiles": "ファイルを検索...",
+    "selectFile": "プレビューするファイルを選択",
+    "readOnly": "読み取り専用",
+    "download": "ダウンロード",
+    "source": "ソース",
+    "render": "レンダリング",
+    "files": "ファイル",
+    "lastSync": "最終同期",
+    "justNow": "たった今",
+    "ago": "前",
+    "workspaceNotFound": "OpenClawワークスペースが見つかりません",
+    "notConfigured": "ワークスペースパスが未設定",
+    "retry": "再試行",
+    "loadError": "ファイルの読み込みに失敗"
   }
 }

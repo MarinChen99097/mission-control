@@ -37,6 +37,7 @@ import { NodesPanel } from '@/components/panels/nodes-panel'
 import { ExecApprovalPanel } from '@/components/panels/exec-approval-panel'
 import { SystemMonitorPanel } from '@/components/panels/system-monitor-panel'
 import { McpServersPanel } from '@/components/panels/mcp-servers-panel'
+import { WorkspaceExplorerPanel } from '@/components/panels/workspace-explorer-panel'
 import { LobsterConversationsPanel } from '@/components/panels/lobster-conversations-panel'
 import { ChatPagePanel } from '@/components/panels/chat-page-panel'
 import { ChatPanel } from '@/components/chat/chat-panel'
@@ -527,6 +528,8 @@ function ContentRouter({ tab }: { tab: string }) {
       return <CronManagementPanel />
     case 'memory':
       return <MemoryBrowserPanel />
+    case 'folders':
+      return <WorkspaceExplorerPanel />
     case 'cost-tracker':
     case 'tokens':
     case 'agent-costs':

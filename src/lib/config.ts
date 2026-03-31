@@ -107,6 +107,10 @@ export const config = {
     process.env.OPENCLAW_SOUL_TEMPLATES_DIR ||
     (openclawStateDir ? path.join(openclawStateDir, 'templates', 'souls') : ''),
   homeDir: os.homedir(),
+  workspaceExplorerDir:
+    process.env.WORKSPACE_EXPLORER_DIR ||
+    process.env.MC_PROJECT_DIR ||
+    path.resolve(process.cwd(), '..'),
   gnap: {
     enabled: process.env.GNAP_ENABLED === 'true',
     repoPath: resolvedGnapRepoPath,

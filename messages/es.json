@@ -80,6 +80,7 @@
     "skills": "Habilidades",
     "mcpServers": "MCP Servers",
     "memory": "Memoria",
+    "folders": "Carpetas",
     "activity": "Actividad",
     "logs": "Registros",
     "costTracker": "Seguimiento de costos",
@@ -2227,5 +2228,25 @@
     "agentHealthBusy": "Ocupado",
     "agentHealthError": "Error",
     "agentTotal": "Total"
+  },
+  "workspaceExplorer": {
+    "title": "Explorador de carpetas",
+    "copyPath": "Copiar ruta",
+    "copy": "Copiar",
+    "sync": "Sincronizar",
+    "searchFiles": "Buscar archivos...",
+    "selectFile": "Selecciona un archivo para previsualizar",
+    "readOnly": "Solo lectura",
+    "download": "Descargar",
+    "source": "Código fuente",
+    "render": "Renderizar",
+    "files": "archivos",
+    "lastSync": "Última sincronización",
+    "justNow": "ahora mismo",
+    "ago": "atrás",
+    "workspaceNotFound": "No se encontró el espacio de trabajo de OpenClaw",
+    "notConfigured": "Ruta no configurada",
+    "retry": "Reintentar",
+    "loadError": "Error al cargar archivo"
   }
 }

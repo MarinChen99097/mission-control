@@ -80,6 +80,7 @@
     "skills": "ทักษะ",
     "mcpServers": "MCP Servers",
     "memory": "หน่วยความจำ",
+    "folders": "โฟลเดอร์",
     "activity": "กิจกรรม",
     "logs": "บันทึก",
     "costTracker": "ตัวติดตามค่าใช้จ่าย",
@@ -2227,5 +2228,25 @@
     "agentHealthBusy": "ยุ่ง",
     "agentHealthError": "ข้อผิดพลาด",
     "agentTotal": "ทั้งหมด"
+  },
+  "workspaceExplorer": {
+    "title": "สำรวจพื้นที่ทำงาน",
+    "copyPath": "คัดลอกเส้นทาง",
+    "copy": "คัดลอก",
+    "sync": "ซิงค์",
+    "searchFiles": "ค้นหาไฟล์...",
+    "selectFile": "เลือกไฟล์เพื่อดูตัวอย่าง",
+    "readOnly": "อ่านอย่างเดียว",
+    "download": "ดาวน์โหลด",
+    "source": "ซอร์สโค้ด",
+    "render": "แสดงผล",
+    "files": "ไฟล์",
+    "lastSync": "ซิงค์ล่าสุด",
+    "justNow": "เมื่อกี้",
+    "ago": "ที่แล้ว",
+    "workspaceNotFound": "ไม่พบพื้นที่ทำงาน OpenClaw",
+    "notConfigured": "ยังไม่ได้ตั้งค่าเส้นทาง",
+    "retry": "ลองอีกครั้ง",
+    "loadError": "โหลดไฟล์ไม่สำเร็จ"
   }
 }

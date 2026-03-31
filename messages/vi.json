@@ -80,6 +80,7 @@
     "skills": "Kỹ năng",
     "mcpServers": "MCP Servers",
     "memory": "Bộ nhớ",
+    "folders": "Thư mục",
     "activity": "Hoạt động",
     "logs": "Nhật ký",
     "costTracker": "Theo dõi chi phí",
@@ -2227,5 +2228,25 @@
     "agentHealthBusy": "Bận",
     "agentHealthError": "Lỗi",
     "agentTotal": "Tổng"
+  },
+  "workspaceExplorer": {
+    "title": "Trình duyệt thư mục",
+    "copyPath": "Sao chép đường dẫn",
+    "copy": "Sao chép",
+    "sync": "Đồng bộ",
+    "searchFiles": "Tìm kiếm tệp...",
+    "selectFile": "Chọn tệp để xem trước",
+    "readOnly": "Chỉ đọc",
+    "download": "Tải xuống",
+    "source": "Mã nguồn",
+    "render": "Kết xuất",
+    "files": "tệp",
+    "lastSync": "Đồng bộ lần cuối",
+    "justNow": "vừa xong",
+    "ago": "trước",
+    "workspaceNotFound": "Không tìm thấy thư mục OpenClaw",
+    "notConfigured": "Chưa cấu hình đường dẫn",
+    "retry": "Thử lại",
+    "loadError": "Không thể tải tệp"
   }
 }

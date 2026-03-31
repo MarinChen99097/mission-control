@@ -80,6 +80,7 @@
     "skills": "المهارات",
     "mcpServers": "MCP Servers",
     "memory": "الذاكرة",
+    "folders": "المجلدات",
     "activity": "النشاط",
     "logs": "السجلات",
     "costTracker": "تتبع التكاليف",
@@ -2227,5 +2228,25 @@
     "agentHealthBusy": "مشغول",
     "agentHealthError": "خطأ",
     "agentTotal": "المجموع"
+  },
+  "workspaceExplorer": {
+    "title": "مستكشف المجلدات",
+    "copyPath": "نسخ المسار",
+    "copy": "نسخ",
+    "sync": "مزامنة",
+    "searchFiles": "البحث عن ملفات...",
+    "selectFile": "اختر ملفاً للمعاينة",
+    "readOnly": "للقراءة فقط",
+    "download": "تنزيل",
+    "source": "الكود المصدري",
+    "render": "عرض",
+    "files": "ملفات",
+    "lastSync": "آخر مزامنة",
+    "justNow": "الآن",
+    "ago": "مضت",
+    "workspaceNotFound": "لم يتم العثور على مساحة عمل OpenClaw",
+    "notConfigured": "لم يتم تكوين المسار",
+    "retry": "إعادة المحاولة",
+    "loadError": "فشل تحميل الملف"
   }
 }
