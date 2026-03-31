@@ -74,6 +74,11 @@ export function createRateLimiter(options: RateLimiterOptions) {
     // Allow disabling non-critical rate limiting for E2E tests
     // In CI, standalone server runs with NODE_ENV=production but needs rate limit bypass
     if (process.env.MC_DISABLE_RATE_LIMIT === '1' && !options.critical && (process.env.NODE_ENV !== 'production' || process.env.MISSION_CONTROL_TEST_MODE === '1')) return null
+    // API key callers (bridge, MCP, CLI) are trusted — exempt from non-critical rate limits
+    if (!options.critical) {
+      const apiKey = (request.headers.get('x-api-key') || '').trim()
+      if (apiKey && apiKey.startsWith('mc_')) return null
+    }
     const ip = extractClientIp(request)
     const now = Date.now()
     const entry = store.get(ip)
@@ -106,12 +111,12 @@ export const loginLimiter = createRateLimiter({
 
 export const mutationLimiter = createRateLimiter({
   windowMs: 60_000,
-  maxRequests: 60,
+  maxRequests: 300,
 })
 
 export const readLimiter = createRateLimiter({
   windowMs: 60_000,
-  maxRequests: 120,
+  maxRequests: 600,
 })
 
 export const heavyLimiter = createRateLimiter({
