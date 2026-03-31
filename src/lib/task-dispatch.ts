@@ -319,6 +319,7 @@ interface ReviewableTask {
   workspace_id: number
   ticket_prefix: string | null
   project_ticket_no: number | null
+  parent_task_id: number | null
 }
 
 function resolveGatewayAgentIdForReview(task: ReviewableTask): string {
@@ -375,6 +376,75 @@ function parseReviewVerdict(text: string): { status: 'approved' | 'rejected'; no
   const notesMatch = text.match(/NOTES:\s*(.+)/i)
   const notes = notesMatch?.[1]?.trim().substring(0, 2000) || (status === 'approved' ? 'Quality check passed' : 'Quality check failed')
   return { status, notes }
+}
+
+/**
+ * Generate a pipeline retrospective when a root task completes.
+ * Pure data aggregation — no LLM call, no token cost.
+ */
+async function generateRetrospective(rootTaskId: number, workspaceId: number): Promise<void> {
+  const db = getDatabase()
+
+  const rootTask = db.prepare('SELECT * FROM tasks WHERE id = ? AND workspace_id = ?')
+    .get(rootTaskId, workspaceId) as any
+  if (!rootTask) return
+
+  // Get all descendant tasks (sub-tasks and their sub-tasks)
+  const subtasks = db.prepare(`
+    WITH RECURSIVE descendants AS (
+      SELECT id, title, status, assigned_to, rework_count, dispatch_attempts,
+             created_at, updated_at, completed_at, outcome, error_message, parent_task_id
+      FROM tasks WHERE parent_task_id = ? AND workspace_id = ?
+      UNION ALL
+      SELECT t.id, t.title, t.status, t.assigned_to, t.rework_count, t.dispatch_attempts,
+             t.created_at, t.updated_at, t.completed_at, t.outcome, t.error_message, t.parent_task_id
+      FROM tasks t JOIN descendants d ON t.parent_task_id = d.id
+      WHERE t.workspace_id = ?
+    )
+    SELECT * FROM descendants
+  `).all(rootTaskId, workspaceId, workspaceId) as Array<{
+    id: number; title: string; status: string; assigned_to: string | null
+    rework_count: number; dispatch_attempts: number
+    created_at: number; updated_at: number; completed_at: number | null
+    outcome: string | null; error_message: string | null
+  }>
+
+  const now = Math.floor(Date.now() / 1000)
+  const durationMin = Math.round((now - rootTask.created_at) / 60)
+  const completed = subtasks.filter(t => t.status === 'done')
+  const failed = subtasks.filter(t => t.status === 'failed')
+  const reworked = subtasks.filter(t => (t.rework_count ?? 0) > 0)
+
+  // Count unique agents involved
+  const agents = new Set(subtasks.map(t => t.assigned_to).filter(Boolean))
+
+  const lines = [
+    '## Pipeline Retrospective',
+    '',
+    `**Duration**: ${durationMin} minutes (creation → completion)`,
+    `**Sub-tasks**: ${subtasks.length} total, ${completed.length} completed, ${reworked.length} reworked, ${failed.length} failed`,
+    `**Agents involved**: ${agents.size} (${[...agents].join(', ')})`,
+  ]
+
+  if (reworked.length > 0) {
+    lines.push('', '### Rework Details')
+    for (const t of reworked) {
+      lines.push(`- **TASK-${t.id}** (${t.assigned_to}): reworked ${t.rework_count}x — ${t.error_message || 'no details recorded'}`)
+    }
+  }
+
+  if (failed.length > 0) {
+    lines.push('', '### Failed Tasks')
+    for (const t of failed) {
+      lines.push(`- **TASK-${t.id}** (${t.assigned_to}): ${t.error_message || t.title}`)
+    }
+  }
+
+  // Write as comment on root task
+  db.prepare(`INSERT INTO comments (task_id, author, content, created_at, workspace_id) VALUES (?, 'system', ?, ?, ?)`)
+    .run(rootTaskId, lines.join('\n'), now, workspaceId)
+
+  logger.info({ taskId: rootTaskId, subtasks: subtasks.length, reworked: reworked.length, durationMin }, 'Pipeline retrospective generated')
 }
 
 /**
@@ -460,14 +530,21 @@ export async function runAegisReviews(): Promise<{ ok: boolean; message: string 
       `).run(task.id, verdict.status, verdict.notes, task.workspace_id)
 
       if (verdict.status === 'approved') {
-        db.prepare('UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?')
-          .run('done', Math.floor(Date.now() / 1000), task.id)
+        db.prepare('UPDATE tasks SET status = ?, completed_at = ?, updated_at = ? WHERE id = ?')
+          .run('done', Math.floor(Date.now() / 1000), Math.floor(Date.now() / 1000), task.id)
 
         eventBus.broadcast('task.status_changed', {
           id: task.id,
           status: 'done',
           previous_status: 'quality_review',
         })
+
+        // Generate retrospective for root tasks (no parent)
+        if (!task.parent_task_id) {
+          generateRetrospective(task.id, task.workspace_id).catch(err =>
+            logger.error({ err, taskId: task.id }, 'Retrospective generation failed')
+          )
+        }
       } else {
         // Rejected: check dispatch_attempts to decide next status
         const now = Math.floor(Date.now() / 1000)
@@ -644,7 +721,7 @@ export async function dispatchAssignedTasks(): Promise<{ ok: boolean; message: s
     FROM tasks t
     JOIN agents a ON a.name = t.assigned_to AND a.workspace_id = t.workspace_id
     LEFT JOIN projects p ON p.id = t.project_id AND p.workspace_id = t.workspace_id
-    WHERE t.status = 'assigned'
+    WHERE t.status IN ('assigned', 'rework_requested')
       AND t.assigned_to IS NOT NULL
     ORDER BY
       CASE t.priority WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END ASC,
@@ -710,13 +787,19 @@ export async function dispatchAssignedTasks(): Promise<{ ok: boolean; message: s
     )
 
     try {
-      // Check for previous Aegis rejection feedback
+      // Check for reviewer rejection or Aegis rejection feedback
       const rejectionRow = db.prepare(`
         SELECT content FROM comments
-        WHERE task_id = ? AND author = 'aegis' AND content LIKE 'Quality Review Rejected:%'
+        WHERE task_id = ?
+          AND (content LIKE 'Quality Review Rejected:%' OR content LIKE 'Rework requested:%' OR content LIKE 'FAIL:%' OR content LIKE 'REJECTED:%')
         ORDER BY created_at DESC LIMIT 1
       `).get(task.id) as { content: string } | undefined
-      const rejectionFeedback = rejectionRow?.content?.replace(/^Quality Review Rejected:\n?/, '') || null
+      const rejectionFeedback = rejectionRow?.content || null
+
+      // Increment rework_count if this is a rework dispatch
+      if ((task as any).status === 'rework_requested') {
+        db.prepare('UPDATE tasks SET rework_count = COALESCE(rework_count, 0) + 1 WHERE id = ?').run(task.id)
+      }
 
       const prompt = buildTaskPrompt(task, rejectionFeedback)
 

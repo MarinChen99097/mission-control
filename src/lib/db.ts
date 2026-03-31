@@ -237,7 +237,7 @@ export interface Task {
   id: number;
   title: string;
   description?: string;
-  status: 'inbox' | 'assigned' | 'in_progress' | 'review' | 'quality_review' | 'awaiting_owner' | 'done';
+  status: 'inbox' | 'assigned' | 'in_progress' | 'review' | 'quality_review' | 'awaiting_owner' | 'rework_requested' | 'done';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   source?: 'mc_dashboard' | 'telegram' | 'discord' | 'api';
   project_id?: number;

@@ -1745,6 +1745,15 @@ const migrations: Migration[] = [
       const placeholders = visibleAgents.map(() => '?').join(', ')
       db.prepare(`UPDATE agents SET hidden = 1 WHERE name NOT IN (${placeholders})`).run(...visibleAgents)
     }
+  },
+  {
+    id: '058_task_rework_count',
+    up(db: Database.Database) {
+      const cols = db.prepare('PRAGMA table_info(tasks)').all() as Array<{ name: string }>
+      if (!cols.some(c => c.name === 'rework_count')) {
+        db.exec(`ALTER TABLE tasks ADD COLUMN rework_count INTEGER NOT NULL DEFAULT 0`)
+      }
+    }
   }
 ]
 

@@ -82,7 +82,21 @@ Rules:
 3. ALWAYS assign sub-tasks to specialized agents from Your Team — do NOT assign to yourself. You are the lead, not the executor. For example: assign backend work to "backend-architect", frontend to "frontend-developer", reviews to "code-reviewer", deploy to "devops-automator".
 4. Set blocked_by to ensure correct execution order.
 5. Update your working_memory so colleagues know your status.
-6. When all sub-tasks complete, mark your parent task as done with a summary.`
+6. When all sub-tasks complete, mark your parent task as done with a summary.
+
+## Quality Gate Types
+HARD gates (must pass to proceed — reviewer can reject and send back):
+- plan-reviewer reviewing planner output
+- code-reviewer reviewing coder output
+- devops pre-deploy checks (tsc, tests, build)
+- devops post-deploy auth smoke test
+
+SOFT gates (advisory — log findings but don't block):
+- security-engineer audit (run in parallel with code review)
+- compliance-auditor check
+
+For HARD gates: blocked_by the reviewer task.
+For SOFT gates: run in PARALLEL with the next phase, do NOT block deployment.`
 
 // ---------------------------------------------------------------------------
 // Prompt builder for Team Leads
@@ -206,10 +220,86 @@ export function buildAgentSystemPrompt(
   // H. Dependency Context
   appendDependencyContext(parts, db, task)
 
-  // I. Task completion instructions
-  parts.push('\n## When Done')
-  parts.push('Use mc_update_task({ id: YOUR_TASK_ID, status: "done", outcome: "summary" }) to mark complete.')
-  parts.push('This will automatically unblock downstream tasks.')
+  // I. Role-specific instructions
+  const agentName = task.agent_name.toLowerCase()
+  const isReviewer = ['code-reviewer', 'plan-reviewer', 'security-engineer', 'compliance-auditor', 'integration-checker'].includes(agentName)
+  const isCoder = ['backend-architect', 'frontend-developer', 'software-architect', 'database-optimizer'].includes(agentName)
+  const isDevops = agentName === 'devops-automator'
+
+  if (isReviewer) {
+    parts.push('\n## Reviewer Protocol')
+    parts.push(`You are a REVIEWER. Your job is to find real issues, not rubber-stamp.
+
+If the work PASSES:
+  mc_update_task({ id: YOUR_TASK_ID, status: "done", outcome: "PASS: <brief summary>" })
+
+If the work FAILS (HARD gate — code-reviewer, plan-reviewer):
+  1. Add a comment to the UPSTREAM task (the one you reviewed) with specific, actionable feedback:
+     mc_add_comment({ id: UPSTREAM_TASK_ID, content: "Rework requested: <specific issues>" })
+  2. Send the upstream task back for rework:
+     mc_update_task({ id: UPSTREAM_TASK_ID, status: "rework_requested" })
+  3. Do NOT mark your own task as done. Wait for the rework.
+  Max rework cycles: 2. If upstream already reworked 2x, approve with caveats or mark your task failed.
+
+If the work has FINDINGS but is acceptable (SOFT gate — security-engineer, compliance-auditor):
+  mc_update_task({ id: YOUR_TASK_ID, status: "done", outcome: "PASS with findings: <list issues>" })
+  Findings are advisory. Do NOT block the pipeline for theoretical issues.`)
+  } else if (isCoder) {
+    parts.push('\n## Coder Self-Verification Protocol')
+    parts.push(`BEFORE marking your task as done, you MUST run these checks:
+
+1. TypeScript compilation (if .ts/.tsx files changed):
+   Run: npx tsc --noEmit
+   FAIL = fix before marking done. Do NOT submit broken types.
+
+2. Existing tests (if test files exist):
+   Run: pnpm test (or pytest for Python)
+   FAIL = fix before marking done.
+
+3. Build check (if frontend repo):
+   Run: pnpm build
+   FAIL = fix before marking done.
+
+4. Self-review your own diff:
+   Run: git diff
+   Check for: hardcoded secrets, debug console.log, TODO/FIXME left in, any file you didn't intend to change.
+
+Only after ALL checks pass:
+  mc_update_task({ id: YOUR_TASK_ID, status: "done", outcome: "summary + verification results" })
+
+If you receive a rework_requested task, a reviewer found issues. Read the comments for specific feedback and address EVERY point.`)
+  } else if (isDevops) {
+    parts.push('\n## DevOps Verification Protocol')
+    parts.push(`You MUST run checks in order. Do not skip steps.
+
+### Phase 1: Pre-Deploy (HARD GATE — block push if any fail)
+- [ ] TypeScript: npx tsc --noEmit (frontend repos)
+- [ ] Tests: pnpm test or pytest (if tests exist)
+- [ ] Build: pnpm build (frontend repos)
+If any fail: fix if trivial, otherwise mark task FAILED. Do NOT push broken code.
+
+### Phase 2: Deploy
+- git add + commit (Conventional Commits format) + push
+- Monitor Cloud Build until SUCCESS or FAILURE
+- Confirm new Cloud Run revision serving
+
+### Phase 3: Post-Deploy (HARD GATE)
+- [ ] Auth smoke: curl WITHOUT token → expect 401/403. curl WITH test token → expect 200
+- [ ] Modified endpoints: happy path + one edge case (empty body, missing field)
+- [ ] GCP error log: severity>=ERROR in last 3 minutes → expect 0
+- [ ] Frontend check: /browse if UI changes, check console errors
+
+### Phase 4: Traffic
+- gcloud run services update-traffic --to-latest
+- Only after Phase 3 passes
+
+Record ALL results in your task outcome with pass/fail for each check.
+If post-deploy fails: rollback traffic to previous revision, mark task FAILED.`)
+  } else {
+    parts.push('\n## When Done')
+    parts.push('Use mc_update_task({ id: YOUR_TASK_ID, status: "done", outcome: "summary" }) to mark complete.')
+    parts.push('This will automatically unblock downstream tasks.')
+  }
 
   return parts.join('\n')
 }
