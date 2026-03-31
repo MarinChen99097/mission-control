@@ -47,7 +47,7 @@ function parseGatewayJson(raw: string): any | null {
   }
 }
 
-function toGatewayAttachments(value: unknown): Array<{ type: 'image'; mimeType: string; fileName?: string; content: string }> | undefined {
+function toGatewayAttachments(value: unknown): Array<{ type: string; mimeType: string; fileName?: string; content: string }> | undefined {
   if (!Array.isArray(value)) return undefined
 
   const attachments = value.flatMap((entry) => {
@@ -55,10 +55,12 @@ function toGatewayAttachments(value: unknown): Array<{ type: 'image'; mimeType: 
     if (!file || typeof file !== 'object' || typeof file.dataUrl !== 'string') return []
     const match = /^data:([^;]+);base64,(.+)$/.exec(file.dataUrl)
     if (!match) return []
-    if (!match[1].startsWith('image/')) return []
+    const mimeType = match[1]
+    // Determine attachment type: images go as 'image', others as 'file'
+    const type = mimeType.startsWith('image/') ? 'image' : 'file'
     return [{
-      type: 'image' as const,
-      mimeType: match[1],
+      type,
+      mimeType,
       fileName: typeof file.name === 'string' ? file.name : undefined,
       content: match[2],
     }]
@@ -345,9 +347,17 @@ export async function POST(request: NextRequest) {
     const content = (body.content || '').trim()
     const message_type = body.message_type || 'text'
     const conversation_id = body.conversation_id || `conv_${Date.now()}`
-    const metadata = body.metadata || null
+    // Store attachment metadata (without full base64) for history display
+    const attachmentMeta = Array.isArray(body.attachments) ? body.attachments.map((a: any) => ({
+      name: a?.name,
+      type: a?.type,
+      size: a?.size,
+    })).filter((a: any) => a.name) : undefined
+    const metadata = attachmentMeta?.length
+      ? { ...(body.metadata || {}), attachments: attachmentMeta }
+      : (body.metadata || null)
 
-    if (!content) {
+    if (!content && !attachmentMeta?.length) {
       return NextResponse.json(
         { error: '"content" is required' },
         { status: 400 }
@@ -515,6 +525,8 @@ export async function POST(request: NextRequest) {
                 message: `Message from ${from}: ${content}`,
                 idempotencyKey,
                 deliver: false,
+                attachments: toGatewayAttachments(body.attachments),
+                conversationId: conversation_id,
               }
               invokeParams.agentId = openclawAgentId
 
