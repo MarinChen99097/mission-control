@@ -143,7 +143,9 @@
     "appearanceDark": "Sombre",
     "appearanceLight": "Clair",
     "appearanceSystem": "Système",
-    "appearanceSystemHint": "Suit les paramètres du système. Utilise actuellement {resolved}."
+    "appearanceSystemHint": "Suit les paramètres du système. Utilise actuellement {resolved}.",
+    "appearanceChooseTheme": "Choisir un thème",
+    "appearanceSystemThemes": "Thèmes (appliqué quand le système correspond)"
   },
   "boot": {
     "missionControl": "Mission Control",

@@ -143,7 +143,9 @@
     "appearanceDark": "มืด",
     "appearanceLight": "สว่าง",
     "appearanceSystem": "ระบบ",
-    "appearanceSystemHint": "ตามการตั้งค่าระบบปฏิบัติการ ขณะนี้ใช้ {resolved}"
+    "appearanceSystemHint": "ตามการตั้งค่าระบบปฏิบัติการ ขณะนี้ใช้ {resolved}",
+    "appearanceChooseTheme": "เลือกธีม",
+    "appearanceSystemThemes": "ธีม (ใช้งานเมื่อระบบตรงกัน)"
   },
   "boot": {
     "missionControl": "Mission Control",

@@ -143,7 +143,9 @@
     "appearanceDark": "داكن",
     "appearanceLight": "فاتح",
     "appearanceSystem": "النظام",
-    "appearanceSystemHint": "يتبع إعدادات نظام التشغيل. يستخدم حاليًا {resolved}."
+    "appearanceSystemHint": "يتبع إعدادات نظام التشغيل. يستخدم حاليًا {resolved}.",
+    "appearanceChooseTheme": "اختر سمة",
+    "appearanceSystemThemes": "السمات (تُطبق عند تطابق النظام)"
   },
   "boot": {
     "missionControl": "Mission Control",

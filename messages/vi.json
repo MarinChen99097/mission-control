@@ -143,7 +143,9 @@
     "appearanceDark": "Tối",
     "appearanceLight": "Sáng",
     "appearanceSystem": "Hệ thống",
-    "appearanceSystemHint": "Theo cài đặt hệ điều hành. Hiện đang dùng {resolved}."
+    "appearanceSystemHint": "Theo cài đặt hệ điều hành. Hiện đang dùng {resolved}.",
+    "appearanceChooseTheme": "Chọn giao diện",
+    "appearanceSystemThemes": "Giao diện (áp dụng khi hệ thống khớp)"
   },
   "boot": {
     "missionControl": "Mission Control",

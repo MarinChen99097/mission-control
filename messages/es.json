@@ -143,7 +143,9 @@
     "appearanceDark": "Oscuro",
     "appearanceLight": "Claro",
     "appearanceSystem": "Sistema",
-    "appearanceSystemHint": "Sigue la configuración del SO. Actualmente usando {resolved}."
+    "appearanceSystemHint": "Sigue la configuración del SO. Actualmente usando {resolved}.",
+    "appearanceChooseTheme": "Elige un tema",
+    "appearanceSystemThemes": "Temas (se aplica cuando el sistema coincide)"
   },
   "boot": {
     "missionControl": "Mission Control",

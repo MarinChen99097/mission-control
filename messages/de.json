@@ -143,7 +143,9 @@
     "appearanceDark": "Dunkel",
     "appearanceLight": "Hell",
     "appearanceSystem": "System",
-    "appearanceSystemHint": "Folgt den OS-Einstellungen. Aktuell wird {resolved} verwendet."
+    "appearanceSystemHint": "Folgt den OS-Einstellungen. Aktuell wird {resolved} verwendet.",
+    "appearanceChooseTheme": "Theme auswählen",
+    "appearanceSystemThemes": "Themes (wird angewendet, wenn das System übereinstimmt)"
   },
   "boot": {
     "missionControl": "Mission Control",

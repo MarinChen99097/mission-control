@@ -122,6 +122,10 @@ export function AgentSquadPanelPhase3() {
   const [syncToast, setSyncToast] = useState<string | null>(null)
   const [showHidden, setShowHidden] = useState(false)
 
+  // Batch selection state
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [batchBusy, setBatchBusy] = useState(false)
+
   // Sync agents from gateway config or local disk
   const syncFromConfig = async (source?: 'local') => {
     setSyncing(true)
@@ -310,6 +314,91 @@ export function AgentSquadPanelPhase3() {
     return agent.last_seen > thirtyMinutesAgo
   }
 
+  // Batch selection helpers
+  const toggleSelect = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === agents.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(agents.map(a => a.id)))
+    }
+  }
+
+  const clearSelection = () => setSelectedIds(new Set())
+
+  // Batch confirm dialog state
+  const [batchConfirm, setBatchConfirm] = useState<{ action: 'wake' | 'sleep' | 'hide'; count: number } | null>(null)
+
+  // Batch operations with confirmation
+  const confirmBatchAction = (action: 'wake' | 'sleep' | 'hide') => {
+    setBatchConfirm({ action, count: selectedIds.size })
+  }
+
+  // Unified batch runner — keeps failed agents selected for retry
+  const runBatchOp = async (label: string, op: (agent: Agent) => Promise<void>) => {
+    setBatchBusy(true)
+    let ok = 0, fail = 0
+    const failedIds: number[] = []
+    const selected = agents.filter(a => selectedIds.has(a.id))
+    for (const agent of selected) {
+      try {
+        await op(agent)
+        ok++
+      } catch {
+        fail++
+        failedIds.push(agent.id)
+      }
+    }
+    setBatchBusy(false)
+    if (fail > 0) {
+      setSelectedIds(new Set(failedIds))
+      setSyncToast(`${label} ${ok} agent${ok !== 1 ? 's' : ''}, ${fail} failed — retry?`)
+      setTimeout(() => setSyncToast(null), 8000)
+    } else {
+      clearSelection()
+      setSyncToast(`${label} ${ok} agent${ok !== 1 ? 's' : ''}`)
+      setTimeout(() => setSyncToast(null), 5000)
+    }
+    fetchAgents()
+  }
+
+  const executeBatchAction = async () => {
+    if (!batchConfirm) return
+    const { action } = batchConfirm
+    setBatchConfirm(null)
+
+    if (action === 'wake') {
+      await runBatchOp('Woke', async (a) => {
+        if (a.session_key) await wakeAgent(a.name, a.session_key)
+        else await updateAgentStatus(a.name, 'idle', 'Batch wake')
+      })
+    } else if (action === 'sleep') {
+      await runBatchOp('Set to sleep', (a) => updateAgentStatus(a.name, 'offline', 'Batch sleep'))
+    } else if (action === 'hide') {
+      await runBatchOp('Toggled visibility for', (a) => toggleAgentHidden(a.id, !a.hidden))
+    }
+  }
+
+  // Clean up stale selections when agents list changes
+  useEffect(() => {
+    const agentIds = new Set(agents.map(a => a.id))
+    setSelectedIds(prev => {
+      const cleaned = new Set([...prev].filter(id => agentIds.has(id)))
+      return cleaned.size !== prev.size ? cleaned : prev
+    })
+  }, [agents])
+
+  const hasSelection = selectedIds.size > 0
+  const allSelected = agents.length > 0 && selectedIds.size === agents.length
+
   // Get status distribution for summary
   const statusCounts = agents.reduce((acc, agent) => {
     acc[agent.status] = (acc[agent.status] || 0) + 1
@@ -344,6 +433,20 @@ export function AgentSquadPanelPhase3() {
               {t('activeHeartbeats', { count: agents.filter(hasRecentHeartbeat).length })}
             </span>
           </div>
+
+          {/* Select all toggle (visible when agents exist) */}
+          {agents.length > 0 && (
+            <label className="flex items-center gap-1.5 cursor-pointer select-none ml-2" title="Select all agents">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                ref={(el) => { if (el) el.indeterminate = hasSelection && !allSelected }}
+                onChange={toggleSelectAll}
+                className="w-3.5 h-3.5 rounded border-border bg-surface-1 text-primary accent-primary cursor-pointer"
+              />
+              <span className="text-xs text-muted-foreground">Select</span>
+            </label>
+          )}
         </div>
         
         <div className="flex gap-2">
@@ -415,8 +518,119 @@ export function AgentSquadPanelPhase3() {
         </div>
       )}
 
-      {/* Agent Grid */}
-      <div className="flex-1 p-4 overflow-y-auto">
+      {/* Batch Toolbar — desktop: sticky top, mobile: fixed bottom bar, animated */}
+      <div
+        className={`z-20 flex items-center gap-1.5 sm:gap-2 rounded-lg border border-primary/30 bg-primary/5 backdrop-blur-sm px-2.5 sm:px-4 py-2 sm:py-2.5 shadow-lg shadow-black/10 transition-all duration-200 ease-out
+          fixed bottom-4 left-4 right-4
+          sm:relative sm:bottom-auto sm:left-auto sm:right-auto sm:sticky sm:top-0 sm:mx-4 sm:mt-2
+          ${hasSelection ? 'opacity-100 translate-y-0' : 'opacity-0 pointer-events-none translate-y-4 sm:-translate-y-2'}`}
+        role="toolbar"
+        aria-label="Batch agent operations"
+        aria-hidden={!hasSelection}
+      >
+          {/* Screen reader live region */}
+          <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+            {selectedIds.size} agent{selectedIds.size !== 1 ? 's' : ''} selected
+          </div>
+
+          {/* Select all checkbox */}
+          <label className="flex items-center gap-1.5 cursor-pointer select-none shrink-0">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              onChange={toggleSelectAll}
+              aria-label="Select all agents"
+              className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-border bg-surface-1 text-primary accent-primary cursor-pointer"
+            />
+            <span className="text-xs text-muted-foreground">All</span>
+          </label>
+
+          <div className="h-3.5 sm:h-4 w-px bg-border/50 shrink-0" />
+
+          {/* Selected count */}
+          <span className="text-xs sm:text-sm font-medium text-foreground whitespace-nowrap">
+            {selectedIds.size} <span className="hidden xs:inline">selected</span>
+          </span>
+
+          <div className="flex-1 min-w-0" />
+
+          {/* Batch action buttons */}
+          <div className="flex items-center gap-1 sm:gap-1.5">
+            <button
+              onClick={() => confirmBatchAction('wake')}
+              disabled={batchBusy}
+              aria-label={`Wake ${selectedIds.size} selected agents`}
+              className="inline-flex items-center gap-1 sm:gap-1.5 rounded-md px-2 sm:px-3 py-1.5 text-xs font-medium transition-colors bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/25 disabled:opacity-50"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <path d="M8 3v5l3 3" /><circle cx="8" cy="8" r="6" />
+              </svg>
+              Wake
+            </button>
+            <button
+              onClick={() => confirmBatchAction('sleep')}
+              disabled={batchBusy}
+              aria-label={`Set ${selectedIds.size} selected agents to sleep`}
+              className="inline-flex items-center gap-1 sm:gap-1.5 rounded-md px-2 sm:px-3 py-1.5 text-xs font-medium transition-colors bg-slate-500/15 text-slate-300 border border-slate-500/30 hover:bg-slate-500/25 disabled:opacity-50"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <path d="M13 3.5A6.5 6.5 0 0 1 3.5 13 6 6 0 0 0 13 3.5z" />
+              </svg>
+              Sleep
+            </button>
+            <button
+              onClick={() => confirmBatchAction('hide')}
+              disabled={batchBusy}
+              aria-label={`Toggle visibility for ${selectedIds.size} selected agents`}
+              className="inline-flex items-center gap-1 sm:gap-1.5 rounded-md px-2 sm:px-3 py-1.5 text-xs font-medium transition-colors bg-violet-500/15 text-violet-300 border border-violet-500/30 hover:bg-violet-500/25 disabled:opacity-50"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <path d="M2 8s2.5-5 6-5 6 5 6 5-2.5 5-6 5-6-5-6-5z" /><circle cx="8" cy="8" r="2" />
+                <path d="M3 13L13 3" strokeWidth="1.5" />
+              </svg>
+              Hide
+            </button>
+
+            <div className="h-3.5 sm:h-4 w-px bg-border/50" />
+
+            <button
+              onClick={clearSelection}
+              aria-label="Clear selection"
+              className="inline-flex items-center rounded-md p-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <path d="M4 4l8 8M12 4l-8 8" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+      {/* Batch Confirm Dialog */}
+      {batchConfirm && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setBatchConfirm(null)}>
+          <div className="bg-card border border-border rounded-lg shadow-xl max-w-sm w-full p-5" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-sm font-semibold text-foreground mb-2">
+              Confirm batch {batchConfirm.action}
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              {batchConfirm.action === 'wake' && `Wake ${batchConfirm.count} agent${batchConfirm.count !== 1 ? 's' : ''}?`}
+              {batchConfirm.action === 'sleep' && `Set ${batchConfirm.count} agent${batchConfirm.count !== 1 ? 's' : ''} to sleep?`}
+              {batchConfirm.action === 'hide' && `Toggle visibility for ${batchConfirm.count} agent${batchConfirm.count !== 1 ? 's' : ''}?`}
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button variant="secondary" size="sm" onClick={() => setBatchConfirm(null)}>
+                Cancel
+              </Button>
+              <Button size="sm" onClick={executeBatchAction}>
+                {batchConfirm.action === 'wake' ? 'Wake' : batchConfirm.action === 'sleep' ? 'Sleep' : 'Hide'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Agent Grid — extra bottom padding on mobile for fixed toolbar */}
+      <div className={`flex-1 p-4 overflow-y-auto ${hasSelection ? 'pb-20 sm:pb-4' : ''}`}>
         {agents.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground/50">
             <div className="w-12 h-12 rounded-full bg-surface-2 flex items-center justify-center mb-3">
@@ -436,18 +650,36 @@ export function AgentSquadPanelPhase3() {
               const modelName = formatModelName(agent.config)
               const taskStatsLine = buildTaskStatParts(agent.taskStats)
 
+              const isSelected = selectedIds.has(agent.id)
+
               return (
                 <div
                   key={agent.id}
-                  className="group relative overflow-hidden rounded-xl border border-border/70 bg-card p-4 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-border hover:shadow-lg cursor-pointer"
+                  className={`group relative overflow-hidden rounded-xl border bg-card p-4 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg cursor-pointer ${
+                    isSelected
+                      ? 'border-primary/50 bg-primary/[0.03] ring-1 ring-primary/20'
+                      : 'border-border/70 hover:border-border'
+                  }`}
                   onClick={() => setSelectedAgent(agent)}
                 >
                   <div className={`pointer-events-none absolute inset-y-0 left-0 w-1 bg-gradient-to-b ${(statusCardStyles[agent.status] || defaultCardStyle).edge}`} />
                   {agent.hidden ? <div className="absolute top-2 right-2 text-2xs text-slate-500">hidden</div> : null}
 
-                  {/* Header: avatar + name + status */}
+                  {/* Header: checkbox + avatar + name + status */}
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2.5 min-w-0">
+                      {/* Batch checkbox */}
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          e.stopPropagation()
+                          toggleSelect(agent.id)
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`Select ${agent.name}`}
+                        className="w-4 h-4 rounded border-border bg-surface-1 text-primary accent-primary cursor-pointer shrink-0 mt-0.5"
+                      />
                       <AgentAvatar name={agent.name} size="md" />
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
