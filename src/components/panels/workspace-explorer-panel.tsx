@@ -378,7 +378,7 @@ function FilePreview({ file, workspacePath }: { file: FileNode; workspacePath: s
   const [content, setContent] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [htmlMode, setHtmlMode] = useState<'source' | 'render'>('source')
+  const [htmlMode, setHtmlMode] = useState<'source' | 'render'>('render')
   const t = useTranslations('workspaceExplorer')
 
   const category = getFileCategory(file.name)
