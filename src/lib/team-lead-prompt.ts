@@ -252,7 +252,13 @@ If the upstream coder created a GitHub PR, you MUST review it properly:
 
 2. Review the diff:
    gh pr diff {PR_NUMBER}
-   Check for: correctness, error handling, security, naming, missing tests.
+   Check for:
+   - Correctness, error handling, edge cases
+   - Security: SQL injection, XSS, hardcoded secrets, auth bypass
+   - Naming, code style, TypeScript types (no "any" type)
+   - Missing tests for new logic
+   - AI API cost: if code calls LLM/AI APIs, verify per-request cost is documented,
+     cost_guard exists, and staging uses mock responses for expensive APIs
 
 3. If APPROVED:
    gh pr review {PR_NUMBER} --approve --body "LGTM: <brief reason>"
@@ -266,6 +272,12 @@ If the upstream coder created a GitHub PR, you MUST review it properly:
    Do NOT mark your own task as done — wait for the rework.
 
 Max rework cycles: 2. If upstream already reworked 2x, approve with caveats or mark your task failed.
+
+## Escalation — PR blocked or reviewer disagreement
+If you and the coder disagree after 1 rework cycle:
+  1. Add a comment to the PARENT task explaining the disagreement
+  2. Tag engineering-lead: mc_add_comment({ id: PARENT_TASK_ID, content: "ESCALATION: reviewer and coder disagree on [issue]. Need tech lead decision." })
+  3. The engineering-lead (tech lead) has final say — their decision is binding
 
 ## For non-PR reviews (plan-reviewer reviewing plans)
 If the work PASSES:
@@ -282,19 +294,36 @@ If the work FAILS:
     parts.push('\n## Git Workflow — Branch + PR')
     parts.push(`You MUST work on a feature branch, never commit directly to main.
 
+### Branch naming convention:
+- New feature: feature/TASK-{ID}-short-description
+- Bug fix: fix/TASK-{ID}-short-description
+- Refactor: refactor/TASK-{ID}-short-description
+- Hotfix (P0): hotfix/TASK-{ID}-short-description
+- Chore: chore/TASK-{ID}-short-description
+All lowercase, hyphens, max 50 chars. Must include task ID.
+
+### Workflow:
 1. Before starting work:
    git checkout main && git pull
-   git checkout -b feat/TASK-{YOUR_TASK_ID}
+   git checkout -b {prefix}/TASK-{YOUR_TASK_ID}-short-desc
 
-2. Make your changes, commit with Conventional Commits format:
-   git add <files> && git commit -m "feat: description"
+2. Make your changes, commit with Conventional Commits:
+   git add <specific-files> && git commit -m "feat: description"
+   (Use feat: / fix: / refactor: / chore: matching your branch prefix)
 
 3. When code is ready, push and create a PR:
-   git push -u origin feat/TASK-{YOUR_TASK_ID}
+   git push -u origin {branch-name}
    gh pr create --title "feat: description" --body "## Summary\\n- What changed\\n\\n## Test Plan\\n- How to verify\\n\\nCloses TASK-{YOUR_TASK_ID}"
 
 4. Do NOT merge the PR yourself. The code-reviewer will review and merge it.
    Record the PR URL in your task outcome.
+
+### Cost awareness (MANDATORY for AI API calls):
+If your code calls ANY AI/LLM API (Gemini, Claude, Kling, etc.):
+- Estimate per-request cost and document it in the PR
+- Ensure cost_guard / daily spend limit exists for the provider
+- Staging MUST use mock responses for expensive APIs (video/image generation)
+- NEVER run automated tests that trigger real AI generation without --skip-generate or mock mode
 
 5. After PR is created, switch back to main:
    git checkout main`)
@@ -423,11 +452,33 @@ Each check: PASS/FAIL with screenshot evidence.
 ANY failure = do NOT route traffic. Mark task FAILED.
 
 ### Phase 5: Traffic
-- gcloud run services update-traffic --to-latest
+- gcloud run services update-traffic --to-latest --region=asia-east1
 - Only after Phase 3 AND Phase 4 pass
 
+### Phase 6: Rollback SOP — If ANYTHING goes wrong after traffic switch
+Priority: STOP THE BLEEDING first, diagnose later.
+
+**Immediate (< 5 minutes):**
+1. List revisions: gcloud run revisions list --service=SERVICE --region=asia-east1
+2. Route 100% traffic to PREVIOUS stable revision:
+   gcloud run services update-traffic SERVICE --region=asia-east1 --to-revisions=PREVIOUS_REVISION=100
+3. Wait 2-3 minutes for cold start, confirm metrics recover
+
+**Then decide:**
+| Situation | Action |
+|-----------|--------|
+| Simple bug, fix < 1 hour | Hotfix forward: fix/ branch → PR → fast review → redeploy |
+| Complex/unknown root cause | Keep rollback, create investigation task for next sprint |
+| DB migration already ran | MUST hotfix forward (can't rollback schema) |
+| Security vulnerability | Rollback immediately + hotfix in parallel |
+
+**After recovery:**
+- Write incident report (5 Whys + timeline) as task comment
+- Create follow-up task: "Add test case for [this failure scenario]"
+- Never skip: the test that would have caught this MUST be written
+
 Record ALL results in your task outcome with pass/fail for each check.
-If post-deploy fails: rollback traffic to previous revision, mark task FAILED.`)
+If post-deploy fails: execute Rollback SOP above, mark task FAILED with details.`)
   } else {
     parts.push('\n## When Done')
     parts.push('Use mc_update_task({ id: YOUR_TASK_ID, status: "done", outcome: "summary" }) to mark complete.')
