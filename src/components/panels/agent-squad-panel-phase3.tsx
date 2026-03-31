@@ -621,7 +621,7 @@ export function AgentSquadPanelPhase3() {
               <Button variant="secondary" size="sm" onClick={() => setBatchConfirm(null)}>
                 Cancel
               </Button>
-              <Button size="sm" onClick={executeBatchAction}>
+              <Button size="sm" onClick={executeBatchAction} className={batchConfirm.action === 'wake' ? 'bg-cyan-600 hover:bg-cyan-700 text-white' : batchConfirm.action === 'sleep' ? 'bg-slate-600 hover:bg-slate-700 text-white' : 'bg-violet-600 hover:bg-violet-700 text-white'}>
                 {batchConfirm.action === 'wake' ? 'Wake' : batchConfirm.action === 'sleep' ? 'Sleep' : 'Hide'}
               </Button>
             </div>
