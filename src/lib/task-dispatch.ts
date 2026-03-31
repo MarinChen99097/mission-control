@@ -546,43 +546,28 @@ export async function runAegisReviews(): Promise<{ ok: boolean; message: string 
           )
         }
       } else {
-        // Rejected: check dispatch_attempts to decide next status
+        // Rejected: always requeue for rework. No upper limit — keep going until quality passes.
         const now = Math.floor(Date.now() / 1000)
         const currentAttempts = (db.prepare('SELECT dispatch_attempts FROM tasks WHERE id = ?').get(task.id) as { dispatch_attempts: number } | undefined)?.dispatch_attempts ?? 0
         const newAttempts = currentAttempts + 1
-        const maxAegisRetries = 3
 
-        if (newAttempts >= maxAegisRetries) {
-          // Too many rejections — move to failed
-          db.prepare('UPDATE tasks SET status = ?, error_message = ?, dispatch_attempts = ?, updated_at = ? WHERE id = ?')
-            .run('failed', `Aegis rejected ${newAttempts} times. Last: ${verdict.notes}`, newAttempts, now, task.id)
+        // Always requeue — quality has no ceiling
+        db.prepare('UPDATE tasks SET status = ?, error_message = ?, dispatch_attempts = ?, updated_at = ? WHERE id = ?')
+          .run('rework_requested', `Aegis rejected (attempt #${newAttempts}): ${verdict.notes}`, newAttempts, now, task.id)
 
-          eventBus.broadcast('task.status_changed', {
-            id: task.id,
-            status: 'failed',
-            previous_status: 'quality_review',
-            error_message: `Aegis rejected ${newAttempts} times`,
-            reason: 'max_aegis_retries_exceeded',
-          })
-        } else {
-          // Requeue to assigned for re-dispatch with feedback
-          db.prepare('UPDATE tasks SET status = ?, error_message = ?, dispatch_attempts = ?, updated_at = ? WHERE id = ?')
-            .run('assigned', `Aegis rejected: ${verdict.notes}`, newAttempts, now, task.id)
-
-          eventBus.broadcast('task.status_changed', {
-            id: task.id,
-            status: 'assigned',
-            previous_status: 'quality_review',
-            error_message: `Aegis rejected: ${verdict.notes}`,
-            reason: 'aegis_rejection',
-          })
-        }
+        eventBus.broadcast('task.status_changed', {
+          id: task.id,
+          status: 'rework_requested',
+          previous_status: 'quality_review',
+          error_message: `Aegis rejected: ${verdict.notes}`,
+          reason: 'aegis_rejection',
+        })
 
         // Add rejection as a comment so the agent sees it on next dispatch
         db.prepare(`
           INSERT INTO comments (task_id, author, content, created_at, workspace_id)
           VALUES (?, 'aegis', ?, ?, ?)
-        `).run(task.id, `Quality Review Rejected (attempt ${newAttempts}/${maxAegisRetries}):\n${verdict.notes}`, now, task.workspace_id)
+        `).run(task.id, `Quality Review Rejected (attempt #${newAttempts}):\n${verdict.notes}`, now, task.workspace_id)
       }
 
       db_helpers.logActivity(

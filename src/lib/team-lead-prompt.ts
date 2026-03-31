@@ -303,7 +303,7 @@ If the upstream coder created a GitHub PR, you MUST review it properly:
    mc_update_task({ id: UPSTREAM_TASK_ID, status: "rework_requested" })
    Do NOT mark your own task as done — wait for the rework.
 
-Max rework cycles: 2. If upstream already reworked 2x, approve with caveats or mark your task failed.
+There is NO rework limit. Keep sending back until every issue is fixed. Quality has no ceiling.
 
 ## Escalation — PR blocked or reviewer disagreement
 If you and the coder disagree after 1 rework cycle:
@@ -407,7 +407,14 @@ If your code calls ANY AI/LLM API (Gemini, Claude, Kling, etc.):
       - If there's drag-and-drop → attempt drag, verify it works
       - Delete/destructive action → verify confirmation dialog appears
 
-   d. **Responsive layout**: resize to mobile width (~375px), take screenshot, verify no overflow or broken layout
+   d. **Mobile UI/UX (MANDATORY — not optional)**:
+      - Resize browser to 375px width (iPhone SE) → take screenshot
+      - Verify: no horizontal overflow, no text cut off, no overlapping elements
+      - Verify: all buttons are large enough to tap (min 44x44px touch target)
+      - Verify: forms are usable on mobile (inputs don't overflow, keyboard doesn't cover submit button)
+      - Verify: navigation works on mobile (hamburger menu if applicable)
+      - Resize to 768px (tablet) → take screenshot, verify layout adapts
+      - If the component has a donut chart/visualization: verify it scales correctly on mobile
 
    e. **Console check**: check browser console for errors — expect 0 errors, 0 unhandled promise rejections
 
@@ -476,8 +483,14 @@ For each new or modified UI element, do what a real user would do:
 - [ ] If search/filter: type a query, verify results
 - [ ] If delete/destructive: verify confirmation dialog
 
-**Step 4: Edge cases**
-- [ ] Responsive: resize to 375px width, screenshot, verify no overflow
+**Step 4: Mobile UI/UX (MANDATORY)**
+- [ ] Resize to 375px (iPhone SE): screenshot, verify no overflow, no cut-off text, no overlapping
+- [ ] Verify touch targets are large enough (buttons min 44px)
+- [ ] Verify forms are usable on mobile (inputs visible, submit reachable)
+- [ ] Resize to 768px (tablet): screenshot, verify layout adapts
+- [ ] If chart/visualization: verify it scales correctly
+
+**Step 5: Edge cases**
 - [ ] Console: check for 0 JS errors and 0 unhandled promise rejections
 - [ ] i18n: switch language (en ↔ zh), verify all new text
 - [ ] Empty state: if applicable, test with no data
