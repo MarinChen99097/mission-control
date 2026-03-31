@@ -96,7 +96,20 @@ SOFT gates (advisory — log findings but don't block):
 - compliance-auditor check
 
 For HARD gates: blocked_by the reviewer task.
-For SOFT gates: run in PARALLEL with the next phase, do NOT block deployment.`
+For SOFT gates: run in PARALLEL with the next phase, do NOT block deployment.
+
+## Git Workflow — Enforced for all code changes
+Coders work on feature branches (feat/TASK-XXX), never commit to main directly.
+Code-reviewer reviews the PR on GitHub, approves + squash-merges.
+DevOps deploys from main after merge.
+
+Example sub-task chain:
+1. planner — investigate + write plan (blocked_by: [])
+2. plan-reviewer — review plan, HARD GATE (blocked_by: [1])
+3. backend-architect — implement on feat/TASK-3 branch, create PR (blocked_by: [2])
+4. code-reviewer — review PR, approve + merge OR request changes (blocked_by: [3])
+5. security-engineer — audit, SOFT GATE (blocked_by: [3], parallel with 4)
+6. devops-automator — deploy from main + verify (blocked_by: [4])`
 
 // ---------------------------------------------------------------------------
 // Prompt builder for Team Leads
@@ -230,23 +243,64 @@ export function buildAgentSystemPrompt(
     parts.push('\n## Reviewer Protocol')
     parts.push(`You are a REVIEWER. Your job is to find real issues, not rubber-stamp.
 
+## PR Review Workflow (for code-reviewer)
+If the upstream coder created a GitHub PR, you MUST review it properly:
+
+1. Find the PR:
+   gh pr list --state open --search "TASK-{UPSTREAM_TASK_ID}"
+   Or check the upstream task's outcome/comments for the PR URL.
+
+2. Review the diff:
+   gh pr diff {PR_NUMBER}
+   Check for: correctness, error handling, security, naming, missing tests.
+
+3. If APPROVED:
+   gh pr review {PR_NUMBER} --approve --body "LGTM: <brief reason>"
+   gh pr merge {PR_NUMBER} --squash --delete-branch
+   mc_update_task({ id: YOUR_TASK_ID, status: "done", outcome: "PASS: PR #{PR_NUMBER} approved and merged" })
+
+4. If CHANGES REQUESTED:
+   gh pr review {PR_NUMBER} --request-changes --body "Changes needed: <specific issues>"
+   mc_add_comment({ id: UPSTREAM_TASK_ID, content: "Rework requested: <specific issues with file:line references>" })
+   mc_update_task({ id: UPSTREAM_TASK_ID, status: "rework_requested" })
+   Do NOT mark your own task as done — wait for the rework.
+
+Max rework cycles: 2. If upstream already reworked 2x, approve with caveats or mark your task failed.
+
+## For non-PR reviews (plan-reviewer reviewing plans)
 If the work PASSES:
   mc_update_task({ id: YOUR_TASK_ID, status: "done", outcome: "PASS: <brief summary>" })
 
-If the work FAILS (HARD gate — code-reviewer, plan-reviewer):
-  1. Add a comment to the UPSTREAM task (the one you reviewed) with specific, actionable feedback:
-     mc_add_comment({ id: UPSTREAM_TASK_ID, content: "Rework requested: <specific issues>" })
-  2. Send the upstream task back for rework:
-     mc_update_task({ id: UPSTREAM_TASK_ID, status: "rework_requested" })
-  3. Do NOT mark your own task as done. Wait for the rework.
-  Max rework cycles: 2. If upstream already reworked 2x, approve with caveats or mark your task failed.
+If the work FAILS:
+  mc_add_comment({ id: UPSTREAM_TASK_ID, content: "Rework requested: <specific issues>" })
+  mc_update_task({ id: UPSTREAM_TASK_ID, status: "rework_requested" })
 
-If the work has FINDINGS but is acceptable (SOFT gate — security-engineer, compliance-auditor):
+## SOFT gate reviewers (security-engineer, compliance-auditor)
   mc_update_task({ id: YOUR_TASK_ID, status: "done", outcome: "PASS with findings: <list issues>" })
   Findings are advisory. Do NOT block the pipeline for theoretical issues.`)
   } else if (isCoder) {
+    parts.push('\n## Git Workflow — Branch + PR')
+    parts.push(`You MUST work on a feature branch, never commit directly to main.
+
+1. Before starting work:
+   git checkout main && git pull
+   git checkout -b feat/TASK-{YOUR_TASK_ID}
+
+2. Make your changes, commit with Conventional Commits format:
+   git add <files> && git commit -m "feat: description"
+
+3. When code is ready, push and create a PR:
+   git push -u origin feat/TASK-{YOUR_TASK_ID}
+   gh pr create --title "feat: description" --body "## Summary\\n- What changed\\n\\n## Test Plan\\n- How to verify\\n\\nCloses TASK-{YOUR_TASK_ID}"
+
+4. Do NOT merge the PR yourself. The code-reviewer will review and merge it.
+   Record the PR URL in your task outcome.
+
+5. After PR is created, switch back to main:
+   git checkout main`)
+
     parts.push('\n## Coder Self-Verification Protocol')
-    parts.push(`BEFORE marking your task as done, you MUST run these checks:
+    parts.push(`BEFORE creating the PR, you MUST run these checks:
 
 1. TypeScript compilation (if .ts/.tsx files changed):
    Run: npx tsc --noEmit
@@ -318,7 +372,9 @@ If you receive a rework_requested task, a reviewer found issues. Read the commen
 If any fail: fix if trivial, otherwise mark task FAILED. Do NOT push broken code.
 
 ### Phase 2: Deploy
-- git add + commit (Conventional Commits format) + push
+- Verify the PR has been merged by code-reviewer (check: gh pr list --state merged)
+- If PR was merged: git checkout main && git pull
+- If no PR exists (hotfix or direct commit): git add + commit (Conventional Commits) + push
 - Monitor Cloud Build until SUCCESS or FAILURE
 - Confirm new Cloud Run revision serving
 
