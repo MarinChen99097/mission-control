@@ -233,13 +233,142 @@ function CodePreview({ content, fileName }: { content: string; fileName: string 
 
 function MarkdownPreview({ content }: { content: string }) {
   return (
-    <div className="prose prose-invert prose-base max-w-none px-6 py-6 leading-relaxed [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-4 [&_h1]:mt-6 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mb-3 [&_h2]:mt-5 [&_h2]:border-b [&_h2]:border-border/20 [&_h2]:pb-2 [&_h3]:text-lg [&_h3]:font-medium [&_h3]:mb-2 [&_h3]:mt-4 [&_p]:mb-3 [&_p]:leading-7 [&_li]:mb-1 [&_li]:leading-7 [&_ul]:mb-4 [&_ol]:mb-4 [&_pre]:bg-surface-1 [&_pre]:border [&_pre]:border-border/30 [&_pre]:rounded-md [&_pre]:my-4 [&_pre]:p-4 [&_code]:text-cyan-300/90 [&_:not(pre)>code]:bg-surface-1 [&_:not(pre)>code]:px-1.5 [&_:not(pre)>code]:py-0.5 [&_:not(pre)>code]:rounded [&_:not(pre)>code]:text-sm [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_table]:text-sm [&_table]:my-4 [&_th]:px-3 [&_th]:py-2 [&_td]:px-3 [&_td]:py-2 [&_tr]:border-b [&_tr]:border-border/20 [&_blockquote]:border-l-2 [&_blockquote]:border-primary/40 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_hr]:my-6 [&_hr]:border-border/30 [&_strong]:text-foreground [&_img]:rounded-md [&_img]:my-4">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight]}
-      >
-        {content}
-      </ReactMarkdown>
+    <div className="max-w-4xl mx-auto px-10 py-8">
+      <div className="md-notion">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeHighlight]}
+        >
+          {content}
+        </ReactMarkdown>
+      </div>
+      <style jsx global>{`
+        .md-notion {
+          color: rgba(255,255,255,0.85);
+          font-size: 15px;
+          line-height: 1.8;
+          word-wrap: break-word;
+        }
+        .md-notion h1 {
+          font-size: 2rem;
+          font-weight: 700;
+          margin: 2.5rem 0 1rem;
+          padding-bottom: 0.4rem;
+          border-bottom: 1px solid rgba(255,255,255,0.08);
+          color: #fff;
+          letter-spacing: -0.02em;
+        }
+        .md-notion h2 {
+          font-size: 1.5rem;
+          font-weight: 600;
+          margin: 2rem 0 0.75rem;
+          padding-bottom: 0.3rem;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
+          color: rgba(255,255,255,0.95);
+        }
+        .md-notion h3 {
+          font-size: 1.2rem;
+          font-weight: 600;
+          margin: 1.5rem 0 0.5rem;
+          color: rgba(255,255,255,0.9);
+        }
+        .md-notion h4 {
+          font-size: 1.05rem;
+          font-weight: 600;
+          margin: 1.2rem 0 0.4rem;
+          color: rgba(255,255,255,0.85);
+        }
+        .md-notion p {
+          margin: 0 0 1rem;
+          line-height: 1.8;
+        }
+        .md-notion ul, .md-notion ol {
+          margin: 0.5rem 0 1.2rem;
+          padding-left: 1.5rem;
+        }
+        .md-notion li {
+          margin: 0.35rem 0;
+          line-height: 1.75;
+        }
+        .md-notion li > ul, .md-notion li > ol {
+          margin: 0.25rem 0 0.25rem;
+        }
+        .md-notion strong {
+          color: #fff;
+          font-weight: 600;
+        }
+        .md-notion a {
+          color: #5ebbf7;
+          text-decoration: none;
+          border-bottom: 1px solid rgba(94,187,247,0.3);
+          transition: border-color 0.15s;
+        }
+        .md-notion a:hover {
+          border-color: #5ebbf7;
+        }
+        .md-notion blockquote {
+          margin: 1rem 0 1.2rem;
+          padding: 0.75rem 1rem 0.75rem 1.25rem;
+          border-left: 3px solid rgba(94,187,247,0.4);
+          background: rgba(255,255,255,0.02);
+          border-radius: 0 6px 6px 0;
+          color: rgba(255,255,255,0.7);
+        }
+        .md-notion blockquote p {
+          margin: 0.25rem 0;
+        }
+        .md-notion pre {
+          margin: 1rem 0 1.5rem;
+          padding: 1rem 1.25rem;
+          background: rgba(0,0,0,0.25);
+          border: 1px solid rgba(255,255,255,0.06);
+          border-radius: 8px;
+          overflow-x: auto;
+          font-size: 13px;
+          line-height: 1.6;
+        }
+        .md-notion :not(pre) > code {
+          background: rgba(255,255,255,0.06);
+          padding: 0.15rem 0.4rem;
+          border-radius: 4px;
+          font-size: 0.88em;
+          color: #e8c16a;
+        }
+        .md-notion table {
+          width: 100%;
+          margin: 1rem 0 1.5rem;
+          border-collapse: collapse;
+          font-size: 14px;
+        }
+        .md-notion thead th {
+          background: rgba(255,255,255,0.04);
+          font-weight: 600;
+          text-align: left;
+          padding: 0.6rem 0.75rem;
+          border-bottom: 2px solid rgba(255,255,255,0.1);
+          color: rgba(255,255,255,0.9);
+        }
+        .md-notion tbody td {
+          padding: 0.5rem 0.75rem;
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .md-notion tbody tr:hover {
+          background: rgba(255,255,255,0.02);
+        }
+        .md-notion hr {
+          margin: 2rem 0;
+          border: none;
+          border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .md-notion img {
+          max-width: 100%;
+          border-radius: 8px;
+          margin: 1rem 0;
+        }
+        .md-notion input[type="checkbox"] {
+          margin-right: 0.5rem;
+        }
+      `}</style>
     </div>
   )
 }
