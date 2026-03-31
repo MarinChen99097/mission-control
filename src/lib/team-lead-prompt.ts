@@ -264,6 +264,23 @@ If the work has FINDINGS but is acceptable (SOFT gate — security-engineer, com
    Run: git diff
    Check for: hardcoded secrets, debug console.log, TODO/FIXME left in, any file you didn't intend to change.
 
+5. **Frontend visual verification** (if you changed any .tsx/.jsx component or CSS):
+   You MUST open the page in a browser and verify your changes visually.
+   Use /browse or the gstack headless browser to:
+   a. Navigate to the page where your component appears
+   b. Take a screenshot — confirm it renders correctly, no layout breakage
+   c. Test EVERY interactive element you added or modified:
+      - Click buttons → verify navigation/action works
+      - Hover states → verify visual feedback
+      - Form inputs → type text, submit, verify response
+      - Toggle/switch → verify state changes
+      - Responsive: resize to mobile width, verify layout doesn't break
+   d. Check browser console for errors (0 errors expected)
+   e. If your component fetches data from an API, verify the data displays correctly
+   f. If i18n: switch language and verify all text changes
+   Record screenshots and console output in your task outcome as evidence.
+   FAIL = fix before marking done. A component that doesn't render is not done.
+
 Only after ALL checks pass:
   mc_update_task({ id: YOUR_TASK_ID, status: "done", outcome: "summary + verification results" })
 
@@ -283,15 +300,32 @@ If any fail: fix if trivial, otherwise mark task FAILED. Do NOT push broken code
 - Monitor Cloud Build until SUCCESS or FAILURE
 - Confirm new Cloud Run revision serving
 
-### Phase 3: Post-Deploy (HARD GATE)
+### Phase 3: Post-Deploy — Backend Verification (HARD GATE)
 - [ ] Auth smoke: curl WITHOUT token → expect 401/403. curl WITH test token → expect 200
 - [ ] Modified endpoints: happy path + one edge case (empty body, missing field)
 - [ ] GCP error log: severity>=ERROR in last 3 minutes → expect 0
-- [ ] Frontend check: /browse if UI changes, check console errors
 
-### Phase 4: Traffic
+### Phase 4: Post-Deploy — Frontend Verification (HARD GATE if UI changes exist)
+If this deployment includes ANY frontend/UI changes (.tsx/.jsx/.css files), you MUST:
+- [ ] Use /browse to open the affected page on the live URL
+- [ ] Take a screenshot — confirm the page renders correctly
+- [ ] Walk through EVERY user interaction flow that was added or modified:
+  - Click each new button → verify it navigates or triggers the correct action
+  - Fill out any new form fields → submit → verify the response
+  - Hover interactive elements → verify visual feedback (tooltips, highlights)
+  - If there's a chart/visualization → verify it displays real data, not empty/broken
+  - If there's a list/table → verify it shows data rows, handles empty state
+- [ ] Test responsive layout: resize browser to mobile width (~375px), verify no overflow or broken layout
+- [ ] Check browser console: expect 0 errors, 0 unhandled promise rejections
+- [ ] If i18n was added: switch language (en ↔ zh), verify ALL new text changes correctly
+- [ ] Navigate to 2-3 other key pages to confirm nothing else broke (dashboard, agents, settings)
+
+Each check must be recorded as PASS/FAIL with evidence (screenshot URL or console output).
+If ANY frontend check fails: do NOT route traffic. Mark task FAILED with the failing check.
+
+### Phase 5: Traffic
 - gcloud run services update-traffic --to-latest
-- Only after Phase 3 passes
+- Only after Phase 3 AND Phase 4 pass
 
 Record ALL results in your task outcome with pass/fail for each check.
 If post-deploy fails: rollback traffic to previous revision, mark task FAILED.`)
