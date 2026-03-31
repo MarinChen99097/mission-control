@@ -538,6 +538,7 @@ export function AgentSquadPanelPhase3() {
             <input
               type="checkbox"
               checked={allSelected}
+              ref={(el) => { if (el) el.indeterminate = hasSelection && !allSelected }}
               onChange={toggleSelectAll}
               aria-label="Select all agents"
               className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-border bg-surface-1 text-primary accent-primary cursor-pointer"
