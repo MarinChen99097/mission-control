@@ -518,6 +518,33 @@ export function WorkspaceExplorerPanel() {
   const [lastSync, setLastSync] = useState<number>(Date.now())
   const [searchQuery, setSearchQuery] = useState('')
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [sidebarWidth, setSidebarWidth] = useState(320)
+  const [mobileView, setMobileView] = useState<'tree' | 'preview'>('tree')
+  const isResizing = useRef(false)
+  const sidebarRef = useRef<HTMLDivElement>(null)
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    isResizing.current = true
+    const startX = e.clientX
+    const startWidth = sidebarWidth
+    const onMouseMove = (ev: MouseEvent) => {
+      if (!isResizing.current) return
+      const newWidth = Math.max(200, Math.min(600, startWidth + ev.clientX - startX))
+      setSidebarWidth(newWidth)
+    }
+    const onMouseUp = () => {
+      isResizing.current = false
+      document.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseup', onMouseUp)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+    document.addEventListener('mousemove', onMouseMove)
+    document.addEventListener('mouseup', onMouseUp)
+  }, [sidebarWidth])
 
   const fetchTree = useCallback(async () => {
     try {
@@ -627,10 +654,30 @@ export function WorkspaceExplorerPanel() {
         </button>
       </div>
 
-      {/* Main content: split view */}
+      {/* Mobile tab bar */}
+      <div className="flex md:hidden border-b border-border/30">
+        <button
+          onClick={() => setMobileView('tree')}
+          className={`flex-1 py-2 text-xs font-medium text-center transition-colors ${mobileView === 'tree' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}`}
+        >
+          {t('files')}
+        </button>
+        <button
+          onClick={() => setMobileView('preview')}
+          className={`flex-1 py-2 text-xs font-medium text-center transition-colors ${mobileView === 'preview' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}`}
+        >
+          {selectedFile ? selectedFile.name : t('selectFile')}
+        </button>
+      </div>
+
+      {/* Main content */}
       <div className="flex flex-1 min-h-0">
-        {/* Left: file tree */}
-        <div className="w-64 xl:w-72 flex-shrink-0 border-r border-border/30 flex flex-col">
+        {/* Left: file tree — hidden on mobile when preview is active */}
+        <div
+          ref={sidebarRef}
+          className={`flex-shrink-0 border-r border-border/30 flex flex-col ${mobileView === 'preview' ? 'hidden md:flex' : 'flex'}`}
+          style={{ width: typeof window !== 'undefined' && window.innerWidth >= 768 ? sidebarWidth : undefined }}
+        >
           {/* Search */}
           <div className="px-2 py-1.5 border-b border-border/20">
             <input
@@ -646,19 +693,34 @@ export function WorkspaceExplorerPanel() {
             <FileTree
               nodes={filteredTree}
               selectedPath={selectedFile?.path || null}
-              onSelect={handleSelectFile}
+              onSelect={(node) => { handleSelectFile(node); setMobileView('preview') }}
               expandedDirs={expandedDirs}
               toggleDir={toggleDir}
             />
           </div>
         </div>
 
-        {/* Right: preview */}
-        <div className="flex-1 min-w-0 overflow-auto">
+        {/* Resize handle — desktop only */}
+        <div
+          className="hidden md:flex w-1 cursor-col-resize items-center justify-center hover:bg-primary/20 active:bg-primary/30 transition-colors flex-shrink-0 group"
+          onMouseDown={handleMouseDown}
+        >
+          <div className="w-px h-8 bg-border/40 group-hover:bg-primary/50 transition-colors rounded-full" />
+        </div>
+
+        {/* Right: preview — hidden on mobile when tree is active */}
+        <div className={`flex-1 min-w-0 overflow-auto ${mobileView === 'tree' ? 'hidden md:block' : 'block'}`}>
           {selectedFile ? (
             <div className="flex flex-col h-full">
               {/* File header */}
               <div className="flex items-center gap-2 px-4 py-2 border-b border-border/20 flex-shrink-0">
+                {/* Mobile back button */}
+                <button
+                  onClick={() => setMobileView('tree')}
+                  className="md:hidden text-xs text-muted-foreground hover:text-foreground mr-1"
+                >
+                  {'\u2190'}
+                </button>
                 <span className="text-xs text-muted-foreground/50">{fileIcon(selectedFile.name)}</span>
                 <span className="text-xs font-mono text-foreground/80 truncate">{selectedFile.path}</span>
                 {selectedFile.size != null && (
