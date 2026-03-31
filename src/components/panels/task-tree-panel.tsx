@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { MarkdownRenderer } from '@/components/markdown-renderer'
 import { useTranslations } from 'next-intl'
 
 // ─── Types ───
@@ -105,7 +106,7 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${cfg.bg} ${cfg.color}`}>
       <span className={cfg.pulse ? 'animate-pulse' : ''}>{cfg.icon}</span>
-      {cfg.label}
+      {cfg.labelKey}
     </span>
   )
 }
@@ -257,8 +258,8 @@ function TaskDetail({ task, agents, onClose }: { task: Task; agents: AgentInfo[]
         {task.description && (
           <div>
             <h4 className="text-xs font-semibold text-muted-foreground/60 mb-1.5 uppercase tracking-wider">Description</h4>
-            <div className="text-sm text-foreground/80 whitespace-pre-wrap leading-relaxed bg-surface-1/50 rounded-lg p-3 border border-border/10">
-              {task.description}
+            <div className="text-sm text-foreground/80 leading-relaxed bg-surface-1/50 rounded-lg p-3 border border-border/10">
+              <MarkdownRenderer content={task.description} />
             </div>
           </div>
         )}
@@ -267,8 +268,8 @@ function TaskDetail({ task, agents, onClose }: { task: Task; agents: AgentInfo[]
         {(task.resolution || task.outcome) && (
           <div>
             <h4 className="text-xs font-semibold text-emerald-400/60 mb-1.5 uppercase tracking-wider">Result</h4>
-            <div className="text-sm text-emerald-400/80 whitespace-pre-wrap leading-relaxed bg-emerald-500/5 rounded-lg p-3 border border-emerald-500/10">
-              {task.resolution || task.outcome}
+            <div className="text-sm text-emerald-400/80 leading-relaxed bg-emerald-500/5 rounded-lg p-3 border border-emerald-500/10">
+              <MarkdownRenderer content={task.resolution || task.outcome || ''} />
             </div>
           </div>
         )}
@@ -277,8 +278,8 @@ function TaskDetail({ task, agents, onClose }: { task: Task; agents: AgentInfo[]
         {task.error_message && (
           <div>
             <h4 className="text-xs font-semibold text-red-400/60 mb-1.5 uppercase tracking-wider">Error</h4>
-            <div className="text-sm text-red-400/80 whitespace-pre-wrap bg-red-500/5 rounded-lg p-3 border border-red-500/10">
-              {task.error_message}
+            <div className="text-sm text-red-400/80 bg-red-500/5 rounded-lg p-3 border border-red-500/10">
+              <MarkdownRenderer content={task.error_message} />
             </div>
           </div>
         )}
