@@ -695,6 +695,7 @@ function SchemaField({ fieldKey, schema, value, path, onPatch }: {
   path: string[]
   onPatch: (path: string[], value: unknown) => void
 }) {
+  const t = useTranslations('gatewayConfig')
   const type = schemaType(schema)
   const label = schema.title ?? humanize(fieldKey)
   const help = schema.description
@@ -712,7 +713,7 @@ function SchemaField({ fieldKey, schema, value, path, onPatch }: {
           }}
           className="h-8 px-2 text-xs bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary/50 min-w-40"
         >
-          <option value="">Select...</option>
+          <option value="">{t('selectOption')}</option>
           {schema.enum.map((opt, i) => (
             <option key={i} value={String(opt)}>{String(opt)}</option>
           ))}
@@ -774,7 +775,7 @@ function SchemaField({ fieldKey, schema, value, path, onPatch }: {
         <input
           type={isRedacted ? 'password' : 'text'}
           value={strValue}
-          placeholder={schema.default != null ? `Default: ${String(schema.default)}` : ''}
+          placeholder={schema.default != null ? t('defaultValue', { value: String(schema.default) }) : ''}
           disabled={isRedacted}
           onChange={e => onPatch(path, e.target.value)}
           className="h-8 px-2 text-xs font-mono bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary/50 flex-1 min-w-40 disabled:opacity-50"
@@ -922,11 +923,12 @@ function ArrayField({ label, help, items, itemSchema, path, onPatch }: {
   path: string[]
   onPatch: (path: string[], value: unknown) => void
 }) {
+  const t = useTranslations('gatewayConfig')
   return (
     <div className="ml-2 border-l-2 border-border/40 pl-3 py-1">
       <div className="flex items-center gap-2 mb-1">
         <span className="text-xs font-medium text-foreground">{label}</span>
-        <span className="text-2xs text-muted-foreground">{items.length} item{items.length !== 1 ? 's' : ''}</span>
+        <span className="text-2xs text-muted-foreground">{t('itemCount', { count: items.length })}</span>
         <Button
           variant="ghost"
           size="xs"
@@ -935,11 +937,11 @@ function ArrayField({ label, help, items, itemSchema, path, onPatch }: {
             onPatch(path, [...items, newItem])
           }}
           className="ml-auto text-2xs"
-        >+ Add</Button>
+        >{t('addItem')}</Button>
       </div>
       {help && <div className="text-2xs text-muted-foreground mb-1">{help}</div>}
       {items.length === 0 ? (
-        <div className="text-2xs text-muted-foreground py-2">No items.</div>
+        <div className="text-2xs text-muted-foreground py-2">{t('noItems')}</div>
       ) : (
         <div className="space-y-2">
           {items.map((item, idx) => (
@@ -1000,7 +1002,7 @@ function ArrayField({ label, help, items, itemSchema, path, onPatch }: {
                   next.splice(idx, 1)
                   onPatch(path, next)
                 }}
-              >Del</Button>
+              >{t('del')}</Button>
             </div>
           ))}
         </div>

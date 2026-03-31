@@ -343,7 +343,7 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
             variant="ghost"
             size="icon-xs"
             className="hidden md:flex"
-            title={focusMode ? 'Exit focus mode' : 'Focus mode'}
+            title={focusMode ? t('exitFocusMode') : t('focusMode')}
           >
             {focusMode ? (
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -362,7 +362,7 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
             variant="ghost"
             size="icon-xs"
             className="hidden md:flex"
-            title={showConversations ? 'Hide conversations' : 'Show conversations'}
+            title={showConversations ? t('hideConversations') : t('showConversations')}
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
               <path d="M2 4h12M2 8h12M2 12h12" />
@@ -374,7 +374,7 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
               onClick={onClose}
               variant="ghost"
               size="icon-xs"
-              title="Close chat (Esc)"
+              title={t('closeChatEsc')}
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                 <path d="M4 4l8 8M12 4l-8 8" />
@@ -461,6 +461,7 @@ function SessionConversationView({
   onSavePreferences: (payload: { prefKey: string; displayName?: string; colorTag?: string }) => Promise<void>
   readOnly?: boolean
 }) {
+  const t = useTranslations('chat')
   const isGatewaySession = session.sessionKind === 'gateway'
   const transcriptScrollRef = useRef<HTMLDivElement | null>(null)
   const [continuePrompt, setContinuePrompt] = useState('')
@@ -581,7 +582,7 @@ function SessionConversationView({
             />
           )}
           <span className={`rounded-full px-2 py-0.5 text-[10px] ${session.active ? 'bg-green-500/20 text-green-300' : 'bg-muted text-muted-foreground'}`}>
-            {session.active ? 'active' : 'idle'}
+            {session.active ? t('sessionActive') : t('sessionIdle')}
           </span>
           <span className="font-mono-tight">{getSessionKindLabel(session.sessionKind)}</span>
           {session.model && <span className="text-muted-foreground/60">{session.model}</span>}
@@ -594,13 +595,13 @@ function SessionConversationView({
         {!isGatewaySession && (
           <details className="mt-2">
             <summary className="cursor-pointer select-none text-[10px] uppercase tracking-wider text-muted-foreground/60 hover:text-muted-foreground/80">
-              Settings
+              {t('sessionSettings')}
             </summary>
             <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_120px_auto]">
               <input
                 value={nameDraft}
                 onChange={(e) => setNameDraft(e.target.value)}
-                placeholder="Rename session"
+                placeholder={t('sessionRenamePlaceholder')}
                 maxLength={80}
                 className="h-7 rounded border border-border/60 bg-surface-1 px-2 text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30"
               />
@@ -609,15 +610,15 @@ function SessionConversationView({
                 onChange={(e) => setColorDraft(e.target.value)}
                 className="h-7 rounded border border-border/60 bg-surface-1 px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
               >
-                <option value="">No color</option>
-                <option value="slate">Slate</option>
-                <option value="blue">Blue</option>
-                <option value="green">Green</option>
-                <option value="amber">Amber</option>
-                <option value="red">Red</option>
-                <option value="purple">Purple</option>
-                <option value="pink">Pink</option>
-                <option value="teal">Teal</option>
+                <option value="">{t('colorNone')}</option>
+                <option value="slate">{t('colorSlate')}</option>
+                <option value="blue">{t('colorBlue')}</option>
+                <option value="green">{t('colorGreen')}</option>
+                <option value="amber">{t('colorAmber')}</option>
+                <option value="red">{t('colorRed')}</option>
+                <option value="purple">{t('colorPurple')}</option>
+                <option value="pink">{t('colorPink')}</option>
+                <option value="teal">{t('colorTeal')}</option>
               </select>
               <Button
                 onClick={handleSavePrefs}
@@ -626,7 +627,7 @@ function SessionConversationView({
                 disabled={prefBusy || !session.prefKey || !hasPrefChanges}
                 className="h-7 px-3 text-xs"
               >
-                {prefBusy ? 'Saving...' : 'Save'}
+                {prefBusy ? t('sessionSaving') : t('sessionSave')}
               </Button>
             </div>
             {prefError && <div className="mt-2 text-xs text-red-400">{prefError}</div>}
@@ -641,7 +642,7 @@ function SessionConversationView({
             <div className="h-4 w-3/4 animate-pulse rounded bg-surface-1/60" />
             <div className="h-4 w-1/2 animate-pulse rounded bg-surface-1/60" />
             <div className="h-4 w-2/3 animate-pulse rounded bg-surface-1/60" />
-            <div className="text-xs text-muted-foreground/50">Loading transcript...</div>
+            <div className="text-xs text-muted-foreground/50">{t('loadingTranscript')}</div>
           </div>
         )}
         {!loading && error && (
@@ -649,7 +650,7 @@ function SessionConversationView({
         )}
         {!loading && !error && messages.length === 0 && (
           <div className="px-4 text-xs text-muted-foreground">
-            {isGatewaySession ? 'No messages loaded for this gateway session.' : 'No transcript snippets found for this session.'}
+            {isGatewaySession ? t('noGatewayMessages') : t('noTranscriptSnippets')}
           </div>
         )}
         {!loading && !error && messages.length > 0 && (
@@ -668,7 +669,7 @@ function SessionConversationView({
       {/* Continue session input — hidden for read-only lobster conversations */}
       {readOnly ? (
         <div className="border-t border-border/50 px-4 py-3 text-center">
-          <span className="text-xs text-muted-foreground">Read-only — external channel conversation</span>
+          <span className="text-xs text-muted-foreground">{t('readOnlyExternalChannel')}</span>
         </div>
       ) : (
         <div className="border-t border-border/50 px-4 py-2">
@@ -683,7 +684,7 @@ function SessionConversationView({
                   void handleContinueSession()
                 }
               }}
-              placeholder={isGatewaySession ? 'Send message to this agent session...' : 'Send prompt to this local session...'}
+              placeholder={isGatewaySession ? t('sendToAgentSession') : t('sendToLocalSession')}
               className="h-7 flex-1 rounded border border-border/40 bg-surface-1 px-2 font-mono-tight text-xs text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary/30"
             />
             <Button
@@ -693,7 +694,7 @@ function SessionConversationView({
               disabled={continueBusy || !continuePrompt.trim()}
               className="h-7 px-3 text-xs"
             >
-              {continueBusy ? '...' : 'Send'}
+              {continueBusy ? '...' : t('sessionSend')}
             </Button>
           </div>
           {continueError && <div className="mt-1 text-xs text-red-400">{continueError}</div>}

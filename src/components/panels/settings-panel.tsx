@@ -75,14 +75,14 @@ function parseCoordinatorTargetAgents(rawAgents: any[]): CoordinatorTargetAgent[
   })
 }
 
-const categoryLabels: Record<string, { label: string; icon: string; description: string }> = {
-  general: { label: 'General', icon: '⚙', description: 'Core Mission Control settings' },
-  security: { label: 'Security', icon: '🔑', description: 'API key management and security settings' },
-  retention: { label: 'Data Retention', icon: '🗄', description: 'How long data is kept before cleanup' },
-  chat: { label: 'Chat', icon: '💬', description: 'Coordinator routing and chat behavior settings' },
-  gateway: { label: 'Gateway', icon: '🔌', description: 'OpenClaw gateway connection settings' },
-  profiles: { label: 'Security Profiles', icon: 'shield', description: 'Hook profile controls security scanning strictness' },
-  custom: { label: 'Custom', icon: '🔧', description: 'User-defined settings' },
+const categoryLabelKeys: Record<string, { labelKey: string; icon: string; descKey: string }> = {
+  general: { labelKey: 'catGeneral', icon: '⚙', descKey: 'catGeneralDesc' },
+  security: { labelKey: 'catSecurity', icon: '🔑', descKey: 'catSecurityDesc' },
+  retention: { labelKey: 'catRetention', icon: '🗄', descKey: 'catRetentionDesc' },
+  chat: { labelKey: 'catChat', icon: '💬', descKey: 'catChatDesc' },
+  gateway: { labelKey: 'catGateway', icon: '🔌', descKey: 'catGatewayDesc' },
+  profiles: { labelKey: 'catProfiles', icon: 'shield', descKey: 'catProfilesDesc' },
+  custom: { labelKey: 'catCustom', icon: '🔧', descKey: 'catCustomDesc' },
 }
 
 const categoryOrder = ['general', 'security', 'profiles', 'retention', 'chat', 'gateway', 'custom']
@@ -573,34 +573,34 @@ export function SettingsPanel() {
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="text-xs font-medium">Hermes Agent</p>
+                    <p className="text-xs font-medium">{t('hermesAgent')}</p>
                     <span className={`text-2xs px-1.5 py-0.5 rounded ${
                       hermesStatus.gatewayRunning
                         ? 'bg-green-500/15 text-green-400'
                         : 'bg-muted text-muted-foreground'
                     }`}>
-                      {hermesStatus.gatewayRunning ? 'Gateway running' : 'Gateway offline'}
+                      {hermesStatus.gatewayRunning ? t('hermesGatewayRunning') : t('hermesGatewayOffline')}
                     </span>
                     {hermesStatus.activeSessions > 0 && (
                       <span className="text-2xs px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400">
-                        {hermesStatus.activeSessions} active
+                        {hermesStatus.activeSessions} {t('hermesActive')}
                       </span>
                     )}
                     {(hermesStatus.cronJobCount ?? 0) > 0 && (
                       <span className="text-2xs px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400">
-                        {hermesStatus.cronJobCount} cron
+                        {hermesStatus.cronJobCount} {t('hermesCron')}
                       </span>
                     )}
                     {(hermesStatus.memoryEntries ?? 0) > 0 && (
                       <span className="text-2xs px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400">
-                        {hermesStatus.memoryEntries} mem
+                        {hermesStatus.memoryEntries} {t('hermesMem')}
                       </span>
                     )}
                   </div>
                   <p className="text-2xs text-muted-foreground mt-0.5">
                     {hermesStatus.hookInstalled
-                      ? 'MC hook installed — receiving telemetry from hermes-agent'
-                      : 'Install the MC hook for richer telemetry (agent status, session events)'}
+                      ? t('hermesHookInstalled')
+                      : t('hermesHookNotInstalled')}
                   </p>
                 </div>
                 <Button
@@ -632,10 +632,10 @@ export function SettingsPanel() {
                   }}
                 >
                   {hermesHookAction
-                    ? 'Working...'
+                    ? t('hermesWorking')
                     : hermesStatus.hookInstalled
-                      ? 'Uninstall Hook'
-                      : 'Install MC Hook'}
+                      ? t('hermesUninstallHook')
+                      : t('hermesInstallHook')}
                 </Button>
               </div>
             </div>
@@ -664,7 +664,7 @@ export function SettingsPanel() {
       {/* Category tabs */}
       <div className="flex gap-1 border-b border-border pb-px">
         {categories.map(cat => {
-          const meta = categoryLabels[cat] || { label: cat, icon: '📋', description: '' }
+          const metaKeys = categoryLabelKeys[cat] || { labelKey: cat, icon: '📋', descKey: '' }
           const changedCount = (grouped[cat] || []).filter(s => edits[s.key] !== undefined && edits[s.key] !== s.value).length
           return (
             <Button
@@ -678,7 +678,7 @@ export function SettingsPanel() {
                   : ''
               }`}
             >
-              {meta.label}
+              {t(metaKeys.labelKey)}
               {changedCount > 0 && (
                 <span className="ml-1.5 inline-flex items-center justify-center w-4 h-4 text-2xs rounded-full bg-primary text-primary-foreground">
                   {changedCount}
@@ -696,7 +696,7 @@ export function SettingsPanel() {
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-foreground">API Key</span>
+                  <span className="text-sm font-medium text-foreground">{t('apiKey')}</span>
                   {apiKeyInfo?.source && (
                     <span className="text-2xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
                       {apiKeyInfo.source}
@@ -704,7 +704,7 @@ export function SettingsPanel() {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Used for programmatic access and agent authentication via X-Api-Key header or Bearer token.
+                  {t('apiKeyDescription')}
                 </p>
               </div>
             </div>
@@ -712,7 +712,7 @@ export function SettingsPanel() {
             {/* Current key display */}
             <div className="mt-3 flex items-center gap-2">
               <code className="text-xs font-mono bg-background border border-border rounded px-2 py-1 text-muted-foreground">
-                {apiKeyLoading ? 'Loading...' : apiKeyInfo?.masked_key || 'No API key configured'}
+                {apiKeyLoading ? t('apiKeyLoading') : apiKeyInfo?.masked_key || t('apiKeyNone')}
               </code>
             </div>
 
@@ -732,14 +732,13 @@ export function SettingsPanel() {
                   variant="outline"
                   size="sm"
                 >
-                  Rotate Key
+                  {t('apiKeyRotate')}
                 </Button>
               </div>
             ) : (
               <div className="mt-3 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
                 <p className="text-xs text-amber-300 mb-2">
-                  Are you sure? Rotating the API key will immediately invalidate the current key.
-                  All agents and integrations using the old key will lose access.
+                  {t('apiKeyRotateWarning')}
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
@@ -749,14 +748,14 @@ export function SettingsPanel() {
                     size="sm"
                     className="bg-amber-600 hover:bg-amber-700"
                   >
-                    {rotating ? 'Rotating...' : 'Confirm Rotate'}
+                    {rotating ? t('apiKeyRotating') : t('apiKeyConfirmRotate')}
                   </Button>
                   <Button
                     onClick={() => setRotateConfirm(false)}
                     variant="ghost"
                     size="sm"
                   >
-                    Cancel
+                    {t('apiKeyCancel')}
                   </Button>
                 </div>
               </div>
@@ -766,7 +765,7 @@ export function SettingsPanel() {
             {newApiKey && (
               <div className="mt-3 bg-green-500/10 border border-green-500/20 rounded-lg p-3">
                 <p className="text-xs text-green-300 mb-2 font-medium">
-                  New API key generated. Copy it now -- it will not be shown again.
+                  {t('apiKeyNewGenerated')}
                 </p>
                 <div className="flex items-center gap-2">
                   <code className="text-xs font-mono bg-background border border-border rounded px-2 py-1.5 text-foreground select-all flex-1 break-all">
@@ -778,7 +777,7 @@ export function SettingsPanel() {
                     size="sm"
                     className="shrink-0"
                   >
-                    {keyCopied ? 'Copied!' : 'Copy'}
+                    {keyCopied ? t('apiKeyCopied') : t('apiKeyCopy')}
                   </Button>
                 </div>
                 <div className="mt-2">
@@ -788,7 +787,7 @@ export function SettingsPanel() {
                     size="xs"
                     className="text-muted-foreground"
                   >
-                    Dismiss
+                    {t('apiKeyDismiss')}
                   </Button>
                 </div>
               </div>
@@ -801,15 +800,15 @@ export function SettingsPanel() {
       {activeCategory === 'profiles' && (
         <div className="space-y-3">
           <div className="bg-card border border-border rounded-lg p-4">
-            <h3 className="text-sm font-medium text-foreground mb-1">Hook Profile</h3>
+            <h3 className="text-sm font-medium text-foreground mb-1">{t('hookProfileTitle')}</h3>
             <p className="text-xs text-muted-foreground mb-4">
-              Controls how aggressively security hooks scan tool calls and agent outputs.
+              {t('hookProfileDescription')}
             </p>
             <div className="space-y-2">
               {([
-                { value: 'minimal', label: 'Minimal', desc: 'Basic safety checks only. Best for trusted environments with low risk tolerance overhead.' },
-                { value: 'standard', label: 'Standard', desc: 'Balanced scanning for secrets, injections, and suspicious patterns. Recommended for most deployments.' },
-                { value: 'strict', label: 'Strict', desc: 'Full depth scanning with aggressive blocking. May increase latency. Best for sensitive or compliance-driven environments.' },
+                { value: 'minimal', label: t('hookProfileMinimal'), desc: t('hookProfileMinimalDesc') },
+                { value: 'standard', label: t('hookProfileStandard'), desc: t('hookProfileStandardDesc') },
+                { value: 'strict', label: t('hookProfileStrict'), desc: t('hookProfileStrictDesc') },
               ] as const).map(profile => (
                 <button
                   key={profile.value}
@@ -952,7 +951,7 @@ export function SettingsPanel() {
                     {!setting.is_default && (
                       <Button
                         onClick={() => handleReset(setting.key)}
-                        title="Reset to default"
+                        title={t('resetToDefault')}
                         variant="ghost"
                         size="icon-xs"
                         className="w-6 h-6"
@@ -988,10 +987,10 @@ export function SettingsPanel() {
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-card border border-border rounded-lg shadow-lg px-4 py-2.5 flex items-center gap-3 z-40">
           <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
           <span className="text-xs text-foreground">
-            {Object.keys(edits).filter(k => {
+            {t('unsavedChanges', { count: Object.keys(edits).filter(k => {
               const s = settings.find(s => s.key === k)
               return s && edits[k] !== s.value
-            }).length} unsaved change(s)
+            }).length })}
           </span>
           <Button
             onClick={handleDiscard}
@@ -1107,6 +1106,7 @@ function formatLabel(key: string): string {
 // ---------------------------------------------------------------------------
 
 function AccountOAuthSection() {
+  const t = useTranslations('settings')
   const { currentUser } = useMissionControl()
   const [disconnecting, setDisconnecting] = useState(false)
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null)
@@ -1121,7 +1121,7 @@ function AccountOAuthSection() {
       const res = await fetch('/api/auth/google/disconnect', { method: 'POST' })
       const data = await res.json().catch(() => ({}))
       if (res.ok) {
-        setFeedback({ ok: true, text: 'Google account disconnected. You can now sign in with username and password.' })
+        setFeedback({ ok: true, text: t('googleDisconnected') })
         // Reload after a short delay so the user sees the feedback
         setTimeout(() => window.location.reload(), 1500)
       } else {
@@ -1137,7 +1137,7 @@ function AccountOAuthSection() {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 pt-2">
-        <h3 className="text-sm font-medium text-foreground">Account</h3>
+        <h3 className="text-sm font-medium text-foreground">{t('account')}</h3>
       </div>
 
       <div className="bg-card border border-border rounded-lg p-4">
@@ -1159,15 +1159,15 @@ function AccountOAuthSection() {
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-foreground">Google</span>
                 {isGoogleConnected ? (
-                  <span className="text-2xs px-1.5 py-0.5 rounded bg-green-500/15 text-green-400">Connected</span>
+                  <span className="text-2xs px-1.5 py-0.5 rounded bg-green-500/15 text-green-400">{t('googleConnected')}</span>
                 ) : (
-                  <span className="text-2xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Not connected</span>
+                  <span className="text-2xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{t('googleNotConnected')}</span>
                 )}
               </div>
               {isGoogleConnected && currentUser.email ? (
                 <p className="text-xs text-muted-foreground mt-0.5">{currentUser.email}</p>
               ) : (
-                <p className="text-xs text-muted-foreground mt-0.5">Link your Google account for OAuth sign-in</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('googleLinkHint')}</p>
               )}
             </div>
           </div>
@@ -1180,7 +1180,7 @@ function AccountOAuthSection() {
               size="sm"
               className="text-xs hover:text-destructive hover:border-destructive/50"
             >
-              {disconnecting ? 'Disconnecting...' : 'Disconnect'}
+              {disconnecting ? t('googleDisconnecting') : t('googleDisconnect')}
             </Button>
           )}
         </div>

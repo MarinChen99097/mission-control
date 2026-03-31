@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   ReactFlow,
   Node,
@@ -99,13 +100,13 @@ function AgentNode({ data }: { data: any }) {
   const getRoleBadge = () => {
     switch (agent.type) {
       case 'main':
-        return { label: 'LEAD', color: 'bg-void-violet/20 text-void-violet border-void-violet/30' }
+        return { label: data.t('roleLead'), color: 'bg-void-violet/20 text-void-violet border-void-violet/30' }
       case 'subagent':
-        return { label: 'WORKER', color: 'bg-void-cyan/20 text-void-cyan border-void-cyan/30' }
+        return { label: data.t('roleWorker'), color: 'bg-void-cyan/20 text-void-cyan border-void-cyan/30' }
       case 'cron':
-        return { label: 'CRON', color: 'bg-void-amber/20 text-void-amber border-void-amber/30' }
+        return { label: data.t('roleCron'), color: 'bg-void-amber/20 text-void-amber border-void-amber/30' }
       default:
-        return { label: 'SYSTEM', color: 'bg-muted text-muted-foreground border-border' }
+        return { label: data.t('roleSystem'), color: 'bg-muted text-muted-foreground border-border' }
     }
   }
 
@@ -120,7 +121,7 @@ function AgentNode({ data }: { data: any }) {
         </span>
         {isWorking && (
           <span className="px-1.5 py-0.5 text-xs font-bold font-mono bg-void-mint/20 text-void-mint border border-void-mint/30 rounded-full animate-pulse">
-            WORKING
+            {data.t('working')}
           </span>
         )}
       </div>
@@ -136,7 +137,7 @@ function AgentNode({ data }: { data: any }) {
         </div>
 
         <div className="text-xs font-mono text-muted-foreground truncate">
-          {(typeof agent.model === 'string' ? agent.model : '').split('/').pop() || 'unknown'}
+          {(typeof agent.model === 'string' ? agent.model : '').split('/').pop() || data.t('unknown')}
         </div>
 
         {agent.session && (
@@ -155,6 +156,7 @@ const nodeTypes = {
 }
 
 export function AgentNetwork({ agents, sessions }: AgentNetworkProps) {
+  const t = useTranslations('dashboard')
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
 
@@ -178,7 +180,8 @@ export function AgentNetwork({ agents, sessions }: AgentNetworkProps) {
       data: {
         agent,
         status: agent.status,
-        label: agent.name
+        label: agent.name,
+        t,
       },
       style: {
         background: 'transparent',
@@ -247,7 +250,7 @@ export function AgentNetwork({ agents, sessions }: AgentNetworkProps) {
     })
 
     return { nodeData: nodes, edgeData: edges }
-  }, [sessions])
+  }, [sessions, t])
 
   useEffect(() => {
     setNodes(nodeData)
@@ -270,8 +273,8 @@ export function AgentNetwork({ agents, sessions }: AgentNetworkProps) {
             <circle cx="12" cy="12" r="2" />
             <path d="M6 4h4M4 6v4M12 6v4M6 12h4" />
           </svg>
-          <p>No agent network to display</p>
-          <p className="text-xs mt-1">Agent connections will appear here</p>
+          <p>{t('noAgentNetwork')}</p>
+          <p className="text-xs mt-1">{t('agentConnectionsHint')}</p>
         </div>
       </div>
     )
@@ -280,9 +283,9 @@ export function AgentNetwork({ agents, sessions }: AgentNetworkProps) {
   return (
     <div className="void-panel">
       <div className="p-4 border-b border-border">
-        <h3 className="font-semibold text-foreground">Agent Network</h3>
+        <h3 className="font-semibold text-foreground">{t('agentNetworkTitle')}</h3>
         <p className="text-sm text-muted-foreground">
-          Visual representation of agent relationships
+          {t('agentNetworkDesc')}
         </p>
       </div>
 

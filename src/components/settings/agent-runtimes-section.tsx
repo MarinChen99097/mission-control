@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Loader } from '@/components/ui/loader'
 
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export function AgentRuntimesSection({ showFeedback }: Props) {
+  const t = useTranslations('settings')
   const [runtimes, setRuntimes] = useState<RuntimeStatus[]>([])
   const [isDocker, setIsDocker] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -69,10 +71,10 @@ export function AgentRuntimesSection({ showFeedback }: Props) {
           if (data.job) {
             setActiveJobs(prev => ({ ...prev, [data.job.runtime]: data.job }))
             if (data.job.status === 'success') {
-              showFeedback(true, `${data.job.runtime} installed successfully`)
+              showFeedback(true, t('runtimeInstalledSuccess', { name: data.job.runtime }))
               fetchRuntimes()
             } else if (data.job.status === 'failed') {
-              showFeedback(false, `${data.job.runtime} install failed`)
+              showFeedback(false, t('runtimeInstallFailed', { name: data.job.runtime }))
               fetchRuntimes()
             }
           }
@@ -93,7 +95,7 @@ export function AgentRuntimesSection({ showFeedback }: Props) {
         body: JSON.stringify({ action: 'install', runtime: runtimeId, mode: 'local' }),
       })
       if (!res.ok) {
-        showFeedback(false, 'Failed to start install')
+        showFeedback(false, t('runtimeInstallStartFailed'))
         return
       }
       const data = await res.json()
@@ -101,7 +103,7 @@ export function AgentRuntimesSection({ showFeedback }: Props) {
         setActiveJobs(prev => ({ ...prev, [runtimeId]: data.job }))
       }
     } catch {
-      showFeedback(false, 'Failed to start install')
+      showFeedback(false, t('runtimeInstallStartFailed'))
     }
   }
 
@@ -115,9 +117,9 @@ export function AgentRuntimesSection({ showFeedback }: Props) {
       if (!res.ok) return
       const data = await res.json()
       await navigator.clipboard.writeText(data.yaml)
-      showFeedback(true, 'Docker compose snippet copied')
+      showFeedback(true, t('runtimeDockerCopied'))
     } catch {
-      showFeedback(false, 'Failed to copy')
+      showFeedback(false, t('runtimeCopyFailed'))
     }
   }
 
@@ -130,16 +132,16 @@ export function AgentRuntimesSection({ showFeedback }: Props) {
       })
       if (!res.ok) return
       await fetchRuntimes()
-      showFeedback(true, 'Detection refreshed')
+      showFeedback(true, t('runtimeDetectionRefreshed'))
     } catch {
-      showFeedback(false, 'Detection failed')
+      showFeedback(false, t('runtimeDetectionFailed'))
     }
   }
 
   if (loading) {
     return (
       <div className="p-4 rounded-lg border border-border/30 bg-surface-1/20">
-        <h3 className="text-sm font-medium mb-3">Agent Runtimes</h3>
+        <h3 className="text-sm font-medium mb-3">{t('runtimeTitle')}</h3>
         <div className="flex items-center justify-center py-4"><Loader /></div>
       </div>
     )
@@ -147,14 +149,14 @@ export function AgentRuntimesSection({ showFeedback }: Props) {
 
   return (
     <div className="p-4 rounded-lg border border-border/30 bg-surface-1/20">
-      <h3 className="text-sm font-medium mb-1">Agent Runtimes</h3>
+      <h3 className="text-sm font-medium mb-1">{t('runtimeTitle')}</h3>
       <p className="text-xs text-muted-foreground mb-3">
-        Install and manage agent runtimes for running AI agents.
+        {t('runtimeDescription')}
       </p>
 
       {isDocker && (
         <div className="mb-3 p-2 rounded border border-void-cyan/20 bg-void-cyan/5 text-xs text-muted-foreground">
-          Running in Docker — install directly or use sidecar services for production.
+          {t('runtimeDockerNote')}
         </div>
       )}
 
@@ -170,11 +172,11 @@ export function AgentRuntimesSection({ showFeedback }: Props) {
                   <span className="text-sm font-medium">{rt.name}</span>
                   {rt.installed ? (
                     <span className="text-2xs px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
-                      {rt.version ? `v${rt.version}` : 'Installed'}
+                      {rt.version ? `v${rt.version}` : t('runtimeInstalled')}
                     </span>
                   ) : (
                     <span className="text-2xs px-1.5 py-0.5 rounded-full bg-muted/30 text-muted-foreground border border-border/20">
-                      Not installed
+                      {t('runtimeNotInstalled')}
                     </span>
                   )}
                   {rt.installed && (
@@ -183,7 +185,7 @@ export function AgentRuntimesSection({ showFeedback }: Props) {
                         ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                         : 'bg-muted/20 text-muted-foreground/60 border-border/20'
                     }`}>
-                      {rt.running ? 'Running' : 'Stopped'}
+                      {rt.running ? t('runtimeRunning') : t('runtimeStopped')}
                     </span>
                   )}
                 </div>
@@ -195,7 +197,7 @@ export function AgentRuntimesSection({ showFeedback }: Props) {
                     onClick={() => handleDetect(rt.id)}
                     className="text-2xs h-6 px-2"
                   >
-                    Refresh
+                    {t('runtimeRefresh')}
                   </Button>
                   {!rt.installed && !isInstalling && (
                     <>
@@ -205,7 +207,7 @@ export function AgentRuntimesSection({ showFeedback }: Props) {
                         onClick={() => handleInstall(rt.id)}
                         className="text-2xs h-6 px-2"
                       >
-                        Install
+                        {t('runtimeInstall')}
                       </Button>
                       {isDocker && (
                         <Button
@@ -214,7 +216,7 @@ export function AgentRuntimesSection({ showFeedback }: Props) {
                           onClick={() => handleCopyCompose(rt.id)}
                           className="text-2xs h-6 px-2"
                         >
-                          Sidecar YAML
+                          {t('runtimeSidecarYaml')}
                         </Button>
                       )}
                     </>
@@ -227,7 +229,7 @@ export function AgentRuntimesSection({ showFeedback }: Props) {
               {/* Auth status */}
               {rt.installed && rt.authRequired && (
                 <p className={`text-2xs mt-1 ${rt.authenticated ? 'text-emerald-400/70' : 'text-amber-400'}`}>
-                  {rt.authenticated ? 'Authenticated' : rt.authHint}
+                  {rt.authenticated ? t('runtimeAuthenticated') : rt.authHint}
                 </p>
               )}
 
@@ -236,21 +238,21 @@ export function AgentRuntimesSection({ showFeedback }: Props) {
                 <div className="mt-2">
                   {isInstalling && (
                     <div className="flex items-center gap-1.5 text-2xs text-muted-foreground">
-                      <Loader /> Installing...
+                      <Loader /> {t('runtimeInstalling')}
                     </div>
                   )}
                   {job.status === 'failed' && (
-                    <p className="text-2xs text-red-400">Failed: {job.error || 'Unknown error'}</p>
+                    <p className="text-2xs text-red-400">{t('runtimeFailed')}: {job.error || t('runtimeUnknownError')}</p>
                   )}
                   {job.status === 'success' && (
-                    <p className="text-2xs text-emerald-400">Installed successfully</p>
+                    <p className="text-2xs text-emerald-400">{t('runtimeInstalledSuccessfully')}</p>
                   )}
                   {job.output && (
                     <button
                       onClick={() => setExpandedOutput(expandedOutput === rt.id ? null : rt.id)}
                       className="text-2xs text-muted-foreground/50 hover:text-muted-foreground underline mt-1"
                     >
-                      {expandedOutput === rt.id ? 'Hide output' : 'Show output'}
+                      {expandedOutput === rt.id ? t('runtimeHideOutput') : t('runtimeShowOutput')}
                     </button>
                   )}
                   {expandedOutput === rt.id && job.output && (

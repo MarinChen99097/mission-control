@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Session } from '@/types'
 import { formatAge, parseTokenUsage, getStatusBadgeColor } from '@/lib/utils'
 
@@ -12,6 +13,7 @@ interface SessionCardProps {
 }
 
 function SessionCard({ session }: SessionCardProps) {
+  const t = useTranslations('dashboard')
   const tokenUsage = parseTokenUsage(session.tokens)
   const statusColor = session.active ? 'success' : 'warning'
   
@@ -32,15 +34,15 @@ function SessionCard({ session }: SessionCardProps) {
 
   const getRoleBadge = (key: string) => {
     if (key.includes('main:main')) {
-      return { label: 'LEAD', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' }
+      return { label: t('roleLead'), color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' }
     }
     if (key.includes('subagent')) {
-      return { label: 'WORKER', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' }
+      return { label: t('roleWorker'), color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' }
     }
     if (key.includes('cron')) {
-      return { label: 'CRON', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' }
+      return { label: t('roleCron'), color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' }
     }
-    return { label: 'SYSTEM', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' }
+    return { label: t('roleSystem'), color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' }
   }
 
   const getCurrentTask = (session: Session) => {
@@ -51,9 +53,9 @@ function SessionCard({ session }: SessionCardProps) {
     // For sub-agents, try to extract task from key
     const parts = session.key.split(':')
     if (parts.length > 3 && parts[2] === 'subagent') {
-      return parts[3] || 'Unknown task'
+      return parts[3] || t('unknownTask')
     }
-    return session.active ? 'Active' : 'Idle'
+    return session.active ? t('sessionActive') : t('sessionIdle')
   }
 
   const roleBadge = getRoleBadge(session.key)
@@ -104,7 +106,7 @@ function SessionCard({ session }: SessionCardProps) {
               ? 'bg-green-500/20 text-green-400 border-green-500/30 animate-pulse'
               : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
           }`}>
-            {session.active ? 'WORKING' : 'IDLE'}
+            {session.active ? t('statusWorking') : t('statusIdle')}
           </div>
 
           {/* Token Usage */}
@@ -148,15 +150,16 @@ function SessionCard({ session }: SessionCardProps) {
 }
 
 export function SessionsList({ sessions }: SessionsListProps) {
+  const t = useTranslations('dashboard')
   const activeSessions = sessions.filter(s => s.active)
   const idleSessions = sessions.filter(s => !s.active)
 
   return (
     <div className="bg-card rounded-lg border border-border">
       <div className="p-4 border-b border-border">
-        <h3 className="font-semibold text-foreground">Active Sessions</h3>
+        <h3 className="font-semibold text-foreground">{t('sessionsTitle')}</h3>
         <p className="text-sm text-muted-foreground">
-          {sessions.length} total • {activeSessions.length} active
+          {t('sessionsSummary', { total: sessions.length, active: activeSessions.length })}
         </p>
       </div>
 
@@ -164,8 +167,8 @@ export function SessionsList({ sessions }: SessionsListProps) {
         {sessions.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <div className="text-4xl mb-2">🤖</div>
-            <p>No sessions active</p>
-            <p className="text-xs">Sessions will appear here when agents start</p>
+            <p>{t('noSessionsActive')}</p>
+            <p className="text-xs">{t('sessionsAppearHint')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -174,7 +177,7 @@ export function SessionsList({ sessions }: SessionsListProps) {
               <div>
                 <h4 className="text-sm font-medium text-foreground mb-2 flex items-center">
                   <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                  Active ({activeSessions.length})
+                  {t('activeCount', { count: activeSessions.length })}
                 </h4>
                 <div className="space-y-2">
                   {activeSessions.map((session) => (
@@ -189,7 +192,7 @@ export function SessionsList({ sessions }: SessionsListProps) {
               <div>
                 <h4 className="text-sm font-medium text-foreground mb-2 flex items-center">
                   <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
-                  Idle ({idleSessions.length})
+                  {t('idleCount', { count: idleSessions.length })}
                 </h4>
                 <div className="space-y-2">
                   {idleSessions.map((session) => (

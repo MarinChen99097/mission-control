@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Loader } from '@/components/ui/loader'
 
@@ -37,6 +38,8 @@ function modeColors(isGateway: boolean) {
 }
 
 export function StepAgentRuntimes({ isGateway, onNext, onBack }: Props) {
+  const t = useTranslations('onboarding')
+  const tc = useTranslations('common')
   const mc = modeColors(isGateway)
   const [runtimes, setRuntimes] = useState<RuntimeStatus[]>([])
   const [isDocker, setIsDocker] = useState(false)
@@ -131,8 +134,8 @@ export function StepAgentRuntimes({ isGateway, onNext, onBack }: Props) {
           <Loader />
         </div>
         <div className="flex items-center justify-between pt-4 border-t border-border/30">
-          <Button variant="ghost" size="sm" onClick={onBack} className="text-xs text-muted-foreground">Back</Button>
-          <Button onClick={onNext} size="sm" className={`${mc.bgBtn} ${mc.text} border ${mc.border} ${mc.hoverBg}`}>Continue</Button>
+          <Button variant="ghost" size="sm" onClick={onBack} className="text-xs text-muted-foreground">{tc('back')}</Button>
+          <Button onClick={onNext} size="sm" className={`${mc.bgBtn} ${mc.text} border ${mc.border} ${mc.hoverBg}`}>{tc('continue')}</Button>
         </div>
       </>
     )
@@ -141,14 +144,14 @@ export function StepAgentRuntimes({ isGateway, onNext, onBack }: Props) {
   return (
     <>
       <div className="flex-1">
-        <h2 className="text-lg font-semibold mb-1">Agent Runtimes</h2>
+        <h2 className="text-lg font-semibold mb-1">{t('agentRuntimes.title')}</h2>
         <p className="text-sm text-muted-foreground mb-4">
-          Install agent runtimes to run AI agents. You can skip this and install later from Settings.
+          {t('agentRuntimes.description')}
         </p>
 
         {isDocker && (
           <div className="mb-3 p-2.5 rounded-lg border border-void-cyan/20 bg-void-cyan/5 text-xs text-muted-foreground">
-            Running in Docker — install directly or use sidecar services for production.
+            {t('agentRuntimes.dockerHint')}
           </div>
         )}
 
@@ -171,7 +174,7 @@ export function StepAgentRuntimes({ isGateway, onNext, onBack }: Props) {
                 {/* Status badge */}
                 {(rt.installed || justInstalled) && (
                   <span className="absolute -top-2 right-2 text-2xs px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                    Detected
+                    {tc('detected')}
                   </span>
                 )}
 
@@ -187,7 +190,7 @@ export function StepAgentRuntimes({ isGateway, onNext, onBack }: Props) {
                 {/* Auth status for runtimes that need it */}
                 {rt.installed && rt.authRequired && (
                   <p className={`text-2xs mb-1 ${rt.authenticated ? 'text-emerald-400/70' : 'text-amber-400'}`}>
-                    {rt.authenticated ? 'Authenticated' : rt.authHint}
+                    {rt.authenticated ? t('agentRuntimes.authenticated') : rt.authHint}
                   </p>
                 )}
 
@@ -196,16 +199,16 @@ export function StepAgentRuntimes({ isGateway, onNext, onBack }: Props) {
                   <div className="mt-2">
                     {isInstalling ? (
                       <div className="flex items-center gap-2 text-2xs text-muted-foreground">
-                        <Loader /> Installing...
+                        <Loader /> {t('agentRuntimes.installing')}
                       </div>
                     ) : installFailed ? (
                       <div className="space-y-1">
-                        <p className="text-2xs text-red-400">Install failed: {job?.error || 'Unknown error'}</p>
+                        <p className="text-2xs text-red-400">{t('agentRuntimes.installFailed')}: {job?.error || t('agentRuntimes.unknownError')}</p>
                         <button
                           onClick={() => handleInstall(rt.id)}
                           className="text-2xs px-2 py-1 rounded border border-border/40 hover:border-border/60 text-muted-foreground hover:text-foreground transition-colors"
                         >
-                          Retry
+                          {tc('retry')}
                         </button>
                       </div>
                     ) : (
@@ -214,14 +217,14 @@ export function StepAgentRuntimes({ isGateway, onNext, onBack }: Props) {
                           onClick={() => handleInstall(rt.id)}
                           className={`text-2xs px-2 py-1 rounded border ${mc.border} ${mc.bgBtn} ${mc.text} ${mc.hoverBg} transition-colors`}
                         >
-                          Install
+                          {t('agentRuntimes.install')}
                         </button>
                         {isDocker && (
                           <button
                             onClick={() => handleCopyCompose(rt.id)}
                             className="text-2xs px-2 py-1 rounded border border-border/40 hover:border-border/60 text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            {copiedYaml === rt.id ? 'Copied!' : 'Sidecar YAML'}
+                            {copiedYaml === rt.id ? t('agentRuntimes.copied') : t('agentRuntimes.sidecarYaml')}
                           </button>
                         )}
                       </div>
@@ -235,9 +238,9 @@ export function StepAgentRuntimes({ isGateway, onNext, onBack }: Props) {
       </div>
 
       <div className="flex items-center justify-between pt-4 border-t border-border/30">
-        <Button variant="ghost" size="sm" onClick={onBack} className="text-xs text-muted-foreground">Back</Button>
+        <Button variant="ghost" size="sm" onClick={onBack} className="text-xs text-muted-foreground">{tc('back')}</Button>
         <Button onClick={onNext} size="sm" className={`${mc.bgBtn} ${mc.text} border ${mc.border} ${mc.hoverBg}`}>
-          Continue
+          {tc('continue')}
         </Button>
       </div>
     </>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { useMissionControl, type ExecApprovalRequest } from '@/store'
 import { useWebSocket } from '@/lib/websocket'
@@ -40,6 +41,7 @@ function MetaRow({ label, value }: { label: string; value?: string | null }) {
 }
 
 export function ExecApprovalOverlay() {
+  const t = useTranslations('execApproval')
   const { execApprovals, updateExecApproval } = useMissionControl()
   const { sendMessage } = useWebSocket()
   const [busy, setBusy] = useState(false)
@@ -88,12 +90,12 @@ export function ExecApprovalOverlay() {
         })
         if (!res.ok) {
           const data = await res.json().catch(() => ({}))
-          setError(data.error || 'Failed to send decision')
+          setError(data.error || t('failedToSendDecision'))
           setBusy(false)
           return
         }
       } catch {
-        setError('Failed to reach gateway')
+        setError(t('failedToReachGateway'))
         setBusy(false)
         return
       }
@@ -109,7 +111,7 @@ export function ExecApprovalOverlay() {
 
   const remainingMs = active.expiresAt ? active.expiresAt - Date.now() : null
   const remainingText = remainingMs !== null
-    ? (remainingMs > 0 ? `expires in ${formatRemaining(remainingMs)}` : 'expired')
+    ? (remainingMs > 0 ? t('expiresIn', { time: formatRemaining(remainingMs) }) : t('expired'))
     : null
 
   return (
@@ -117,13 +119,13 @@ export function ExecApprovalOverlay() {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
       role="dialog"
       aria-live="polite"
-      aria-label="Execution approval required"
+      aria-label={t('overlayAriaLabel')}
     >
       <div className={`w-[min(540px,95vw)] bg-card border border-border rounded-lg p-5 shadow-2xl border-l-4 ${RISK_BORDER[active.risk]}`}>
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <div>
-            <div className="text-sm font-semibold text-foreground">Exec approval needed</div>
+            <div className="text-sm font-semibold text-foreground">{t('approvalNeeded')}</div>
             {remainingText && (
               <div className="text-xs text-muted-foreground mt-0.5">{remainingText}</div>
             )}
@@ -134,7 +136,7 @@ export function ExecApprovalOverlay() {
             </span>
             {pending.length > 1 && (
               <span className="text-xs font-medium text-muted-foreground bg-secondary rounded-full px-2 py-0.5">
-                {pending.length} pending
+                {t('pendingBadge', { count: pending.length })}
               </span>
             )}
           </div>
@@ -156,12 +158,12 @@ export function ExecApprovalOverlay() {
 
         {/* Metadata */}
         <div className="mb-3">
-          <MetaRow label="Agent" value={active.agentName} />
-          <MetaRow label="Session" value={active.sessionId} />
-          <MetaRow label="Tool" value={active.toolName} />
-          <MetaRow label="CWD" value={active.cwd} />
-          <MetaRow label="Host" value={active.host} />
-          <MetaRow label="Resolved" value={active.resolvedPath} />
+          <MetaRow label={t('metaAgent')} value={active.agentName} />
+          <MetaRow label={t('metaSession')} value={active.sessionId} />
+          <MetaRow label={t('metaTool')} value={active.toolName} />
+          <MetaRow label={t('metaCwd')} value={active.cwd} />
+          <MetaRow label={t('metaHost')} value={active.host} />
+          <MetaRow label={t('metaResolved')} value={active.resolvedPath} />
         </div>
 
         {/* Error */}
@@ -177,7 +179,7 @@ export function ExecApprovalOverlay() {
             disabled={busy}
             onClick={() => handleDecision('allow-once')}
           >
-            {busy ? 'Sending...' : 'Allow once'}
+            {busy ? t('sending') : t('allowOnce')}
           </Button>
           <Button
             variant="outline"
@@ -185,7 +187,7 @@ export function ExecApprovalOverlay() {
             disabled={busy}
             onClick={() => handleDecision('allow-always')}
           >
-            Always allow
+            {t('alwaysAllow')}
           </Button>
           <Button
             size="sm"
@@ -193,7 +195,7 @@ export function ExecApprovalOverlay() {
             disabled={busy}
             onClick={() => handleDecision('deny')}
           >
-            Deny
+            {t('deny')}
           </Button>
         </div>
       </div>

@@ -406,7 +406,7 @@ export function AgentSquadPanelPhase3() {
   }, {} as Record<string, number>)
 
   if (loading && agents.length === 0) {
-    return <Loader variant="panel" label="Loading agents" />
+    return <Loader variant="panel" label={t('loadingAgents')} />
   }
 
   return (
@@ -436,7 +436,7 @@ export function AgentSquadPanelPhase3() {
 
           {/* Select all toggle (visible when agents exist) */}
           {agents.length > 0 && (
-            <label className="flex items-center gap-1.5 cursor-pointer select-none ml-2" title="Select all agents">
+            <label className="flex items-center gap-1.5 cursor-pointer select-none ml-2" title={t('selectAllAgents')}>
               <input
                 type="checkbox"
                 checked={allSelected}
@@ -444,7 +444,7 @@ export function AgentSquadPanelPhase3() {
                 onChange={toggleSelectAll}
                 className="w-3.5 h-3.5 rounded border-border bg-surface-1 text-primary accent-primary cursor-pointer"
               />
-              <span className="text-xs text-muted-foreground">Select</span>
+              <span className="text-xs text-muted-foreground">{t('select')}</span>
             </label>
           )}
         </div>
@@ -478,7 +478,7 @@ export function AgentSquadPanelPhase3() {
             variant={showHidden ? 'success' : 'secondary'}
             size="sm"
           >
-            {showHidden ? 'Showing hidden' : 'Show hidden'}
+            {showHidden ? t('showingHidden') : t('showHidden')}
           </Button>
           <Button
             onClick={() => setShowCreateModal(true)}
@@ -525,7 +525,7 @@ export function AgentSquadPanelPhase3() {
           sm:relative sm:bottom-auto sm:left-auto sm:right-auto sm:sticky sm:top-0 sm:mx-4 sm:mt-2
           ${hasSelection ? 'opacity-100 translate-y-0' : 'opacity-0 pointer-events-none translate-y-4 sm:-translate-y-2'}`}
         role="toolbar"
-        aria-label="Batch agent operations"
+        aria-label={t('batchAgentOps')}
         aria-hidden={!hasSelection}
       >
           {/* Screen reader live region */}
@@ -540,17 +540,17 @@ export function AgentSquadPanelPhase3() {
               checked={allSelected}
               ref={(el) => { if (el) el.indeterminate = hasSelection && !allSelected }}
               onChange={toggleSelectAll}
-              aria-label="Select all agents"
+              aria-label={t('selectAllAgents')}
               className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-border bg-surface-1 text-primary accent-primary cursor-pointer"
             />
-            <span className="text-xs text-muted-foreground">All</span>
+            <span className="text-xs text-muted-foreground">{t('all')}</span>
           </label>
 
           <div className="h-3.5 sm:h-4 w-px bg-border/50 shrink-0" />
 
           {/* Selected count */}
           <span className="text-xs sm:text-sm font-medium text-foreground whitespace-nowrap">
-            {selectedIds.size} <span className="hidden xs:inline">selected</span>
+            {selectedIds.size} <span className="hidden xs:inline">{t('selected')}</span>
           </span>
 
           <div className="flex-1 min-w-0" />
@@ -566,37 +566,37 @@ export function AgentSquadPanelPhase3() {
               <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                 <path d="M8 3v5l3 3" /><circle cx="8" cy="8" r="6" />
               </svg>
-              Wake
+              {t('wake')}
             </button>
             <button
               onClick={() => confirmBatchAction('sleep')}
               disabled={batchBusy}
-              aria-label={`Set ${selectedIds.size} selected agents to sleep`}
+              aria-label={t('batchSleepLabel', { count: selectedIds.size })}
               className="inline-flex items-center gap-1 sm:gap-1.5 rounded-md px-2 sm:px-3 py-1.5 text-xs font-medium transition-colors bg-slate-500/15 text-slate-300 border border-slate-500/30 hover:bg-slate-500/25 disabled:opacity-50"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                 <path d="M13 3.5A6.5 6.5 0 0 1 3.5 13 6 6 0 0 0 13 3.5z" />
               </svg>
-              Sleep
+              {t('sleep')}
             </button>
             <button
               onClick={() => confirmBatchAction('hide')}
               disabled={batchBusy}
-              aria-label={`Toggle visibility for ${selectedIds.size} selected agents`}
+              aria-label={t('batchHideLabel', { count: selectedIds.size })}
               className="inline-flex items-center gap-1 sm:gap-1.5 rounded-md px-2 sm:px-3 py-1.5 text-xs font-medium transition-colors bg-violet-500/15 text-violet-300 border border-violet-500/30 hover:bg-violet-500/25 disabled:opacity-50"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                 <path d="M2 8s2.5-5 6-5 6 5 6 5-2.5 5-6 5-6-5-6-5z" /><circle cx="8" cy="8" r="2" />
                 <path d="M3 13L13 3" strokeWidth="1.5" />
               </svg>
-              Hide
+              {t('hide')}
             </button>
 
             <div className="h-3.5 sm:h-4 w-px bg-border/50" />
 
             <button
               onClick={clearSelection}
-              aria-label="Clear selection"
+              aria-label={t('clearSelection')}
               className="inline-flex items-center rounded-md p-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -611,19 +611,19 @@ export function AgentSquadPanelPhase3() {
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setBatchConfirm(null)}>
           <div className="bg-card border border-border rounded-lg shadow-xl max-w-sm w-full p-5" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-sm font-semibold text-foreground mb-2">
-              Confirm batch {batchConfirm.action}
+              {t('confirmBatch', { action: batchConfirm.action })}
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              {batchConfirm.action === 'wake' && `Wake ${batchConfirm.count} agent${batchConfirm.count !== 1 ? 's' : ''}?`}
-              {batchConfirm.action === 'sleep' && `Set ${batchConfirm.count} agent${batchConfirm.count !== 1 ? 's' : ''} to sleep?`}
-              {batchConfirm.action === 'hide' && `Toggle visibility for ${batchConfirm.count} agent${batchConfirm.count !== 1 ? 's' : ''}?`}
+              {batchConfirm.action === 'wake' && t('confirmWake', { count: batchConfirm.count })}
+              {batchConfirm.action === 'sleep' && t('confirmSleep', { count: batchConfirm.count })}
+              {batchConfirm.action === 'hide' && t('confirmHide', { count: batchConfirm.count })}
             </p>
             <div className="flex gap-2 justify-end">
               <Button variant="secondary" size="sm" onClick={() => setBatchConfirm(null)}>
-                Cancel
+                {t('cancel')}
               </Button>
               <Button size="sm" onClick={executeBatchAction} className={batchConfirm.action === 'wake' ? 'bg-cyan-600 hover:bg-cyan-700 text-white' : batchConfirm.action === 'sleep' ? 'bg-slate-600 hover:bg-slate-700 text-white' : 'bg-violet-600 hover:bg-violet-700 text-white'}>
-                {batchConfirm.action === 'wake' ? 'Wake' : batchConfirm.action === 'sleep' ? 'Sleep' : 'Hide'}
+                {batchConfirm.action === 'wake' ? t('wake') : batchConfirm.action === 'sleep' ? t('sleep') : t('hide')}
               </Button>
             </div>
           </div>
@@ -781,7 +781,7 @@ export function AgentSquadPanelPhase3() {
                         variant="ghost"
                         className="h-6 px-2 text-xs text-slate-400 hover:bg-slate-500/15 hover:text-slate-300"
                       >
-                        {agent.hidden ? 'Unhide' : 'Hide'}
+                        {agent.hidden ? t('unhide') : t('hide')}
                       </Button>
                     </div>
                   </div>

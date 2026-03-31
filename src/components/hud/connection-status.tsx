@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useMissionControl } from '@/store'
 import { Button } from '@/components/ui/button'
 
@@ -16,6 +17,7 @@ export function ConnectionStatus({
   onDisconnect, 
   onReconnect 
 }: ConnectionStatusProps) {
+  const t = useTranslations('common')
   const { connection } = useMissionControl()
   const displayUrl = connection.url || 'ws://<gateway-host>:<gateway-port>'
   const isGatewayOptional = process.env.NEXT_PUBLIC_GATEWAY_OPTIONAL === 'true'
@@ -29,15 +31,15 @@ export function ConnectionStatus({
 
   const getStatusText = () => {
     if (isConnected) {
-      return 'Connected'
+      return t('connected')
     }
     if (connection.reconnectAttempts > 0) {
-      return `Reconnecting... (${connection.reconnectAttempts}/10)`
+      return t('reconnecting', { attempts: connection.reconnectAttempts, max: 10 })
     }
     if (isGatewayOptional && !isConnected) {
-      return 'Gateway Optional (Standalone)'
+      return t('gatewayOptionalStandalone')
     }
-    return 'Disconnected'
+    return t('disconnected')
   }
 
   return (
@@ -60,9 +62,9 @@ export function ConnectionStatus({
             variant="destructive"
             size="xs"
             onClick={onDisconnect}
-            title="Disconnect from gateway"
+            title={t('disconnectFromGateway')}
           >
-            Disconnect
+            {t('disconnect')}
           </Button>
         ) : connection.reconnectAttempts > 0 ? (
           <Button
@@ -70,9 +72,9 @@ export function ConnectionStatus({
             size="xs"
             onClick={onDisconnect}
             className="bg-gray-500/20 text-gray-400 border-gray-500/30 hover:bg-gray-500/30"
-            title="Cancel reconnection attempts"
+            title={t('cancelReconnection')}
           >
-            Cancel
+            {t('cancel')}
           </Button>
         ) : (
           <div className="flex space-x-1">
@@ -80,9 +82,9 @@ export function ConnectionStatus({
               variant="success"
               size="xs"
               onClick={onConnect}
-              title="Connect to gateway"
+              title={t('connectToGateway')}
             >
-              Connect
+              {t('connect')}
             </Button>
             {onReconnect && (
               <Button
@@ -90,9 +92,9 @@ export function ConnectionStatus({
                 size="xs"
                 onClick={onReconnect}
                 className="bg-blue-500/20 text-blue-400 border-blue-500/30 hover:bg-blue-500/30"
-                title="Reconnect with fresh session"
+                title={t('reconnectFreshSession')}
               >
-                Reconnect
+                {t('reconnect')}
               </Button>
             )}
           </div>
@@ -103,20 +105,20 @@ export function ConnectionStatus({
       <div className="flex items-center space-x-2 text-xs text-muted-foreground">
         {connection.latency ? (
           <>
-            <span>Latency:</span>
+            <span>{t('latency')}:</span>
             <span className="font-mono">{connection.latency}ms</span>
           </>
         ) : connection.lastConnected ? (
           <>
-            <span>Last connected:</span>
+            <span>{t('lastConnected')}:</span>
             <span className="font-mono">
               {new Date(connection.lastConnected).toLocaleTimeString()}
             </span>
           </>
         ) : (
           <>
-            <span>Status:</span>
-            <span className="font-mono">Not connected</span>
+            <span>{t('status')}:</span>
+            <span className="font-mono">{t('notConnected')}</span>
           </>
         )}
       </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { useMissionControl } from '@/store'
 import { useNavigateToPanel } from '@/lib/navigation'
@@ -13,6 +14,7 @@ interface ChecklistItem {
 }
 
 export function OnboardingChecklistWidget() {
+  const t = useTranslations('onboarding')
   const { agents, tasks, securityPosture, dashboardMode } = useMissionControl()
   const navigateToPanel = useNavigateToPanel()
   const [visible, setVisible] = useState(false)
@@ -50,12 +52,12 @@ export function OnboardingChecklistWidget() {
 
   // Derive checklist items from real data
   const items: ChecklistItem[] = [
-    { id: 'account', label: 'Account created', checked: true },
-    { id: 'interface', label: 'Interface mode selected', checked: true },
-    { id: 'credentials', label: 'Credentials reviewed', checked: true },
-    { id: 'security', label: 'Run security scan', checked: !!securityPosture, panel: 'settings' },
-    { id: 'agent', label: 'Dock your first agent', checked: agents.length > 0, panel: 'agents' },
-    { id: 'task', label: 'Create your first task', checked: tasks.length > 0, panel: 'tasks' },
+    { id: 'account', label: t('checkAccountCreated'), checked: true },
+    { id: 'interface', label: t('checkInterfaceSelected'), checked: true },
+    { id: 'credentials', label: t('checkCredentialsReviewed'), checked: true },
+    { id: 'security', label: t('checkSecurityScan'), checked: !!securityPosture, panel: 'settings' },
+    { id: 'agent', label: t('checkDockAgent'), checked: agents.length > 0, panel: 'agents' },
+    { id: 'task', label: t('checkCreateTask'), checked: tasks.length > 0, panel: 'tasks' },
   ]
 
   const completedCount = items.filter(i => i.checked).length
@@ -105,8 +107,8 @@ export function OnboardingChecklistWidget() {
   if (celebrating) {
     return (
       <section className={`rounded-xl border ${accentBorder} bg-card p-6 text-center`}>
-        <div className={`text-xl font-bold mb-1 ${accentText}`}>Station Fully Operational</div>
-        <p className="text-sm text-muted-foreground">All systems online. You&apos;re ready to go.</p>
+        <div className={`text-xl font-bold mb-1 ${accentText}`}>{t('stationFullyOperational')}</div>
+        <p className="text-sm text-muted-foreground">{t('allSystemsOnline')}</p>
       </section>
     )
   }
@@ -115,7 +117,7 @@ export function OnboardingChecklistWidget() {
     <section className="rounded-xl border border-border bg-card p-4">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="text-sm font-semibold">Setup Progress ({completedCount}/{items.length})</h3>
+          <h3 className="text-sm font-semibold">{t('setupProgress', { completed: completedCount, total: items.length })}</h3>
         </div>
         <Button
           variant="ghost"
@@ -124,7 +126,7 @@ export function OnboardingChecklistWidget() {
           disabled={dismissing}
           onClick={handleDismiss}
         >
-          Dismiss
+          {t('dismissChecklist')}
         </Button>
       </div>
 
