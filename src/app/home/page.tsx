@@ -92,6 +92,28 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* How it works — 3 simple steps */}
+      <section className="py-16 px-6 border-t border-border/40">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12">3 steps, that&apos;s it</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { step: '1', title: 'Create account', desc: 'Sign up with Google or email. Takes 10 seconds.' },
+              { step: '2', title: 'Pick a plan', desc: 'Choose Starter ($20), Pro ($60), or Max ($180). Cancel anytime.' },
+              { step: '3', title: 'Your agent is live', desc: 'Your AI agent deploys automatically. Start chatting in under a minute.' },
+            ].map((item) => (
+              <div key={item.step} className="text-center">
+                <div className="w-12 h-12 rounded-full bg-primary/10 text-primary font-bold text-xl flex items-center justify-center mx-auto mb-4">
+                  {item.step}
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">{item.title}</h3>
+                <p className="text-sm text-muted-foreground">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
       <section id="features" className="py-20 px-6">
         <div className="max-w-6xl mx-auto">

@@ -874,7 +874,7 @@ export function TaskBoardPanel() {
         </div>
         <div className="flex-1 flex gap-4 p-4 overflow-x-auto">
           {Array.from({ length: 4 }).map((_, colIdx) => (
-            <div key={colIdx} className="flex-1 min-w-80 bg-card border border-border rounded-lg flex flex-col">
+            <div key={colIdx} className="flex-1 min-w-[240px] sm:min-w-[280px] md:min-w-80 bg-card border border-border rounded-lg flex flex-col">
               <div className="p-3 rounded-t-lg bg-surface-1 animate-pulse">
                 <div className="h-5 w-24 bg-surface-2 rounded" />
               </div>
