@@ -193,7 +193,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <a href="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
         <LanguageSwitcherSelect />
       </div>
       <div className="w-full max-w-sm">
@@ -347,7 +348,11 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <p className="text-center text-xs text-muted-foreground mt-6">{t('orchestrationTagline')}</p>
+        <p className="text-center text-sm text-muted-foreground mt-6">
+          Don&apos;t have an account?{' '}
+          <a href="/register" className="text-primary hover:underline">Create one</a>
+        </p>
+        <p className="text-center text-xs text-muted-foreground mt-2">{t('orchestrationTagline')}</p>
       </div>
     </div>
   )

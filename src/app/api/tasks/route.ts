@@ -377,9 +377,7 @@ export async function PUT(request: NextRequest) {
         const oldTask = db.prepare('SELECT * FROM tasks WHERE id = ? AND workspace_id = ?').get(task.id, workspaceId) as Task;
         if (!oldTask) continue;
 
-        if (task.status === 'done' && !hasAegisApproval(db, task.id, workspaceId)) {
-          throw new Error(`Aegis approval required for task ${task.id}`)
-        }
+        // Aegis disabled — plan review uses awaiting_owner mechanism instead
 
         if (task.status === 'done') {
           updateDoneStmt.run(task.status, now, now, task.id, workspaceId);

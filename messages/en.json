@@ -1148,7 +1148,8 @@
     "detailWorkingMemory": "Working Memory",
     "detailComments": "Comments",
     "detailLoading": "Loading...",
-    "detailNoComments": "No comments yet"
+    "detailNoComments": "No comments yet",
+    "missionReport": "Report"
   },
   "cronManagement": {
     "title": "Cron Management",
@@ -2627,7 +2628,7 @@
     "working": "WORKING",
     "unknown": "unknown",
     "sessionsTitle": "Active Sessions",
-    "sessionsSummary": "{total} total \u2022 {active} active",
+    "sessionsSummary": "{total} total • {active} active",
     "noSessionsActive": "No sessions active",
     "sessionsAppearHint": "Sessions will appear here when agents start",
     "activeCount": "Active ({count})",

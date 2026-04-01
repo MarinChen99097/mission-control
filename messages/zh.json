@@ -1148,7 +1148,8 @@
     "detailWorkingMemory": "工作記憶",
     "detailComments": "評論",
     "detailLoading": "載入中...",
-    "detailNoComments": "暫無評論"
+    "detailNoComments": "暫無評論",
+    "missionReport": "報告"
   },
   "cronManagement": {
     "title": "定時任務管理",
@@ -2627,7 +2628,7 @@
     "working": "工作中",
     "unknown": "未知",
     "sessionsTitle": "活躍工作階段",
-    "sessionsSummary": "共 {total} 個 \u2022 {active} 個活躍",
+    "sessionsSummary": "共 {total} 個 • {active} 個活躍",
     "noSessionsActive": "無進行中的工作階段",
     "sessionsAppearHint": "Agent 啟動後，工作階段會顯示在此",
     "activeCount": "活躍 ({count})",

@@ -174,12 +174,7 @@ export async function PUT(
       updateParams.push(description);
     }
     if (normalizedStatus !== undefined) {
-      if (normalizedStatus === 'done' && !hasAegisApproval(db, taskId, workspaceId)) {
-        return NextResponse.json(
-          { error: 'Aegis approval is required to move task to done.' },
-          { status: 403 }
-        )
-      }
+      // Aegis disabled — plan review uses awaiting_owner mechanism instead
       fieldsToUpdate.push('status = ?');
       updateParams.push(normalizedStatus);
     }

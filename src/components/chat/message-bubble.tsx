@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { ChatMessage } from '@/store'
 import { detectTextDirection } from '@/lib/chat-utils'
+import { MarkdownRenderer } from '@/components/markdown-renderer'
 
 const AGENT_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   coordinator: { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20' },
@@ -260,7 +261,9 @@ export function MessageBubble({ message, isHuman, isGrouped }: MessageBubbleProp
           {isCommand ? (
             <pre className="whitespace-pre-wrap">{message.content}</pre>
           ) : (
-            <div className="whitespace-pre-wrap break-words" dir={detectTextDirection(message.content)}>{renderContent(message.content)}</div>
+            <div className="prose prose-invert prose-sm max-w-none break-words" dir={detectTextDirection(message.content)}>
+              <MarkdownRenderer content={message.content} />
+            </div>
           )}
         </div>
       </div>

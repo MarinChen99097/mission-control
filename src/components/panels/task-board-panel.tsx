@@ -1222,6 +1222,21 @@ export function TaskBoardPanel() {
         </div>
       )}
 
+      {/* ── Layer 2: Mission Report (shown when parent task has results) ── */}
+      {selectedParentId !== null && selectedParentTask && (() => {
+        // Find report content: check parent comments for Mission Report, or use sub-task results
+        const parentDone = selectedParentTask.status === 'done' || selectedParentTask.status === 'review'
+        if (!parentDone || layer2Tasks.length === 0) return null
+
+        // Get the latest substantial comment from any completed subtask
+        const completedSubs = layer2Tasks.filter(t => t.status === 'done' || t.status === 'review')
+        if (completedSubs.length === 0) return null
+
+        return (
+          <MissionReportPanel parentTaskId={selectedParentId} subtasks={completedSubs} />
+        )
+      })()}
+
       {/* ── Layer 2: Tree View ── */}
       {selectedParentId !== null && viewMode === 'tree' && (
         <div className="flex-1 min-h-0 overflow-hidden">
@@ -1512,6 +1527,84 @@ export function TaskBoardPanel() {
   )
 }
 
+// ── Mission Report Panel ──
+// Shows the final report from completed sub-tasks directly in Layer 2
+function MissionReportPanel({ parentTaskId, subtasks }: { parentTaskId: number; subtasks: Task[] }) {
+  const t = useTranslations('taskBoard')
+  const [report, setReport] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [collapsed, setCollapsed] = useState(false)
+
+  useEffect(() => {
+    async function fetchReport() {
+      try {
+        // 1. Check parent task comments for Mission Report
+        const parentComments = await fetch(`/api/tasks/${parentTaskId}/comments`).then(r => r.json())
+        const reportComment = (parentComments.comments || []).reverse().find(
+          (c: Comment) => c.content?.includes('Mission Report') || c.content?.includes('# ')
+        )
+        if (reportComment?.content) {
+          // Strip the "📋 **Mission Report**" prefix
+          const cleaned = reportComment.content.replace(/^📋\s*\*\*Mission Report\*\*\s*/i, '').trim()
+          setReport(cleaned)
+          setLoading(false)
+          return
+        }
+
+        // 2. Fallback: get latest substantial comment from completed sub-tasks
+        for (const sub of subtasks) {
+          const subComments = await fetch(`/api/tasks/${sub.id}/comments`).then(r => r.json())
+          const agentComment = (subComments.comments || []).reverse().find(
+            (c: Comment) => c.content?.length > 200 && !c.content?.startsWith('[executor')
+          )
+          if (agentComment?.content) {
+            // Strip agent prefix like "[research-lead] "
+            const cleaned = agentComment.content.replace(/^\[[\w-]+\]\s*/i, '').trim()
+            setReport(cleaned)
+            setLoading(false)
+            return
+          }
+        }
+
+        setReport(null)
+        setLoading(false)
+      } catch {
+        setLoading(false)
+      }
+    }
+    fetchReport()
+  }, [parentTaskId, subtasks])
+
+  if (loading) return null
+  if (!report) return null
+
+  return (
+    <div className="mx-4 mt-3 mb-1 rounded-xl border border-border/40 bg-card/50 overflow-hidden">
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/[0.02] transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-foreground">{t('missionReport') || 'Report'}</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400">
+            {t('completed') || 'Completed'}
+          </span>
+        </div>
+        <svg className={`w-4 h-4 text-muted-foreground transition-transform ${collapsed ? '' : 'rotate-180'}`} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 6l4 4 4-4" />
+        </svg>
+      </button>
+      {!collapsed && (
+        <div className="px-4 pb-4 border-t border-border/20">
+          <div className="mt-3 prose prose-invert prose-sm max-w-none text-foreground/85 leading-relaxed">
+            <MarkdownRenderer content={report} />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // Task Detail Modal Component (placeholder - would be implemented separately)
 function TaskDetailModal({
   task,
@@ -1732,7 +1825,7 @@ function TaskDetailModal({
   const dialogRef = useFocusTrap(onClose)
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="task-detail-title" className="bg-card border border-border rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-start mb-4">
@@ -2569,7 +2662,7 @@ function CreateTaskModal({
   const dialogRef = useFocusTrap(onClose)
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="create-task-title" className="bg-card border border-border rounded-lg max-w-md w-full">
         <form onSubmit={handleSubmit} className="p-6">
           <h3 id="create-task-title" className="text-xl font-bold text-foreground mb-4">{t('createNewTask')}</h3>
@@ -2878,7 +2971,7 @@ function EditTaskModal({
   const dialogRef = useFocusTrap(onClose)
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="edit-task-title" className="bg-card border border-border rounded-lg max-w-md w-full">
         <form onSubmit={handleSubmit} className="p-6">
           <h3 id="edit-task-title" className="text-xl font-bold text-foreground mb-4">{t('editTask')}</h3>
