@@ -49,7 +49,11 @@ export async function GET(request: NextRequest) {
   const db = getDatabase()
   ensureTable(db)
 
-  const gateways = db.prepare('SELECT * FROM gateways ORDER BY is_primary DESC, name ASC').all() as GatewayEntry[]
+  // Multi-tenant: scope gateways to user's workspace
+  const workspaceId = auth.user?.workspace_id ?? 1
+  const gateways = db.prepare(
+    'SELECT * FROM gateways WHERE workspace_id = ? OR workspace_id = 1 ORDER BY is_primary DESC, name ASC'
+  ).all(workspaceId) as GatewayEntry[]
 
   // If no gateways exist, seed defaults from environment
   if (gateways.length === 0) {

@@ -25,6 +25,13 @@ export async function GET(request: NextRequest) {
   const conditions: string[] = []
   const params: any[] = []
 
+  // Multi-tenant: scope audit log to user's workspace (unless super-admin)
+  const workspaceId = auth.user?.workspace_id
+  if (workspaceId && workspaceId !== 1) {
+    conditions.push('(workspace_id = ? OR workspace_id IS NULL)')
+    params.push(workspaceId)
+  }
+
   if (action) {
     conditions.push('action = ?')
     params.push(action)

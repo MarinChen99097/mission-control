@@ -1754,6 +1754,27 @@ const migrations: Migration[] = [
         db.exec(`ALTER TABLE tasks ADD COLUMN rework_count INTEGER NOT NULL DEFAULT 0`)
       }
     }
+  },
+  {
+    id: '059_gateways_workspace_id',
+    up(db: Database.Database) {
+      // Multi-tenant: scope gateways to workspaces so each tenant sees their own gateway
+      const cols = db.prepare('PRAGMA table_info(gateways)').all() as Array<{ name: string }>
+      if (!cols.some(c => c.name === 'workspace_id')) {
+        db.exec(`ALTER TABLE gateways ADD COLUMN workspace_id INTEGER NOT NULL DEFAULT 1`)
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_gateways_workspace ON gateways(workspace_id)`)
+      }
+      // Multi-tenant: scope settings to workspaces
+      const settingsCols = db.prepare('PRAGMA table_info(settings)').all() as Array<{ name: string }>
+      if (!settingsCols.some(c => c.name === 'workspace_id')) {
+        db.exec(`ALTER TABLE settings ADD COLUMN workspace_id INTEGER NOT NULL DEFAULT 1`)
+      }
+      // Multi-tenant: scope audit_log to workspaces
+      const auditCols = db.prepare('PRAGMA table_info(audit_log)').all() as Array<{ name: string }>
+      if (!auditCols.some(c => c.name === 'workspace_id')) {
+        db.exec(`ALTER TABLE audit_log ADD COLUMN workspace_id INTEGER`)
+      }
+    }
   }
 ]
 
