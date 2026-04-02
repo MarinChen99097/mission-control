@@ -18,6 +18,13 @@ export const GATEWAY_STEPS: OnboardingStepDefinition[] = [
   { id: 'credentials', title: 'Credentials' },
 ]
 
+/** Business onboarding steps — shown after technical setup on Dashboard */
+export const BUSINESS_ONBOARDING_STEPS: OnboardingStepDefinition[] = [
+  { id: 'business-profile', title: 'Your Business' },
+  { id: 'goal-selection', title: 'Goals' },
+  { id: 'recommended-services', title: 'Get Started' },
+]
+
 export function getWizardSteps(gatewayConnected: boolean): OnboardingStepDefinition[] {
   return gatewayConnected ? GATEWAY_STEPS : BASE_STEPS
 }

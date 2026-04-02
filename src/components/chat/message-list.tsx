@@ -150,17 +150,46 @@ export function MessageList() {
   )
 
   if (conversationMessages.length === 0) {
+    const isAgentChat = activeConversation?.startsWith('agent_')
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="text-center px-6">
-          <div className="w-12 h-12 rounded-lg bg-surface-2 flex items-center justify-center mx-auto mb-3">
-            <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground/40">
+        <div className="text-center px-6 max-w-sm">
+          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-3">
+            <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/60">
               <path d="M12 3H4a1 1 0 00-1 1v6l3-2h6a1 1 0 001-1V4a1 1 0 00-1-1z" />
               <path d="M7 11v1a1 1 0 001 1h5l2 2v-6a1 1 0 00-1-1h-1" />
             </svg>
           </div>
-          <p className="text-sm text-muted-foreground">{t('noMessagesYet')}</p>
-          <p className="text-xs text-muted-foreground/50 mt-1">{t('sendToGetStarted')}</p>
+          {isAgentChat ? (
+            <>
+              <p className="text-sm font-medium text-foreground mb-1">{t('welcomeAgent')}</p>
+              <p className="text-xs text-muted-foreground mb-4">{t('welcomeAgentDesc')}</p>
+              <div className="flex flex-col gap-1.5">
+                {[
+                  { icon: '📄', text: t('suggestLP') },
+                  { icon: '🔬', text: t('suggestDiagnosis') },
+                  { icon: '📊', text: t('suggestResearch') },
+                ].map(({ icon, text }) => (
+                  <button
+                    key={text}
+                    onClick={() => {
+                      const input = document.querySelector<HTMLTextAreaElement>('[data-chat-input]')
+                      if (input) { input.value = text; input.focus(); input.dispatchEvent(new Event('input', { bubbles: true })) }
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border/50 hover:border-primary/40 hover:bg-primary/5 transition-all text-left text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    <span>{icon}</span>
+                    <span>{text}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">{t('noMessagesYet')}</p>
+              <p className="text-xs text-muted-foreground/50 mt-1">{t('sendToGetStarted')}</p>
+            </>
+          )}
         </div>
       </div>
     )

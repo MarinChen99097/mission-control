@@ -52,7 +52,7 @@ declare global {
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none">
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
       <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
       <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 001 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05" />
@@ -72,6 +72,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [googleReady, setGoogleReady] = useState(false)
+  const [showEmailForm, setShowEmailForm] = useState(false)
   const googleCallbackRef = useRef<((response: GoogleCredentialResponse) => void) | null>(null)
 
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''
@@ -192,29 +193,54 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto flex items-center justify-center bg-background p-4">
-      <div className="absolute top-4 right-4 flex items-center gap-2">
-        <a href="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
+    <div
+      className="h-full overflow-y-auto flex items-center justify-center p-4 relative"
+      style={{ backgroundColor: '#0A0A0F' }}
+    >
+      {/* Background glow orb */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full blur-[140px] opacity-20"
+          style={{ background: 'radial-gradient(ellipse, #6366F1, transparent 70%)' }}
+        />
+      </div>
+
+      {/* Language switcher */}
+      <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+        <a href="/pricing" className="text-sm text-[#94A3B8] hover:text-[#F8FAFC] transition-colors">Pricing</a>
         <LanguageSwitcherSelect />
       </div>
-      <div className="w-full max-w-sm">
+
+      {/* Glass card */}
+      <div
+        className="w-full max-w-[400px] rounded-2xl p-8 relative z-10"
+        style={{
+          backgroundColor: 'rgba(15, 23, 42, 0.6)',
+          border: '1px solid rgba(99, 102, 241, 0.1)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          boxShadow: '0 0 80px rgba(99, 102, 241, 0.06), 0 25px 50px rgba(0, 0, 0, 0.4)',
+        }}
+      >
+        {/* Hero section */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-lg overflow-hidden bg-background border border-border/50 flex items-center justify-center mb-3">
+          <div className="w-14 h-14 rounded-xl overflow-hidden bg-[#0A0A0F] border border-[rgba(30,41,59,0.5)] flex items-center justify-center mb-4">
             <Image
               src="/brand/mc-logo-128.png"
               alt="Mission Control logo"
-              width={48}
-              height={48}
+              width={56}
+              height={56}
               className="h-full w-full object-cover"
               priority
             />
           </div>
-          <h1 className="text-xl font-semibold text-foreground">{t('missionControl')}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t('signInToContinue')}</p>
+          <h1 className="text-2xl font-semibold text-[#F8FAFC]">{t('welcomeBack')}</h1>
+          <p className="text-sm text-[#94A3B8] mt-1">{t('signInToContinue')}</p>
         </div>
 
+        {/* Pending approval banner */}
         {pendingApproval && (
-          <div className="mb-4 p-4 rounded-lg bg-amber-500/10 border border-amber-500/20 text-center">
+          <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center">
             <div className="flex justify-center mb-2">
               <svg className="w-8 h-8 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
@@ -222,22 +248,23 @@ export default function LoginPage() {
               </svg>
             </div>
             <div className="text-sm font-medium text-amber-200">{t('accessRequestSubmitted')}</div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-[#94A3B8] mt-1">
               {t('accessRequestDescription')}
             </p>
             <Button
               onClick={() => { setPendingApproval(false); setError(''); setGoogleLoading(false) }}
               variant="ghost"
               size="sm"
-              className="mt-3 text-xs"
+              className="mt-3 text-xs text-[#94A3B8] hover:text-[#F8FAFC]"
             >
               {t('tryAgain')}
             </Button>
           </div>
         )}
 
+        {/* Needs setup banner */}
         {needsSetup && (
-          <div className="mb-4 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20 text-center">
+          <div className="mb-6 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-center">
             <div className="flex justify-center mb-2">
               <svg className="w-8 h-8 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
@@ -246,7 +273,7 @@ export default function LoginPage() {
               </svg>
             </div>
             <div className="text-sm font-medium text-blue-200">{t('noAdminAccount')}</div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-[#94A3B8] mt-1">
               {t('noAdminDescription')}
             </p>
             <Button
@@ -259,100 +286,130 @@ export default function LoginPage() {
           </div>
         )}
 
+        {/* Error banner */}
         {error && (
-          <div role="alert" className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive">
+          <div role="alert" className="mb-6 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">
             {error}
           </div>
         )}
 
-        {/* Google Sign-In button — shown only when client ID is configured */}
+        {/* Google Sign-In — PRIMARY CTA */}
         {googleClientId && (
           <div className={pendingApproval ? 'opacity-50 pointer-events-none' : ''}>
             <button
               type="button"
               onClick={handleGoogleSignIn}
               disabled={!googleReady || googleLoading || loading}
-              className="w-full h-10 flex items-center justify-center gap-3 rounded-lg border border-border bg-white text-[#3c4043] text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-12 flex items-center justify-center gap-3 rounded-lg border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg active:scale-[0.98]"
+              style={{
+                backgroundColor: '#FFFFFF',
+                color: '#3c4043',
+                borderColor: '#dadce0',
+              }}
             >
               {googleLoading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                  {t('signingIn')}
+                  <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                  <span>{t('signingIn')}</span>
                 </>
               ) : (
                 <>
-                  <GoogleIcon className="w-[18px] h-[18px]" />
-                  {t('signInWithGoogle')}
+                  <GoogleIcon className="w-5 h-5" />
+                  <span>{t('continueWithGoogle')}</span>
                 </>
               )}
             </button>
             {!googleReady && (
-              <p className="text-center text-xs text-muted-foreground mt-2">{t('loadingGoogleSignIn')}</p>
+              <p className="text-center text-xs text-[#94A3B8] mt-2">{t('loadingGoogleSignIn')}</p>
             )}
-
-            {/* Divider */}
-            <div className="my-4 flex items-center gap-2">
-              <div className="h-px flex-1 bg-border" />
-              <span className="text-xs text-muted-foreground">{tc('or')}</span>
-              <div className="h-px flex-1 bg-border" />
-            </div>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className={`space-y-4 ${pendingApproval ? 'opacity-50 pointer-events-none' : ''}`}>
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-foreground mb-1.5">{t('username')}</label>
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full h-10 px-3 rounded-lg bg-secondary border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-smooth"
-              placeholder={t('enterUsername')}
-              autoComplete="username"
-              autoFocus
-              required
-              aria-required="true"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1.5">{t('password')}</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-10 px-3 rounded-lg bg-secondary border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-smooth"
-              placeholder={t('enterPassword')}
-              autoComplete="current-password"
-              required
-              aria-required="true"
-            />
-          </div>
-
-          <Button
-            type="submit"
-            disabled={loading}
-            size="lg"
-            className="w-full rounded-lg"
+        {/* Divider — toggles email form */}
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1" style={{ backgroundColor: 'rgba(30, 41, 59, 0.5)' }} />
+          <button
+            type="button"
+            onClick={() => setShowEmailForm(!showEmailForm)}
+            className="text-xs text-[#94A3B8] hover:text-[#818CF8] transition-colors whitespace-nowrap"
           >
-            {loading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                {t('signingIn')}
-              </>
-            ) : (
-              t('signIn')
-            )}
-          </Button>
-        </form>
+            {showEmailForm ? tc('or') : t('orSignInWithEmail')}
+          </button>
+          <div className="h-px flex-1" style={{ backgroundColor: 'rgba(30, 41, 59, 0.5)' }} />
+        </div>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">
-          Don&apos;t have an account?{' '}
-          <a href="/register" className="text-primary hover:underline">Create one</a>
+        {/* Email/password form — HIDDEN by default */}
+        {showEmailForm && (
+          <form onSubmit={handleSubmit} className={`space-y-4 ${pendingApproval ? 'opacity-50 pointer-events-none' : ''}`}>
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-[#94A3B8] mb-1.5">{t('username')}</label>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full h-10 px-3 rounded-lg text-sm placeholder:text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50 transition-colors"
+                style={{
+                  backgroundColor: 'rgba(15, 23, 42, 0.8)',
+                  border: '1px solid rgba(30, 41, 59, 0.5)',
+                  color: '#F8FAFC',
+                }}
+                placeholder={t('enterUsername')}
+                autoComplete="username"
+                autoFocus
+                required
+                aria-required="true"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-[#94A3B8] mb-1.5">{t('password')}</label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full h-10 px-3 rounded-lg text-sm placeholder:text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50 transition-colors"
+                style={{
+                  backgroundColor: 'rgba(15, 23, 42, 0.8)',
+                  border: '1px solid rgba(30, 41, 59, 0.5)',
+                  color: '#F8FAFC',
+                }}
+                placeholder={t('enterPassword')}
+                autoComplete="current-password"
+                required
+                aria-required="true"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading}
+              size="lg"
+              className="w-full rounded-lg h-10"
+              style={{
+                backgroundColor: '#6366F1',
+                color: '#FFFFFF',
+              }}
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  {t('signingIn')}
+                </>
+              ) : (
+                t('signIn')
+              )}
+            </Button>
+          </form>
+        )}
+
+        {/* Footer links */}
+        <p className="text-center text-sm text-[#94A3B8] mt-6">
+          {t('noAccount')}{' '}
+          <a href="/register" className="text-[#818CF8] hover:text-[#6366F1] hover:underline transition-colors">{t('createOne')}</a>
         </p>
-        <p className="text-center text-xs text-muted-foreground mt-2">{t('orchestrationTagline')}</p>
+        <p className="text-center text-xs text-[#475569] mt-2">{t('orchestrationTagline')}</p>
       </div>
     </div>
   )

@@ -17,6 +17,7 @@ import { SecurityAuditWidget } from './widgets/security-audit-widget'
 import { MaintenanceWidget } from './widgets/maintenance-widget'
 import { QuickActionsWidget } from './widgets/quick-actions-widget'
 import { AgentHealthWidget } from './widgets/agent-health-widget'
+import { MarketingActionsWidget } from './widgets/marketing-actions-widget'
 
 const WIDGET_COMPONENTS: Record<string, React.ComponentType<{ data: DashboardData }>> = {
   'metric-cards': MetricCardsWidget,
@@ -30,6 +31,7 @@ const WIDGET_COMPONENTS: Record<string, React.ComponentType<{ data: DashboardDat
   'maintenance': MaintenanceWidget,
   'quick-actions': QuickActionsWidget,
   'agent-health': AgentHealthWidget,
+  'marketing-actions': MarketingActionsWidget,
 }
 
 // Map widget defaultSize to CSS grid column spans

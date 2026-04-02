@@ -108,10 +108,20 @@ export const WIDGET_CATALOG: DashboardWidget[] = [
     defaultSize: 'full',
     component: 'QuickActionsWidget',
   },
+  {
+    id: 'marketing-actions',
+    label: 'Marketing AI',
+    description: 'AI-powered marketing tools — Landing Page, Social Posts, Brand Diagnosis, Market Research',
+    category: 'sessions',
+    modes: ['local', 'full'],
+    defaultSize: 'full',
+    component: 'MarketingActionsWidget',
+  },
 ]
 
 export const LOCAL_DEFAULT_LAYOUT = [
   'metric-cards',
+  'marketing-actions',
   'runtime-health',
   'session-workbench',
   'event-stream',
@@ -123,6 +133,7 @@ export const LOCAL_DEFAULT_LAYOUT = [
 
 export const GATEWAY_DEFAULT_LAYOUT = [
   'metric-cards',
+  'marketing-actions',
   'gateway-health',
   'session-workbench',
   'event-stream',
