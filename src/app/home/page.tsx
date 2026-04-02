@@ -213,7 +213,7 @@ export default function HomePage() {
   }, [])
 
   return (
-    <div className="min-h-screen overflow-auto bg-background text-foreground scroll-smooth">
+    <div className="h-full overflow-y-auto bg-background text-foreground scroll-smooth">
       {/* Navigation */}
       <nav className="border-b border-border/40 backdrop-blur-md bg-background/80 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">

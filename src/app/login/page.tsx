@@ -192,7 +192,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="h-full overflow-y-auto flex items-center justify-center bg-background p-4">
       <div className="absolute top-4 right-4 flex items-center gap-2">
         <a href="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
         <LanguageSwitcherSelect />
