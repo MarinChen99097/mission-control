@@ -140,9 +140,9 @@ export function withTenantScope(
   return async (request: Request): Promise<NextResponse> => {
     // Dynamic imports to avoid circular dependencies
     const { resolveRequestTenant } = await import('./jwt-auth');
-    const { getDb } = await import('./db');
+    const { getDatabase } = await import('./db');
 
-    const db = getDb();
+    const db = getDatabase();
 
     // Try Marketing Backend JWT first
     const resolved = await resolveRequestTenant(request, db);
