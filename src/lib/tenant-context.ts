@@ -156,9 +156,9 @@ export function withTenantScope(
         const session = validateSession(sessionToken);
         if (session) {
           const ctx = new TenantContext(db, {
-            tenantId: session.tenant_id || 1,
-            workspaceId: session.workspace_id || 1,
-            userId: session.user_id,
+            tenantId: (session as any).tenant_id || 1,
+            workspaceId: (session as any).workspace_id || 1,
+            userId: session.id,
             userEmail: session.username,
             role: session.role || 'viewer',
           });
