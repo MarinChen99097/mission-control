@@ -225,7 +225,10 @@ export default function Home() {
       .then(async (res) => {
         if (res.ok) return res.json()
         if (res.status === 401) {
-          router.replace(`/login?next=${encodeURIComponent(pathname)}`)
+          // Unauthenticated: redirect to public homepage (not login)
+          // Homepage has sign-in / register CTAs
+          const target = pathname === '/' ? '/home' : `/login?next=${encodeURIComponent(pathname)}`
+          router.replace(target)
         }
         return null
       })
