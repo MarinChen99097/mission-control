@@ -161,6 +161,49 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
 
 /* ---------- main page ---------- */
 
+function FAQItem({ question, answer }: { question: string; answer: string }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="border border-border/50 rounded-lg overflow-hidden hover:border-primary/30 transition-colors duration-200">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-primary/[0.03] transition-colors duration-200"
+        aria-expanded={open}
+      >
+        <span className="font-medium text-foreground text-sm sm:text-base pr-4">{question}</span>
+        <svg
+          className={`w-5 h-5 text-muted-foreground shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div
+        className={`grid transition-all duration-200 ease-in-out ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+      >
+        <div className="overflow-hidden">
+          <p className="px-5 pb-4 text-sm text-muted-foreground leading-relaxed">{answer}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function UseCaseCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
+  return (
+    <div className="group relative p-5 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm hover:border-primary/40 hover:bg-primary/[0.07] hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-0.5">
+      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 text-primary group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+        {icon}
+      </div>
+      <h3 className="font-semibold text-foreground mb-1.5 text-sm">{title}</h3>
+      <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+    </div>
+  )
+}
+
 export default function HomePage() {
   const t = useTranslations('home')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -387,6 +430,169 @@ export default function HomePage() {
                 {t('cta.compare')}
               </Button>
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Before / After Comparison */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6 border-t border-border/40">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10 sm:mb-14">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">{t('comparison.title')}</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto px-2">{t('comparison.subtitle')}</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
+            {/* Without OrgOfClaws */}
+            <div className="relative p-6 sm:p-8 rounded-2xl border-2 border-red-500/30 bg-red-500/[0.03]">
+              <div className="absolute -top-3.5 left-6 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold tracking-wide uppercase">
+                {t('comparison.without')}
+              </div>
+              <div className="mt-3 space-y-4">
+                {(['setup', 'time', 'updates', 'data'] as const).map((key) => (
+                  <div key={key} className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-red-500/15 flex items-center justify-center shrink-0 mt-0.5">
+                      <svg className="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{t(`comparison.without_${key}`)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* With OrgOfClaws */}
+            <div className="relative p-6 sm:p-8 rounded-2xl border-2 border-emerald-500/30 bg-emerald-500/[0.03]">
+              <div className="absolute -top-3.5 left-6 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold tracking-wide uppercase">
+                {t('comparison.with')}
+              </div>
+              <div className="mt-3 space-y-4">
+                {(['setup', 'time', 'updates', 'data'] as const).map((key) => (
+                  <div key={key} className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0 mt-0.5">
+                      <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-foreground leading-relaxed">{t(`comparison.with_${key}`)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Use Cases */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6 border-t border-border/40">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10 sm:mb-14">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">{t('useCases.title')}</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto px-2">{t('useCases.subtitle')}</p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            <UseCaseCard
+              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>}
+              title={t('useCases.emailTitle')}
+              desc={t('useCases.emailDesc')}
+            />
+            <UseCaseCard
+              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zm3.75 11.625a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>}
+              title={t('useCases.researchTitle')}
+              desc={t('useCases.researchDesc')}
+            />
+            <UseCaseCard
+              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+              title={t('useCases.taskTitle')}
+              desc={t('useCases.taskDesc')}
+            />
+            <UseCaseCard
+              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" /></svg>}
+              title={t('useCases.codeTitle')}
+              desc={t('useCases.codeDesc')}
+            />
+            <UseCaseCard
+              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>}
+              title={t('useCases.dataTitle')}
+              desc={t('useCases.dataDesc')}
+            />
+            <UseCaseCard
+              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" /></svg>}
+              title={t('useCases.messagingTitle')}
+              desc={t('useCases.messagingDesc')}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6 border-t border-border/40">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-10 sm:mb-14">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">{t('faq.title')}</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto px-2">{t('faq.subtitle')}</p>
+          </div>
+
+          <div className="space-y-3">
+            <FAQItem question={t('faq.q1')} answer={t('faq.a1')} />
+            <FAQItem question={t('faq.q2')} answer={t('faq.a2')} />
+            <FAQItem question={t('faq.q3')} answer={t('faq.a3')} />
+            <FAQItem question={t('faq.q4')} answer={t('faq.a4')} />
+            <FAQItem question={t('faq.q5')} answer={t('faq.a5')} />
+            <FAQItem question={t('faq.q6')} answer={t('faq.a6')} />
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Badges */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6 border-t border-border/40">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">{t('trust.title')}</h2>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            {/* Google Cloud */}
+            <div className="flex flex-col items-center text-center p-5 rounded-xl border border-border/50 bg-card/50 hover:border-primary/30 hover:bg-primary/[0.04] transition-all duration-300">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 text-primary">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />
+                </svg>
+              </div>
+              <p className="text-xs sm:text-sm font-medium text-foreground">{t('trust.gcp')}</p>
+            </div>
+
+            {/* OpenClaw */}
+            <div className="flex flex-col items-center text-center p-5 rounded-xl border border-border/50 bg-card/50 hover:border-primary/30 hover:bg-primary/[0.04] transition-all duration-300">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 text-primary">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                </svg>
+              </div>
+              <p className="text-xs sm:text-sm font-medium text-foreground">{t('trust.openclaw')}</p>
+            </div>
+
+            {/* Encryption */}
+            <div className="flex flex-col items-center text-center p-5 rounded-xl border border-border/50 bg-card/50 hover:border-primary/30 hover:bg-primary/[0.04] transition-all duration-300">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 text-primary">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+              </div>
+              <p className="text-xs sm:text-sm font-medium text-foreground">{t('trust.encryption')}</p>
+            </div>
+
+            {/* Monitoring */}
+            <div className="flex flex-col items-center text-center p-5 rounded-xl border border-border/50 bg-card/50 hover:border-primary/30 hover:bg-primary/[0.04] transition-all duration-300">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 text-primary">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605" />
+                </svg>
+              </div>
+              <p className="text-xs sm:text-sm font-medium text-foreground">{t('trust.monitoring')}</p>
+            </div>
           </div>
         </div>
       </section>
