@@ -173,8 +173,8 @@ export function proxy(request: NextRequest) {
 
   // Allow public pages, auth API, docs, and container health probe without session
   const isPublicHealthProbe = pathname === '/api/status' && request.nextUrl.searchParams.get('action') === 'health'
-  const isPublicPage = pathname === '/login' || pathname === '/setup' || pathname === '/home' || pathname === '/pricing' || pathname === '/register' || pathname === '/docs'
-  if (isPublicPage || pathname.startsWith('/api/auth/') || pathname === '/api/setup' || pathname === '/api/docs' || isPublicHealthProbe) {
+  const isPublicPage = pathname === '/login' || pathname === '/setup' || pathname === '/home' || pathname === '/pricing' || pathname === '/register' || pathname === '/docs' || pathname === '/account-ready'
+  if (isPublicPage || pathname.startsWith('/api/auth/') || pathname === '/api/setup' || pathname === '/api/docs' || pathname.startsWith('/api/stripe/') || pathname.startsWith('/api/webhooks/stripe') || isPublicHealthProbe) {
     const { response, nonce } = nextResponseWithNonce(request)
     return addSecurityHeaders(response, request, nonce)
   }

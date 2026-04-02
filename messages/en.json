@@ -2799,16 +2799,16 @@
       "titleLine1": "Your AI Assistant,",
       "titleLine2": "Always On.",
       "description": "Get your own AI assistant running in the cloud. It reads your files, handles your tasks, connects to Google Drive and Notion, and works around the clock. No tech skills needed. Just results.",
-      "ctaStart": "Start Free Trial",
+      "ctaStart": "Get Started -- $10/mo",
       "ctaPrice": "View Pricing",
-      "priceNote": "Plans from $20/mo. Cancel anytime."
+      "priceNote": "Plans from $10/mo. Cancel anytime."
     },
     "steps": {
       "title": "3 steps, that's it",
       "step1Title": "Create account",
       "step1Desc": "Sign up with Google or email. Takes 10 seconds.",
       "step2Title": "Pick a plan",
-      "step2Desc": "Choose Starter ($20), Pro ($60), or Max ($180). Cancel anytime.",
+      "step2Desc": "Choose Starter ($10), Pro ($19), or Max ($35). Cancel anytime.",
       "step3Title": "Your assistant is live",
       "step3Desc": "Your AI assistant starts automatically. Begin chatting in under a minute."
     },
@@ -2843,7 +2843,7 @@
     "cta": {
       "title": "Ready to get your AI assistant?",
       "subtitle": "Join hundreds of users who trust OrgOfClaws to run their AI assistants in the cloud.",
-      "button": "Get Started — $20/mo",
+      "button": "Get Started -- $10/mo",
       "compare": "Compare Plans"
     },
     "comparison": {
@@ -2899,6 +2899,48 @@
       "encryption": "Enterprise-grade encryption",
       "monitoring": "24/7 automated monitoring"
     },
+    "pricing": {
+      "title": "Simple, transparent pricing",
+      "subtitle": "Your own AI assistant running 24/7 in the cloud. Pick a plan and get started in minutes.",
+      "monthly": "Monthly",
+      "annual": "Annual",
+      "save17": "Save 17%",
+      "toggleBilling": "Toggle annual billing",
+      "mo": "mo",
+      "yr": "yr",
+      "disk": "disk",
+      "billedAnnually": "billed annually",
+      "popular": "Most Popular",
+      "processing": "Processing...",
+      "starterName": "Starter",
+      "starterDesc": "Perfect for getting started with your own AI assistant.",
+      "starterCta": "Start for $10/mo",
+      "proName": "Pro",
+      "proDesc": "More power for professionals. Our most popular plan.",
+      "proCta": "Start Pro",
+      "maxName": "Max",
+      "maxDesc": "Maximum power for teams and heavy workloads.",
+      "maxCta": "Go Max",
+      "featureAssistant": "24/7 AI assistant, always on",
+      "featureBackups": "Daily backups included",
+      "featureDriveNotion": "Google Drive + Notion integration",
+      "featureSkills": "Custom skills",
+      "featureCancel": "Cancel anytime",
+      "allPlansInclude": "All plans include",
+      "includeAssistant": "24/7 AI assistant",
+      "includeBackups": "Daily backups",
+      "includeIntegrations": "Drive + Notion",
+      "includeSkills": "Custom skills",
+      "faqTitle": "Frequently asked questions",
+      "faqQ1": "What is OrgOfClaws?",
+      "faqA1": "OrgOfClaws is a managed cloud hosting service for your personal AI assistant. We handle all the infrastructure so you can just use your AI without dealing with any technical complexity.",
+      "faqQ2": "Can I cancel anytime?",
+      "faqA2": "Yes. All plans are month-to-month (or annual with 17% discount). Cancel anytime and your agent will remain active until the end of your billing period.",
+      "faqQ3": "Is my data secure?",
+      "faqA3": "Every user gets a completely isolated container. Your data is encrypted at rest (AES-256) and in transit (TLS 1.3), backed up daily, and never shared with other users.",
+      "faqQ4": "What cloud provider do you use?",
+      "faqA4": "We run on Google Cloud Platform (GCP) in the asia-east1 region (Taiwan), using GKE Autopilot for container orchestration and Cloud SQL for data storage."
+    },
     "footer": {
       "tagline": "Managed OpenClaw hosting on GCP. Powered by Landing AI.",
       "pricing": "Pricing",
@@ -2906,5 +2948,27 @@
       "register": "Register",
       "copyright": "OrgOfClaws. All rights reserved."
     }
+  },
+  "accountReady": {
+    "settingUp": "Your AI assistant is being set up!",
+    "settingUpDesc": "We're creating your personal workspace and configuring your AI assistant. This usually takes less than 2 minutes.",
+    "stepPayment": "Payment confirmed",
+    "stepAccount": "Creating your workspace",
+    "stepAssistant": "Configuring AI assistant",
+    "stepConnections": "Setting up integrations",
+    "usuallyTakes": "This usually takes less than 2 minutes",
+    "ready": "Your AI assistant is ready!",
+    "readyDesc": "Your workspace is set up and your AI assistant is online. Head to the dashboard to start using it.",
+    "goToDashboard": "Go to Dashboard",
+    "connectApps": "Connect your favorite apps",
+    "integrationDrive": "Google Drive",
+    "integrationDriveDesc": "Access and manage your files",
+    "integrationNotion": "Notion",
+    "integrationNotionDesc": "Sync your workspace and pages",
+    "integrationGithub": "GitHub",
+    "integrationGithubDesc": "Connect your repositories",
+    "integrationGmail": "Gmail",
+    "integrationGmailDesc": "Manage your email inbox",
+    "connectLater": "You can connect these later from your dashboard settings."
   }
 }

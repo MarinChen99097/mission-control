@@ -2799,16 +2799,16 @@
       "titleLine1": "你的 AI 助手，",
       "titleLine2": "全天候待命。",
       "description": "幫你在雲端啟用一個專屬的 AI 助手。它能讀你的文件、幫你處理任務、串接 Google Drive 和 Notion，而且全年無休。不用懂技術，打開就能用。",
-      "ctaStart": "免費開始試用",
+      "ctaStart": "立即開始 -- $10/月",
       "ctaPrice": "看看方案價格",
-      "priceNote": "每月 $20 起，隨時可取消。"
+      "priceNote": "每月 $10 起，隨時可取消。"
     },
     "steps": {
       "title": "只要 3 步，超簡單",
       "step1Title": "註冊帳號",
       "step1Desc": "用 Google 或 Email 註冊，10 秒搞定。",
       "step2Title": "選個方案",
-      "step2Desc": "入門 $20、進階 $60、旗艦 $180，隨時取消沒壓力。",
+      "step2Desc": "入門 $10、進階 $19、旗艦 $35，隨時取消沒壓力。",
       "step3Title": "助手馬上上線",
       "step3Desc": "你的 AI 助手自動啟用，不到一分鐘就能開始對話。"
     },
@@ -2843,7 +2843,7 @@
     "cta": {
       "title": "準備好擁有你的 AI 助手了嗎？",
       "subtitle": "加入數百位信賴 OrgOfClaws 的用戶，讓 AI 助手在雲端幫你做事。",
-      "button": "立即開始 — 每月 $20",
+      "button": "立即開始 -- 每月 $10",
       "compare": "比較方案"
     },
     "comparison": {
@@ -2899,6 +2899,48 @@
       "encryption": "企業級加密防護",
       "monitoring": "全天候自動化監控"
     },
+    "pricing": {
+      "title": "簡單透明的價格",
+      "subtitle": "你的 AI 助手全天候在雲端運行，選個方案馬上開始。",
+      "monthly": "月繳",
+      "annual": "年繳",
+      "save17": "省 17%",
+      "toggleBilling": "切換年繳方案",
+      "mo": "月",
+      "yr": "年",
+      "disk": "硬碟",
+      "billedAnnually": "按年計費",
+      "popular": "最多人選",
+      "processing": "處理中...",
+      "starterName": "入門版",
+      "starterDesc": "開始使用專屬 AI 助手的最佳入門方案。",
+      "starterCta": "$10/月 開始使用",
+      "proName": "進階版",
+      "proDesc": "更強大的效能，最多人選擇的方案。",
+      "proCta": "選擇進階版",
+      "maxName": "旗艦版",
+      "maxDesc": "最大效能，適合團隊和重度使用者。",
+      "maxCta": "選擇旗艦版",
+      "featureAssistant": "全天候 AI 助手，永不斷線",
+      "featureBackups": "每日自動備份",
+      "featureDriveNotion": "Google Drive + Notion 串接",
+      "featureSkills": "自訂技能",
+      "featureCancel": "隨時可取消",
+      "allPlansInclude": "所有方案都包含",
+      "includeAssistant": "全天候 AI 助手",
+      "includeBackups": "每日備份",
+      "includeIntegrations": "Drive + Notion",
+      "includeSkills": "自訂技能",
+      "faqTitle": "常見問題",
+      "faqQ1": "OrgOfClaws 是什麼？",
+      "faqA1": "OrgOfClaws 是一個幫你在雲端託管個人 AI 助手的服務。我們負責處理所有技術面的事情，你只要專心使用你的 AI 就好。",
+      "faqQ2": "可以隨時取消嗎？",
+      "faqA2": "當然可以。所有方案都可月繳（或年繳省 17%），隨時取消，助手會在計費週期結束前持續運作。",
+      "faqQ3": "我的資料安全嗎？",
+      "faqA3": "每位用戶都有獨立的容器環境，儲存用 AES-256 加密，傳輸用 TLS 1.3 加密，每天自動備份，資料絕不共用。",
+      "faqQ4": "用什麼雲端服務？",
+      "faqA4": "我們使用 Google 雲端平台 (GCP)，部署在 asia-east1（台灣）區域，使用 GKE Autopilot 管理容器，Cloud SQL 儲存資料。"
+    },
     "footer": {
       "tagline": "由 Landing AI 提供技術支援，託管在 Google 雲端平台。",
       "pricing": "方案價格",
@@ -2906,5 +2948,27 @@
       "register": "註冊",
       "copyright": "OrgOfClaws 版權所有。"
     }
+  },
+  "accountReady": {
+    "settingUp": "你的 AI 助手正在設定中！",
+    "settingUpDesc": "我們正在建立你的工作區並設定 AI 助手，通常不到 2 分鐘就好。",
+    "stepPayment": "付款已確認",
+    "stepAccount": "正在建立工作區",
+    "stepAssistant": "正在設定 AI 助手",
+    "stepConnections": "正在準備串接功能",
+    "usuallyTakes": "通常不到 2 分鐘",
+    "ready": "你的 AI 助手準備好了！",
+    "readyDesc": "工作區已建立完成，AI 助手已上線。前往儀表板開始使用吧。",
+    "goToDashboard": "前往儀表板",
+    "connectApps": "連接你常用的應用",
+    "integrationDrive": "Google Drive",
+    "integrationDriveDesc": "存取和管理你的檔案",
+    "integrationNotion": "Notion",
+    "integrationNotionDesc": "同步你的工作區和頁面",
+    "integrationGithub": "GitHub",
+    "integrationGithubDesc": "連接你的程式碼庫",
+    "integrationGmail": "Gmail",
+    "integrationGmailDesc": "管理你的電子郵件",
+    "connectLater": "你可以稍後在儀表板設定中連接這些應用。"
   }
 }
