@@ -57,6 +57,7 @@
     "orSignInWithEmail": "sign in with email",
     "loadingGoogleSignIn": "Loading Google Sign-In...",
     "googleSignInFailed": "Google sign-in failed",
+    "googlePopupBlocked": "Google popup may have been blocked. Try again or use email sign-in.",
     "networkError": "Network error",
     "loginFailed": "Login failed",
     "enterUsername": "Enter username",
@@ -89,7 +90,8 @@
     "creatingAdminAccount": "Creating admin account",
     "configuringSession": "Configuring session",
     "launchingDashboard": "Launching dashboard",
-    "usernameHint": "Lowercase letters, numbers, dots, hyphens, and underscores only"
+    "usernameHint": "Lowercase letters, numbers, dots, hyphens, and underscores only",
+    "pricing": "Pricing"
   },
   "register": {
     "title": "Create your account",
@@ -120,9 +122,9 @@
     "alreadyHaveAccount": "Already have an account?",
     "signIn": "Sign in",
     "successTitle": "Account created!",
-    "successDescription": "An admin will review your request. You'll be able to sign in once approved.",
+    "successDescription": "Account created! You can sign in shortly after a quick review.",
     "goToSignIn": "Go to Sign In",
-    "trustLine": "Free 7-day trial \u00b7 No credit card required \u00b7 Cancel anytime",
+    "trustLine": "Secure sign-up \u00b7 Your data is private \u00b7 Enterprise-grade security",
     "usernameRequired": "Please enter a username.",
     "usernameInvalid": "Username must be 3-28 characters: lowercase letters, numbers, dots, hyphens, and underscores only.",
     "emailRequired": "Please enter your email.",
@@ -131,7 +133,8 @@
     "passwordTooShort": "Password must be at least 12 characters.",
     "passwordsDoNotMatch": "Passwords do not match.",
     "registrationFailed": "Registration failed. Please try again.",
-    "networkError": "Network error. Please check your connection and try again."
+    "networkError": "Network error. Please check your connection and try again.",
+    "googlePopupBlocked": "Google popup may have been blocked. Try again or use email sign-in."
   },
   "nav": {
     "overview": "Overview",

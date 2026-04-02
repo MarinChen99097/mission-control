@@ -84,7 +84,9 @@
     "creatingAdminAccount": "Administratorkonto wird erstellt",
     "configuringSession": "Sitzung wird konfiguriert",
     "launchingDashboard": "Dashboard wird gestartet",
-    "usernameHint": "Nur Kleinbuchstaben, Zahlen, Punkte, Bindestriche und Unterstriche"
+    "usernameHint": "Nur Kleinbuchstaben, Zahlen, Punkte, Bindestriche und Unterstriche",
+    "pricing": "Pricing",
+    "googlePopupBlocked": "Google popup may have been blocked. Try again or use email sign-in."
   },
   "nav": {
     "overview": "Übersicht",

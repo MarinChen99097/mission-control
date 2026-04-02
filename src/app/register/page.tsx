@@ -115,7 +115,27 @@ export default function RegisterPage() {
 
   const handleGoogleSignUp = () => {
     if (!window.google || !googleReady) return
+    setGoogleLoading(true)
+    let callbackFired = false
+
+    // Wrap callback to detect if prompt actually triggers
+    const originalCallback = googleCallbackRef.current
+    googleCallbackRef.current = (response: GoogleCredentialResponse) => {
+      callbackFired = true
+      googleCallbackRef.current = originalCallback
+      originalCallback?.(response)
+    }
+
     window.google.accounts.id.prompt()
+
+    // Fallback: if no callback fires within 3s, assume popup was blocked
+    setTimeout(() => {
+      if (!callbackFired) {
+        googleCallbackRef.current = originalCallback
+        setGoogleLoading(false)
+        setError(t('googlePopupBlocked'))
+      }
+    }, 3000)
   }
 
   // Derive username from email prefix

@@ -84,7 +84,9 @@
     "creatingAdminAccount": "Création du compte administrateur",
     "configuringSession": "Configuration de la session",
     "launchingDashboard": "Lancement du tableau de bord",
-    "usernameHint": "Lettres minuscules, chiffres, points, tirets et underscores uniquement"
+    "usernameHint": "Lettres minuscules, chiffres, points, tirets et underscores uniquement",
+    "pricing": "Pricing",
+    "googlePopupBlocked": "Google popup may have been blocked. Try again or use email sign-in."
   },
   "nav": {
     "overview": "Aperçu",

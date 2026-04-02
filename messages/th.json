@@ -84,7 +84,9 @@
     "creatingAdminAccount": "กำลังสร้างบัญชีผู้ดูแลระบบ",
     "configuringSession": "กำลังกำหนดค่าเซสชัน",
     "launchingDashboard": "กำลังเปิดแดชบอร์ด",
-    "usernameHint": "ใช้ได้เฉพาะตัวอักษรพิมพ์เล็ก ตัวเลข จุด ขีดกลาง และขีดล่าง"
+    "usernameHint": "ใช้ได้เฉพาะตัวอักษรพิมพ์เล็ก ตัวเลข จุด ขีดกลาง และขีดล่าง",
+    "pricing": "Pricing",
+    "googlePopupBlocked": "Google popup may have been blocked. Try again or use email sign-in."
   },
   "nav": {
     "overview": "ภาพรวม",

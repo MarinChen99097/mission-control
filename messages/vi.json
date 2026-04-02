@@ -84,7 +84,9 @@
     "creatingAdminAccount": "Đang tạo tài khoản quản trị",
     "configuringSession": "Đang cấu hình phiên",
     "launchingDashboard": "Đang khởi chạy bảng điều khiển",
-    "usernameHint": "Chỉ chấp nhận chữ thường, số, dấu chấm, dấu gạch ngang và dấu gạch dưới"
+    "usernameHint": "Chỉ chấp nhận chữ thường, số, dấu chấm, dấu gạch ngang và dấu gạch dưới",
+    "pricing": "Pricing",
+    "googlePopupBlocked": "Google popup may have been blocked. Try again or use email sign-in."
   },
   "nav": {
     "overview": "Tổng quan",

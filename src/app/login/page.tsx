@@ -189,7 +189,27 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = () => {
     if (!window.google || !googleReady) return
+    setGoogleLoading(true)
+    let callbackFired = false
+
+    // Wrap callback to detect if prompt actually triggers
+    const originalCallback = googleCallbackRef.current
+    googleCallbackRef.current = (response: GoogleCredentialResponse) => {
+      callbackFired = true
+      googleCallbackRef.current = originalCallback
+      originalCallback?.(response)
+    }
+
     window.google.accounts.id.prompt()
+
+    // Fallback: if no callback fires within 3s, assume popup was blocked
+    setTimeout(() => {
+      if (!callbackFired) {
+        googleCallbackRef.current = originalCallback
+        setGoogleLoading(false)
+        setError(t('googlePopupBlocked'))
+      }
+    }, 3000)
   }
 
   return (
@@ -207,7 +227,7 @@ export default function LoginPage() {
 
       {/* Language switcher */}
       <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-        <a href="/pricing" className="text-sm text-[#94A3B8] hover:text-[#F8FAFC] transition-colors">Pricing</a>
+        <a href="/pricing" className="text-sm text-[#94A3B8] hover:text-[#F8FAFC] transition-colors">{t('pricing')}</a>
         <LanguageSwitcherSelect />
       </div>
 

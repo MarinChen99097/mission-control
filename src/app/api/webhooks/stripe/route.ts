@@ -7,9 +7,28 @@ import crypto from 'node:crypto'
  * Handles Stripe webhook events.
  * Currently handles: checkout.session.completed
  *
- * Signature verification uses STRIPE_WEBHOOK_SECRET if configured.
+ * Signature verification requires STRIPE_WEBHOOK_SECRET to be configured.
  * Actual VM provisioning is handled by Service System's provisioning_v3.py.
  */
+
+// In-memory idempotency guard (sufficient for single-instance Cloud Run)
+const processedEvents = new Set<string>()
+const MAX_PROCESSED_EVENTS = 10_000
+
+function trackEvent(eventId: string): boolean {
+  if (processedEvents.has(eventId)) return false
+  if (processedEvents.size >= MAX_PROCESSED_EVENTS) {
+    // Evict oldest entries (Sets iterate in insertion order)
+    const iterator = processedEvents.values()
+    for (let i = 0; i < 1000; i++) iterator.next()
+    // Rebuild with remaining entries
+    const remaining = [...processedEvents].slice(1000)
+    processedEvents.clear()
+    for (const id of remaining) processedEvents.add(id)
+  }
+  processedEvents.add(eventId)
+  return true
+}
 
 function verifyStripeSignature(
   payload: string,
@@ -49,16 +68,26 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.text()
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
-    // Verify signature if webhook secret is configured
-    if (webhookSecret) {
-      const sigHeader = request.headers.get('stripe-signature') || ''
-      if (!verifyStripeSignature(rawBody, sigHeader, webhookSecret)) {
-        logger.warn('Invalid Stripe webhook signature')
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
-      }
+    // REJECT if webhook secret is not configured — never skip verification
+    if (!webhookSecret) {
+      logger.error('STRIPE_WEBHOOK_SECRET is not configured — rejecting webhook request')
+      return NextResponse.json({ error: 'Webhook verification not configured' }, { status: 503 })
+    }
+
+    // Verify signature
+    const sigHeader = request.headers.get('stripe-signature') || ''
+    if (!verifyStripeSignature(rawBody, sigHeader, webhookSecret)) {
+      logger.warn('Invalid Stripe webhook signature')
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
     }
 
     const event = JSON.parse(rawBody)
+
+    // Idempotency: skip duplicate events
+    if (event.id && !trackEvent(event.id)) {
+      logger.info({ eventId: event.id }, 'Duplicate Stripe webhook event — skipping')
+      return NextResponse.json({ received: true })
+    }
 
     logger.info({ eventType: event.type, eventId: event.id }, 'Received Stripe webhook event')
 

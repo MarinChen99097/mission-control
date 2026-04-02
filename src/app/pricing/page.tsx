@@ -106,30 +106,13 @@ function NavLanguageSwitcher() {
 
 /* ---------- main page ---------- */
 
-async function handleSubscribe(tier: Tier, interval: Interval) {
-  try {
-    const res = await fetch('/api/stripe/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tier, interval }),
-    })
-    const data = await res.json()
-    if (data.url) {
-      window.location.href = data.url
-    } else if (data.error) {
-      alert(data.error)
-    }
-  } catch {
-    alert('Something went wrong. Please try again.')
-  }
-}
-
 export default function PricingPage() {
   const t = useTranslations('home.pricing')
   const tNav = useTranslations('home.nav')
   const tFooter = useTranslations('home.footer')
   const [annual, setAnnual] = useState(false)
   const [loadingTier, setLoadingTier] = useState<string | null>(null)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
 
   const plans: Array<{
     tier: Tier
@@ -205,8 +188,25 @@ export default function PricingPage() {
 
   async function onSubscribe(tier: Tier) {
     setLoadingTier(tier)
+    setCheckoutError(null)
     const interval: Interval = annual ? 'annual' : 'monthly'
-    await handleSubscribe(tier, interval)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tier, interval }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+        // Don't reset loadingTier — we are redirecting
+        return
+      } else if (data.error) {
+        setCheckoutError(data.error)
+      }
+    } catch {
+      setCheckoutError('Something went wrong. Please try again.')
+    }
     setLoadingTier(null)
   }
 
@@ -264,6 +264,12 @@ export default function PricingPage() {
 
       {/* Pricing Cards */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-20">
+        {/* Checkout error banner */}
+        {checkoutError && (
+          <div role="alert" className="mb-6 max-w-xl mx-auto p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400 text-center">
+            {checkoutError}
+          </div>
+        )}
         <div className="grid md:grid-cols-3 gap-5 sm:gap-6">
           {plans.map((plan) => {
             const displayPrice = annual ? Math.round(plan.annual / 12) : plan.monthly

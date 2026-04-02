@@ -84,7 +84,9 @@
     "creatingAdminAccount": "Creando cuenta de administrador",
     "configuringSession": "Configurando sesión",
     "launchingDashboard": "Iniciando panel de control",
-    "usernameHint": "Solo letras minúsculas, números, puntos, guiones y guiones bajos"
+    "usernameHint": "Solo letras minúsculas, números, puntos, guiones y guiones bajos",
+    "pricing": "Pricing",
+    "googlePopupBlocked": "Google popup may have been blocked. Try again or use email sign-in."
   },
   "nav": {
     "overview": "Resumen",

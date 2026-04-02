@@ -84,7 +84,9 @@
     "creatingAdminAccount": "جارٍ إنشاء حساب المسؤول",
     "configuringSession": "جارٍ تكوين الجلسة",
     "launchingDashboard": "جارٍ تشغيل لوحة التحكم",
-    "usernameHint": "أحرف صغيرة وأرقام ونقاط وشرطات وشرطات سفلية فقط"
+    "usernameHint": "أحرف صغيرة وأرقام ونقاط وشرطات وشرطات سفلية فقط",
+    "pricing": "Pricing",
+    "googlePopupBlocked": "Google popup may have been blocked. Try again or use email sign-in."
   },
   "nav": {
     "overview": "نظرة عامة",

@@ -84,7 +84,9 @@
     "creatingAdminAccount": "管理者アカウントを作成中",
     "configuringSession": "セッションを構成中",
     "launchingDashboard": "ダッシュボードを起動中",
-    "usernameHint": "小文字の英字、数字、ドット、ハイフン、アンダースコアのみ"
+    "usernameHint": "小文字の英字、数字、ドット、ハイフン、アンダースコアのみ",
+    "pricing": "Pricing",
+    "googlePopupBlocked": "Google popup may have been blocked. Try again or use email sign-in."
   },
   "nav": {
     "overview": "概要",

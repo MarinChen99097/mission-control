@@ -22,8 +22,8 @@ export async function POST(request: Request) {
     const { userId, newPassword } = body
 
     // Validate inputs
-    if (!userId || typeof userId !== 'number') {
-      return NextResponse.json({ error: 'userId is required and must be a number' }, { status: 400 })
+    if (!userId || !Number.isInteger(userId)) {
+      return NextResponse.json({ error: 'userId is required and must be an integer' }, { status: 400 })
     }
 
     if (!newPassword || typeof newPassword !== 'string') {

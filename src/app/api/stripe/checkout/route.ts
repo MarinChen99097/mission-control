@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
+import { createRateLimiter } from '@/lib/rate-limit'
 
 /**
  * POST /api/stripe/checkout
  * Body: { tier: 'starter' | 'pro' | 'max', interval: 'monthly' | 'annual', email?: string }
  * Returns: { url: string } (Stripe Checkout URL)
  */
+
+const checkoutLimiter = createRateLimiter({
+  windowMs: 3_600_000, // 1 hour
+  maxRequests: 10,
+  message: 'Too many checkout attempts. Please try again later.',
+})
 
 const PRICE_MAP: Record<string, string | undefined> = {
   'starter_monthly': process.env.STRIPE_PRICE_STARTER_MONTHLY,
@@ -21,6 +28,10 @@ const VALID_INTERVALS = new Set(['monthly', 'annual'])
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: max 10 per IP per hour
+    const rateCheck = checkoutLimiter(request)
+    if (rateCheck) return rateCheck
+
     const secretKey = process.env.STRIPE_SECRET_KEY
     if (!secretKey) {
       logger.warn('STRIPE_SECRET_KEY is not configured')
