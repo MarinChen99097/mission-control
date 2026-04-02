@@ -6,6 +6,24 @@ import { useTranslations, useLocale } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { locales, localeNames, type Locale } from '@/i18n/config'
 
+/* ---------- landing page design tokens ---------- */
+
+const landingColors = {
+  '--landing-bg': '#0A0A0F',
+  '--landing-bg-alt': '#0F1119',
+  '--landing-card': 'rgba(15, 23, 42, 0.8)',
+  '--landing-card-solid': '#0F172A',
+  '--landing-border': 'rgba(30, 41, 59, 0.5)',
+  '--landing-border-hover': 'rgba(99, 102, 241, 0.4)',
+  '--landing-text': '#F8FAFC',
+  '--landing-muted': '#94A3B8',
+  '--landing-accent': '#6366F1',
+  '--landing-accent-light': '#818CF8',
+  '--landing-amber': '#F59E0B',
+  '--landing-green': '#10B981',
+  '--landing-red': '#EF4444',
+} as React.CSSProperties
+
 /* ---------- helpers ---------- */
 
 function setLocaleCookie(locale: Locale) {
@@ -22,30 +40,98 @@ function smoothScrollTo(id: string) {
 
 /* ---------- sub-components ---------- */
 
-function GridPattern() {
+function HeroOrb() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-      {/* Grid lines */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.06)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.06)_1px,transparent_1px)] bg-[size:60px_60px]" />
-      {/* Central glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[120px]" />
-      {/* Gradient overlay from top */}
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.03] via-transparent to-transparent" />
-      {/* Side accent glows */}
-      <div className="absolute -top-32 -left-32 w-[400px] h-[400px] rounded-full bg-[hsl(var(--void-violet)/0.04)] blur-[100px]" />
-      <div className="absolute -top-32 -right-32 w-[400px] h-[400px] rounded-full bg-[hsl(var(--void-mint)/0.04)] blur-[100px]" />
+      {/* Central orb glow */}
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] rounded-full blur-[140px] opacity-30"
+        style={{ background: 'radial-gradient(ellipse, var(--landing-accent), transparent 70%)' }}
+      />
+      {/* Secondary warm glow */}
+      <div
+        className="absolute top-1/3 right-1/4 w-[300px] h-[300px] rounded-full blur-[120px] opacity-15"
+        style={{ background: 'var(--landing-amber)' }}
+      />
+      {/* Subtle grid pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage: 'linear-gradient(to right, var(--landing-muted) 1px, transparent 1px), linear-gradient(to bottom, var(--landing-muted) 1px, transparent 1px)',
+          backgroundSize: '60px 60px',
+        }}
+      />
     </div>
   )
 }
 
-function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
+function SectionDivider() {
   return (
-    <div className="group relative p-6 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm hover:border-primary/40 hover:bg-primary/[0.07] hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-0.5">
-      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4 text-primary group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div
+        className="h-px w-full"
+        style={{
+          background: 'linear-gradient(to right, transparent, var(--landing-border), transparent)',
+        }}
+      />
+    </div>
+  )
+}
+
+function FeatureCard({
+  icon,
+  title,
+  desc,
+  tag,
+}: {
+  icon: React.ReactNode
+  title: string
+  desc: string
+  tag: string
+}) {
+  return (
+    <div
+      className="group relative p-6 rounded-xl backdrop-blur-sm transition-all duration-300 hover:-translate-y-1"
+      style={{
+        background: 'var(--landing-card)',
+        border: '1px solid var(--landing-border)',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = 'var(--landing-border-hover)'
+        e.currentTarget.style.boxShadow = '0 0 30px rgba(99, 102, 241, 0.08)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = 'var(--landing-border)'
+        e.currentTarget.style.boxShadow = 'none'
+      }}
+    >
+      <div
+        className="w-11 h-11 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300"
+        style={{ background: 'rgba(99, 102, 241, 0.12)', color: 'var(--landing-accent-light)' }}
+      >
         {icon}
       </div>
-      <h3 className="font-semibold text-foreground mb-2">{title}</h3>
-      <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+      <h3
+        className="font-semibold text-[17px] mb-2"
+        style={{ color: 'var(--landing-text)' }}
+      >
+        {title}
+      </h3>
+      <p
+        className="text-sm leading-relaxed mb-3"
+        style={{ color: 'var(--landing-muted)' }}
+      >
+        {desc}
+      </p>
+      <span
+        className="inline-block text-xs px-2.5 py-1 rounded-full font-medium"
+        style={{
+          background: 'rgba(99, 102, 241, 0.1)',
+          color: 'var(--landing-accent-light)',
+        }}
+      >
+        {tag}
+      </span>
     </div>
   )
 }
@@ -81,7 +167,10 @@ function NavLanguageSwitcher() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 rounded-md hover:bg-secondary"
+        className="flex items-center gap-1.5 text-sm transition-colors px-2 py-1.5 rounded-md"
+        style={{ color: 'var(--landing-muted)' }}
+        onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--landing-text)' }}
+        onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--landing-muted)' }}
         aria-label="Language"
         aria-expanded={open}
         aria-haspopup="listbox"
@@ -94,7 +183,11 @@ function NavLanguageSwitcher() {
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div
-            className="absolute right-0 top-full mt-1.5 w-44 rounded-lg bg-card border border-border shadow-xl shadow-black/20 z-50 py-1 overflow-hidden"
+            className="absolute right-0 top-full mt-1.5 w-44 rounded-lg shadow-xl shadow-black/30 z-50 py-1 overflow-hidden"
+            style={{
+              background: 'var(--landing-card-solid)',
+              border: '1px solid var(--landing-border)',
+            }}
             role="listbox"
             aria-label="Select language"
           >
@@ -104,15 +197,27 @@ function NavLanguageSwitcher() {
                 onClick={() => { setLocaleCookie(loc); setOpen(false) }}
                 role="option"
                 aria-selected={currentLocale === loc}
-                className={`w-full flex items-center justify-between px-3 py-2 text-sm transition-colors ${
-                  currentLocale === loc
-                    ? 'bg-primary/10 text-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                }`}
+                className="w-full flex items-center justify-between px-3 py-2 text-sm transition-colors"
+                style={{
+                  color: currentLocale === loc ? 'var(--landing-text)' : 'var(--landing-muted)',
+                  background: currentLocale === loc ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+                }}
+                onMouseEnter={(e) => {
+                  if (currentLocale !== loc) {
+                    e.currentTarget.style.color = 'var(--landing-text)'
+                    e.currentTarget.style.background = 'rgba(99, 102, 241, 0.05)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentLocale !== loc) {
+                    e.currentTarget.style.color = 'var(--landing-muted)'
+                    e.currentTarget.style.background = 'transparent'
+                  }
+                }}
               >
                 <span className="text-xs">{localeNames[loc]}</span>
                 {currentLocale === loc && (
-                  <svg className="w-3.5 h-3.5 text-primary shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--landing-accent-light)' }} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 8.5l3.5 3.5L13 4" />
                   </svg>
                 )}
@@ -129,29 +234,37 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
   const t = useTranslations('home.nav')
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed top-16 left-0 right-0 z-50 border-b border-border bg-card/95 backdrop-blur-md shadow-xl p-4 flex flex-col gap-3">
+      <div className="fixed inset-0 z-40 backdrop-blur-sm" style={{ background: 'rgba(10, 10, 15, 0.8)' }} onClick={onClose} />
+      <div
+        className="fixed top-16 left-0 right-0 z-50 shadow-xl p-4 flex flex-col gap-3 backdrop-blur-md"
+        style={{
+          background: 'rgba(15, 23, 42, 0.95)',
+          borderBottom: '1px solid var(--landing-border)',
+        }}
+      >
         <button
           onClick={() => { smoothScrollTo('features'); onClose() }}
-          className="text-left text-sm text-muted-foreground hover:text-foreground transition-colors py-2 px-3 rounded-lg hover:bg-secondary"
+          className="text-left text-sm transition-colors py-2 px-3 rounded-lg"
+          style={{ color: 'var(--landing-muted)' }}
         >
           {t('features')}
         </button>
-        <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors py-2 px-3 rounded-lg hover:bg-secondary" onClick={onClose}>
+        <Link href="/pricing" className="text-sm transition-colors py-2 px-3 rounded-lg" style={{ color: 'var(--landing-muted)' }} onClick={onClose}>
           {t('pricing')}
         </Link>
         <button
           onClick={() => { smoothScrollTo('security'); onClose() }}
-          className="text-left text-sm text-muted-foreground hover:text-foreground transition-colors py-2 px-3 rounded-lg hover:bg-secondary"
+          className="text-left text-sm transition-colors py-2 px-3 rounded-lg"
+          style={{ color: 'var(--landing-muted)' }}
         >
           {t('security')}
         </button>
-        <div className="border-t border-border pt-3 flex gap-2">
+        <div className="pt-3 flex gap-2" style={{ borderTop: '1px solid var(--landing-border)' }}>
           <Link href="/login" className="flex-1">
-            <Button variant="ghost" size="sm" className="w-full">{t('signIn')}</Button>
+            <Button variant="ghost" size="sm" className="w-full" style={{ color: 'var(--landing-text)' }}>{t('signIn')}</Button>
           </Link>
           <Link href="/register" className="flex-1">
-            <Button size="sm" className="w-full">{t('getStarted')}</Button>
+            <Button size="sm" className="w-full" style={{ background: 'var(--landing-accent)', color: '#fff' }}>{t('startFree')}</Button>
           </Link>
         </div>
       </div>
@@ -159,20 +272,22 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
   )
 }
 
-/* ---------- main page ---------- */
-
 function FAQItem({ question, answer }: { question: string; answer: string }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="border border-border/50 rounded-lg overflow-hidden hover:border-primary/30 transition-colors duration-200">
+    <div
+      className="rounded-lg overflow-hidden transition-colors duration-200"
+      style={{ border: '1px solid var(--landing-border)' }}
+    >
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-primary/[0.03] transition-colors duration-200"
+        className="w-full flex items-center justify-between px-5 py-4 text-left transition-colors duration-200"
         aria-expanded={open}
       >
-        <span className="font-medium text-foreground text-sm sm:text-base pr-4">{question}</span>
+        <span className="font-medium text-sm sm:text-base pr-4" style={{ color: 'var(--landing-text)' }}>{question}</span>
         <svg
-          className={`w-5 h-5 text-muted-foreground shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          className={`w-5 h-5 shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          style={{ color: 'var(--landing-muted)' }}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -181,28 +296,67 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
-      <div
-        className={`grid transition-all duration-200 ease-in-out ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
-      >
+      <div className={`grid transition-all duration-200 ease-in-out ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
         <div className="overflow-hidden">
-          <p className="px-5 pb-4 text-sm text-muted-foreground leading-relaxed">{answer}</p>
+          <p className="px-5 pb-4 text-sm leading-relaxed" style={{ color: 'var(--landing-muted)' }}>{answer}</p>
         </div>
       </div>
     </div>
   )
 }
 
-function UseCaseCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
+/* ---------- feature icons ---------- */
+
+function MarketingIcon() {
   return (
-    <div className="group relative p-5 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm hover:border-primary/40 hover:bg-primary/[0.07] hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-0.5">
-      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 text-primary group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
-        {icon}
-      </div>
-      <h3 className="font-semibold text-foreground mb-1.5 text-sm">{title}</h3>
-      <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
-    </div>
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
+    </svg>
   )
 }
+
+function ResearchIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zm3.75 11.625a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+    </svg>
+  )
+}
+
+function EmailIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+    </svg>
+  )
+}
+
+function AutomationIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  )
+}
+
+function BrainIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+    </svg>
+  )
+}
+
+function AnalyticsIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+    </svg>
+  )
+}
+
+/* ---------- main page ---------- */
 
 export default function HomePage() {
   const t = useTranslations('home')
@@ -213,28 +367,38 @@ export default function HomePage() {
   }, [])
 
   return (
-    <div className="h-full overflow-y-auto bg-background text-foreground scroll-smooth">
-      {/* Navigation */}
-      <nav className="border-b border-border/40 backdrop-blur-md bg-background/80 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/home" className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-              <span className="text-primary font-bold text-sm">OC</span>
+    <div
+      className="h-full overflow-y-auto scroll-smooth"
+      style={{
+        ...landingColors,
+        background: 'var(--landing-bg)',
+        color: 'var(--landing-text)',
+      }}
+    >
+      {/* ========== Navigation ========== */}
+      <nav
+        className="backdrop-blur-md sticky top-0 z-50"
+        style={{
+          background: 'rgba(10, 10, 15, 0.85)',
+          borderBottom: '1px solid var(--landing-border)',
+        }}
+      >
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <Link href="/home" className="flex items-center gap-2.5 shrink-0">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ background: 'rgba(99, 102, 241, 0.2)' }}
+            >
+              <span className="font-bold text-sm" style={{ color: 'var(--landing-accent-light)' }}>OC</span>
             </div>
-            <span className="font-semibold text-foreground tracking-tight">OrgOfClaws</span>
+            <span className="font-semibold tracking-tight" style={{ color: 'var(--landing-text)' }}>OrgOfClaws</span>
           </Link>
 
           {/* Desktop nav links */}
-          <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-            <button onClick={() => handleNavClick('features')} className="hover:text-foreground transition-colors">
-              {t('nav.features')}
-            </button>
-            <Link href="/pricing" className="hover:text-foreground transition-colors">
-              {t('nav.pricing')}
-            </Link>
-            <button onClick={() => handleNavClick('security')} className="hover:text-foreground transition-colors">
-              {t('nav.security')}
-            </button>
+          <div className="hidden md:flex items-center gap-6 text-sm" style={{ color: 'var(--landing-muted)' }}>
+            <button onClick={() => handleNavClick('features')} className="hover:opacity-100 transition-opacity">{t('nav.features')}</button>
+            <Link href="/pricing" className="hover:opacity-100 transition-opacity">{t('nav.pricing')}</Link>
+            <button onClick={() => handleNavClick('security')} className="hover:opacity-100 transition-opacity">{t('nav.security')}</button>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -243,19 +407,26 @@ export default function HomePage() {
             {/* Desktop CTA */}
             <div className="hidden md:flex items-center gap-2">
               <Link href="/login">
-                <Button variant="ghost" size="sm">{t('nav.signIn')}</Button>
+                <Button variant="ghost" size="sm" style={{ color: 'var(--landing-muted)' }}>{t('nav.signIn')}</Button>
               </Link>
               <Link href="/register">
-                <Button size="sm">{t('nav.getStarted')}</Button>
+                <Button
+                  size="sm"
+                  className="font-medium"
+                  style={{ background: 'var(--landing-accent)', color: '#fff' }}
+                >
+                  {t('nav.startFree')}
+                </Button>
               </Link>
             </div>
 
             {/* Mobile hamburger */}
             <button
-              className="md:hidden flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground transition-colors"
+              className="md:hidden flex items-center justify-center w-8 h-8 transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={t('nav.menu')}
               aria-expanded={mobileMenuOpen}
+              style={{ color: 'var(--landing-muted)' }}
             >
               {mobileMenuOpen ? (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -270,269 +441,439 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Mobile dropdown */}
         {mobileMenuOpen && <MobileMenu onClose={() => setMobileMenuOpen(false)} />}
       </nav>
 
-      {/* Hero */}
-      <section className="relative pt-16 sm:pt-24 pb-16 sm:pb-20 px-4 sm:px-6">
-        <GridPattern />
-        <div className="relative max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/50 bg-card/50 backdrop-blur-sm text-xs text-muted-foreground mb-6 sm:mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+      {/* ========== Hero ========== */}
+      <section className="relative pt-20 sm:pt-28 pb-20 sm:pb-28 px-4 sm:px-6">
+        <HeroOrb />
+        <div className="relative max-w-[1200px] mx-auto text-center">
+          {/* Badge */}
+          <div
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-8"
+            style={{
+              background: 'rgba(99, 102, 241, 0.1)',
+              border: '1px solid rgba(99, 102, 241, 0.25)',
+              color: 'var(--landing-accent-light)',
+            }}
+          >
+            <span
+              className="w-1.5 h-1.5 rounded-full animate-pulse"
+              style={{ background: 'var(--landing-accent-light)' }}
+            />
             {t('hero.badge')}
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.1]">
-            {t('hero.titleLine1')}
-            <br />
-            <span className="bg-gradient-to-r from-primary via-[hsl(var(--void-mint))] to-primary bg-clip-text text-transparent">
-              {t('hero.titleLine2')}
+          {/* Headline */}
+          <h1
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-[1.08]"
+            style={{ letterSpacing: '-0.03em' }}
+          >
+            <span
+              className="bg-clip-text text-transparent"
+              style={{
+                backgroundImage: 'linear-gradient(135deg, var(--landing-accent-light), #A78BFA, var(--landing-accent))',
+              }}
+            >
+              {t('hero.headline')}
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed px-2">
-            {t('hero.description')}
+          {/* Subheadline */}
+          <p
+            className="text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-10 px-2"
+            style={{ color: 'var(--landing-muted)', lineHeight: '1.6' }}
+          >
+            {t('hero.subheadline')}
           </p>
 
+          {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
             <Link href="/register">
-              <Button size="lg" className="text-base px-8 h-12 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] transition-all duration-200 w-full sm:w-auto">
-                {t('hero.ctaStart')}
+              <Button
+                size="lg"
+                className="text-base px-8 h-12 font-medium transition-all duration-200 hover:scale-[1.02] w-full sm:w-auto"
+                style={{
+                  background: 'linear-gradient(135deg, var(--landing-accent), #7C3AED)',
+                  color: '#fff',
+                  boxShadow: '0 4px 24px rgba(99, 102, 241, 0.35)',
+                }}
+              >
+                {t('hero.ctaPrimary')}
               </Button>
             </Link>
-            <Link href="/pricing">
-              <Button variant="outline" size="lg" className="text-base px-8 h-12 hover:bg-primary/5 hover:border-primary/40 transition-all duration-200 w-full sm:w-auto">
-                {t('hero.ctaPrice')}
-              </Button>
-            </Link>
+            <button
+              onClick={() => smoothScrollTo('features')}
+              className="text-base px-8 h-12 rounded-md font-medium transition-all duration-200 hover:scale-[1.02] w-full sm:w-auto"
+              style={{
+                border: '1px solid var(--landing-border)',
+                color: 'var(--landing-text)',
+                background: 'transparent',
+              }}
+            >
+              {t('hero.ctaSecondary')}
+            </button>
           </div>
 
-          <p className="text-xs text-muted-foreground mt-4">
-            {t('hero.priceNote')}
+          {/* Trust line */}
+          <p
+            className="text-xs mt-6"
+            style={{ color: 'var(--landing-muted)' }}
+          >
+            {t('hero.trustLine')}
           </p>
         </div>
       </section>
 
-      {/* How it works - 3 steps */}
-      <section className="py-12 sm:py-16 px-4 sm:px-6 border-t border-border/40">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-10 sm:mb-12">
+      <SectionDivider />
+
+      {/* ========== Feature Showcase (6 cards) ========== */}
+      <section id="features" className="py-24 sm:py-32 px-4 sm:px-6 scroll-mt-20">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="text-center mb-14 sm:mb-16">
+            <h2
+              className="text-3xl sm:text-4xl font-bold mb-4"
+              style={{ color: 'var(--landing-text)', letterSpacing: '-0.02em' }}
+            >
+              {t('features.title')}
+            </h2>
+            <p
+              className="max-w-xl mx-auto px-2"
+              style={{ color: 'var(--landing-muted)' }}
+            >
+              {t('features.subtitle')}
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <FeatureCard
+              icon={<MarketingIcon />}
+              title={t('features.marketingTitle')}
+              desc={t('features.marketingDesc')}
+              tag={t('features.marketingTag')}
+            />
+            <FeatureCard
+              icon={<ResearchIcon />}
+              title={t('features.researchTitle')}
+              desc={t('features.researchDesc')}
+              tag={t('features.researchTag')}
+            />
+            <FeatureCard
+              icon={<EmailIcon />}
+              title={t('features.emailTitle')}
+              desc={t('features.emailDesc')}
+              tag={t('features.emailTag')}
+            />
+            <FeatureCard
+              icon={<AutomationIcon />}
+              title={t('features.automationTitle')}
+              desc={t('features.automationDesc')}
+              tag={t('features.automationTag')}
+            />
+            <FeatureCard
+              icon={<BrainIcon />}
+              title={t('features.aiTitle')}
+              desc={t('features.aiDesc')}
+              tag={t('features.aiTag')}
+            />
+            <FeatureCard
+              icon={<AnalyticsIcon />}
+              title={t('features.analyticsTitle')}
+              desc={t('features.analyticsDesc')}
+              tag={t('features.analyticsTag')}
+            />
+          </div>
+        </div>
+      </section>
+
+      <SectionDivider />
+
+      {/* ========== How It Works (3 steps) ========== */}
+      <section className="py-24 sm:py-32 px-4 sm:px-6">
+        <div className="max-w-[1200px] mx-auto">
+          <h2
+            className="text-3xl sm:text-4xl font-bold text-center mb-14"
+            style={{ color: 'var(--landing-text)', letterSpacing: '-0.02em' }}
+          >
             {t('steps.title')}
           </h2>
-          <div className="grid sm:grid-cols-3 gap-8">
-            {[
-              { step: '1', title: t('steps.step1Title'), desc: t('steps.step1Desc') },
-              { step: '2', title: t('steps.step2Title'), desc: t('steps.step2Desc') },
-              { step: '3', title: t('steps.step3Title'), desc: t('steps.step3Desc') },
-            ].map((item) => (
-              <div key={item.step} className="text-center group">
-                <div className="w-12 h-12 rounded-full bg-primary/10 text-primary font-bold text-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
-                  {item.step}
+          <div className="grid sm:grid-cols-3 gap-8 sm:gap-12">
+            {(['1', '2', '3'] as const).map((step) => (
+              <div key={step} className="text-center group">
+                <div
+                  className="w-14 h-14 rounded-full font-bold text-xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300"
+                  style={{
+                    background: 'rgba(99, 102, 241, 0.12)',
+                    color: 'var(--landing-accent-light)',
+                  }}
+                >
+                  {step}
                 </div>
-                <h3 className="font-semibold text-foreground mb-2">{item.title}</h3>
-                <p className="text-sm text-muted-foreground">{item.desc}</p>
+                <h3
+                  className="font-semibold text-lg mb-2"
+                  style={{ color: 'var(--landing-text)' }}
+                >
+                  {t(`steps.step${step}Title`)}
+                </h3>
+                <p
+                  className="text-sm"
+                  style={{ color: 'var(--landing-muted)' }}
+                >
+                  {t(`steps.step${step}Desc`)}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section id="features" className="py-16 sm:py-20 px-4 sm:px-6 scroll-mt-20">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10 sm:mb-14">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">{t('features.title')}</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto px-2">
-              {t('features.subtitle')}
+      <SectionDivider />
+
+      {/* ========== Before / After Comparison ========== */}
+      <section className="py-24 sm:py-32 px-4 sm:px-6">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="text-center mb-14">
+            <h2
+              className="text-3xl sm:text-4xl font-bold mb-4"
+              style={{ color: 'var(--landing-text)', letterSpacing: '-0.02em' }}
+            >
+              {t('comparison.title')}
+            </h2>
+            <p className="max-w-xl mx-auto" style={{ color: 'var(--landing-muted)' }}>
+              {t('comparison.subtitle')}
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-            <FeatureCard
-              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg>}
-              title={t('features.alwaysOnline')}
-              desc={t('features.alwaysOnlineDesc')}
-            />
-            <FeatureCard
-              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>}
-              title={t('features.isolation')}
-              desc={t('features.isolationDesc')}
-            />
-            <FeatureCard
-              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" /></svg>}
-              title={t('features.gdrive')}
-              desc={t('features.gdriveDesc')}
-            />
-            <FeatureCard
-              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>}
-              title={t('features.notion')}
-              desc={t('features.notionDesc')}
-            />
-            <FeatureCard
-              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M14.25 9.75L16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" /></svg>}
-              title={t('features.skills')}
-              desc={t('features.skillsDesc')}
-            />
-            <FeatureCard
-              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" /></svg>}
-              title={t('features.backups')}
-              desc={t('features.backupsDesc')}
-            />
+          <div className="grid md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
+            {/* Without */}
+            <div className="relative p-6 sm:p-8 rounded-2xl" style={{ border: '2px solid rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.03)' }}>
+              <div
+                className="absolute -top-3.5 left-6 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase"
+                style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#F87171' }}
+              >
+                {t('comparison.without')}
+              </div>
+              <div className="mt-3 space-y-4">
+                {(['cost', 'tools', 'hours'] as const).map((key) => (
+                  <div key={key} className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: 'rgba(239, 68, 68, 0.15)' }}>
+                      <svg className="w-3.5 h-3.5" style={{ color: '#F87171' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </div>
+                    <p className="text-sm leading-relaxed" style={{ color: 'var(--landing-muted)' }}>{t(`comparison.without_${key}`)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* With */}
+            <div className="relative p-6 sm:p-8 rounded-2xl" style={{ border: '2px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.03)' }}>
+              <div
+                className="absolute -top-3.5 left-6 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase"
+                style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#34D399' }}
+              >
+                {t('comparison.with')}
+              </div>
+              <div className="mt-3 space-y-4">
+                {(['cost', 'tools', 'hours'] as const).map((key) => (
+                  <div key={key} className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: 'rgba(16, 185, 129, 0.15)' }}>
+                      <svg className="w-3.5 h-3.5" style={{ color: '#34D399' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <p className="text-sm leading-relaxed" style={{ color: 'var(--landing-text)' }}>{t(`comparison.with_${key}`)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Security */}
-      <section id="security" className="py-16 sm:py-20 px-4 sm:px-6 border-t border-border/40 scroll-mt-20">
+      <SectionDivider />
+
+      {/* ========== Social Proof / Numbers ========== */}
+      <section className="py-24 sm:py-28 px-4 sm:px-6">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
+            {[
+              { value: t('stats.modelsValue'), label: t('stats.modelsLabel') },
+              { value: t('stats.sourcesValue'), label: t('stats.sourcesLabel') },
+              { value: t('stats.agentsValue'), label: t('stats.agentsLabel') },
+              { value: t('stats.uptimeValue'), label: t('stats.uptimeLabel') },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center p-6">
+                <div
+                  className="text-3xl sm:text-4xl font-bold mb-2"
+                  style={{
+                    backgroundImage: 'linear-gradient(135deg, var(--landing-accent-light), var(--landing-amber))',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  {stat.value}
+                </div>
+                <p className="text-sm" style={{ color: 'var(--landing-muted)' }}>{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <SectionDivider />
+
+      {/* ========== Security ========== */}
+      <section id="security" className="py-24 sm:py-32 px-4 sm:px-6 scroll-mt-20">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">{t('security.title')}</h2>
-          <p className="text-muted-foreground max-w-xl mx-auto mb-10 sm:mb-12 px-2">
+          <h2
+            className="text-3xl sm:text-4xl font-bold mb-4"
+            style={{ color: 'var(--landing-text)', letterSpacing: '-0.02em' }}
+          >
+            {t('security.title')}
+          </h2>
+          <p className="max-w-xl mx-auto mb-12" style={{ color: 'var(--landing-muted)' }}>
             {t('security.subtitle')}
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 text-left">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 text-left">
             {[
               { label: t('security.aes'), desc: t('security.aesDesc') },
               { label: t('security.tls'), desc: t('security.tlsDesc') },
               { label: t('security.isolated'), desc: t('security.isolatedDesc') },
               { label: t('security.soc'), desc: t('security.socDesc') },
             ].map((item) => (
-              <div key={item.label} className="p-3 sm:p-4 rounded-lg border border-border/50 bg-card/50 hover:border-primary/30 hover:bg-primary/[0.04] transition-all duration-300">
-                <div className="text-base sm:text-lg font-mono font-bold text-primary mb-1">{item.label}</div>
-                <div className="text-xs sm:text-sm text-muted-foreground">{item.desc}</div>
+              <div
+                key={item.label}
+                className="p-4 sm:p-5 rounded-xl transition-all duration-300"
+                style={{
+                  background: 'var(--landing-card)',
+                  border: '1px solid var(--landing-border)',
+                }}
+              >
+                <div
+                  className="text-lg font-mono font-bold mb-1"
+                  style={{ color: 'var(--landing-accent-light)' }}
+                >
+                  {item.label}
+                </div>
+                <div className="text-xs sm:text-sm" style={{ color: 'var(--landing-muted)' }}>{item.desc}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="relative py-16 sm:py-20 px-4 sm:px-6 overflow-hidden">
-        {/* Subtle background accent */}
-        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] rounded-full bg-primary/[0.04] blur-[80px]" />
-        </div>
-        <div className="relative max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-            {t('cta.title')}
-          </h2>
-          <p className="text-muted-foreground mb-8 px-2">
-            {t('cta.subtitle')}
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-            <Link href="/register">
-              <Button size="lg" className="text-base px-8 h-12 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] transition-all duration-200 w-full sm:w-auto">
-                {t('cta.button')}
-              </Button>
-            </Link>
-            <Link href="/pricing">
-              <Button variant="outline" size="lg" className="text-base px-8 h-12 hover:bg-primary/5 hover:border-primary/40 transition-all duration-200 w-full sm:w-auto">
-                {t('cta.compare')}
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <SectionDivider />
 
-      {/* Before / After Comparison */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 border-t border-border/40">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10 sm:mb-14">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">{t('comparison.title')}</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto px-2">{t('comparison.subtitle')}</p>
+      {/* ========== Pricing Preview ========== */}
+      <section className="py-24 sm:py-32 px-4 sm:px-6">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="text-center mb-14">
+            <h2
+              className="text-3xl sm:text-4xl font-bold mb-4"
+              style={{ color: 'var(--landing-text)', letterSpacing: '-0.02em' }}
+            >
+              {t('pricingPreview.title')}
+            </h2>
+            <p style={{ color: 'var(--landing-muted)' }}>
+              {t('pricingPreview.subtitle')}
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
-            {/* Without OrgOfClaws */}
-            <div className="relative p-6 sm:p-8 rounded-2xl border-2 border-red-500/30 bg-red-500/[0.03]">
-              <div className="absolute -top-3.5 left-6 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold tracking-wide uppercase">
-                {t('comparison.without')}
+          <div className="grid sm:grid-cols-3 gap-5 max-w-3xl mx-auto">
+            {/* Starter */}
+            <div
+              className="p-6 rounded-xl text-center"
+              style={{ background: 'var(--landing-card)', border: '1px solid var(--landing-border)' }}
+            >
+              <h3 className="font-semibold text-lg mb-1" style={{ color: 'var(--landing-text)' }}>{t('pricingPreview.starterName')}</h3>
+              <div className="mb-3">
+                <span className="text-3xl font-bold" style={{ color: 'var(--landing-text)' }}>$10</span>
+                <span className="text-sm" style={{ color: 'var(--landing-muted)' }}>/mo</span>
               </div>
-              <div className="mt-3 space-y-4">
-                {(['setup', 'time', 'updates', 'data'] as const).map((key) => (
-                  <div key={key} className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-red-500/15 flex items-center justify-center shrink-0 mt-0.5">
-                      <svg className="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{t(`comparison.without_${key}`)}</p>
-                  </div>
-                ))}
-              </div>
+              <Link href="/pricing">
+                <Button
+                  size="sm"
+                  className="w-full"
+                  style={{ border: '1px solid var(--landing-border)', background: 'transparent', color: 'var(--landing-text)' }}
+                >
+                  {t('pricingPreview.cta')}
+                </Button>
+              </Link>
             </div>
 
-            {/* With OrgOfClaws */}
-            <div className="relative p-6 sm:p-8 rounded-2xl border-2 border-emerald-500/30 bg-emerald-500/[0.03]">
-              <div className="absolute -top-3.5 left-6 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold tracking-wide uppercase">
-                {t('comparison.with')}
+            {/* Pro */}
+            <div
+              className="p-6 rounded-xl text-center relative"
+              style={{
+                background: 'var(--landing-card)',
+                border: '2px solid var(--landing-accent)',
+                boxShadow: '0 0 30px rgba(99, 102, 241, 0.15)',
+              }}
+            >
+              <div
+                className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[11px] font-semibold"
+                style={{ background: 'var(--landing-accent)', color: '#fff' }}
+              >
+                {t('pricingPreview.popular')}
               </div>
-              <div className="mt-3 space-y-4">
-                {(['setup', 'time', 'updates', 'data'] as const).map((key) => (
-                  <div key={key} className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0 mt-0.5">
-                      <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <p className="text-sm text-foreground leading-relaxed">{t(`comparison.with_${key}`)}</p>
-                  </div>
-                ))}
+              <h3 className="font-semibold text-lg mb-1" style={{ color: 'var(--landing-text)' }}>{t('pricingPreview.proName')}</h3>
+              <div className="mb-3">
+                <span className="text-3xl font-bold" style={{ color: 'var(--landing-text)' }}>$19</span>
+                <span className="text-sm" style={{ color: 'var(--landing-muted)' }}>/mo</span>
               </div>
+              <Link href="/pricing">
+                <Button
+                  size="sm"
+                  className="w-full font-medium"
+                  style={{ background: 'var(--landing-accent)', color: '#fff' }}
+                >
+                  {t('pricingPreview.cta')}
+                </Button>
+              </Link>
+            </div>
+
+            {/* Max */}
+            <div
+              className="p-6 rounded-xl text-center"
+              style={{ background: 'var(--landing-card)', border: '1px solid var(--landing-border)' }}
+            >
+              <h3 className="font-semibold text-lg mb-1" style={{ color: 'var(--landing-text)' }}>{t('pricingPreview.maxName')}</h3>
+              <div className="mb-3">
+                <span className="text-3xl font-bold" style={{ color: 'var(--landing-text)' }}>$35</span>
+                <span className="text-sm" style={{ color: 'var(--landing-muted)' }}>/mo</span>
+              </div>
+              <Link href="/pricing">
+                <Button
+                  size="sm"
+                  className="w-full"
+                  style={{ border: '1px solid var(--landing-border)', background: 'transparent', color: 'var(--landing-text)' }}
+                >
+                  {t('pricingPreview.cta')}
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Use Cases */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 border-t border-border/40">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10 sm:mb-14">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">{t('useCases.title')}</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto px-2">{t('useCases.subtitle')}</p>
-          </div>
+      <SectionDivider />
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-            <UseCaseCard
-              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>}
-              title={t('useCases.emailTitle')}
-              desc={t('useCases.emailDesc')}
-            />
-            <UseCaseCard
-              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zm3.75 11.625a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>}
-              title={t('useCases.researchTitle')}
-              desc={t('useCases.researchDesc')}
-            />
-            <UseCaseCard
-              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-              title={t('useCases.taskTitle')}
-              desc={t('useCases.taskDesc')}
-            />
-            <UseCaseCard
-              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" /></svg>}
-              title={t('useCases.codeTitle')}
-              desc={t('useCases.codeDesc')}
-            />
-            <UseCaseCard
-              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>}
-              title={t('useCases.dataTitle')}
-              desc={t('useCases.dataDesc')}
-            />
-            <UseCaseCard
-              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" /></svg>}
-              title={t('useCases.messagingTitle')}
-              desc={t('useCases.messagingDesc')}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 border-t border-border/40">
+      {/* ========== FAQ ========== */}
+      <section className="py-24 sm:py-32 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-10 sm:mb-14">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">{t('faq.title')}</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto px-2">{t('faq.subtitle')}</p>
+          <div className="text-center mb-14">
+            <h2
+              className="text-3xl sm:text-4xl font-bold mb-4"
+              style={{ color: 'var(--landing-text)', letterSpacing: '-0.02em' }}
+            >
+              {t('faq.title')}
+            </h2>
+            <p style={{ color: 'var(--landing-muted)' }}>
+              {t('faq.subtitle')}
+            </p>
           </div>
 
           <div className="space-y-3">
@@ -546,79 +887,67 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Trust Badges */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 border-t border-border/40">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-10 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">{t('trust.title')}</h2>
-          </div>
+      <SectionDivider />
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-            {/* Google Cloud */}
-            <div className="flex flex-col items-center text-center p-5 rounded-xl border border-border/50 bg-card/50 hover:border-primary/30 hover:bg-primary/[0.04] transition-all duration-300">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 text-primary">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />
-                </svg>
-              </div>
-              <p className="text-xs sm:text-sm font-medium text-foreground">{t('trust.gcp')}</p>
-            </div>
-
-            {/* OpenClaw */}
-            <div className="flex flex-col items-center text-center p-5 rounded-xl border border-border/50 bg-card/50 hover:border-primary/30 hover:bg-primary/[0.04] transition-all duration-300">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 text-primary">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
-                </svg>
-              </div>
-              <p className="text-xs sm:text-sm font-medium text-foreground">{t('trust.openclaw')}</p>
-            </div>
-
-            {/* Encryption */}
-            <div className="flex flex-col items-center text-center p-5 rounded-xl border border-border/50 bg-card/50 hover:border-primary/30 hover:bg-primary/[0.04] transition-all duration-300">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 text-primary">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                </svg>
-              </div>
-              <p className="text-xs sm:text-sm font-medium text-foreground">{t('trust.encryption')}</p>
-            </div>
-
-            {/* Monitoring */}
-            <div className="flex flex-col items-center text-center p-5 rounded-xl border border-border/50 bg-card/50 hover:border-primary/30 hover:bg-primary/[0.04] transition-all duration-300">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 text-primary">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605" />
-                </svg>
-              </div>
-              <p className="text-xs sm:text-sm font-medium text-foreground">{t('trust.monitoring')}</p>
-            </div>
-          </div>
+      {/* ========== Final CTA ========== */}
+      <section className="relative py-24 sm:py-32 px-4 sm:px-6 overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full blur-[100px] opacity-20"
+            style={{ background: 'var(--landing-accent)' }}
+          />
+        </div>
+        <div className="relative max-w-3xl mx-auto text-center">
+          <h2
+            className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5"
+            style={{ color: 'var(--landing-text)', letterSpacing: '-0.02em' }}
+          >
+            {t('cta.title')}
+          </h2>
+          <p className="mb-8 text-lg" style={{ color: 'var(--landing-muted)' }}>
+            {t('cta.subtitle')}
+          </p>
+          <Link href="/register">
+            <Button
+              size="lg"
+              className="text-base px-10 h-13 font-medium transition-all duration-200 hover:scale-[1.02]"
+              style={{
+                background: 'linear-gradient(135deg, var(--landing-accent), #7C3AED)',
+                color: '#fff',
+                boxShadow: '0 4px 24px rgba(99, 102, 241, 0.35)',
+              }}
+            >
+              {t('cta.button')}
+            </Button>
+          </Link>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border/40 py-8 sm:py-10 px-4 sm:px-6">
-        <div className="max-w-6xl mx-auto">
+      {/* ========== Footer ========== */}
+      <footer style={{ borderTop: '1px solid var(--landing-border)' }} className="py-10 px-4 sm:px-6">
+        <div className="max-w-[1200px] mx-auto">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-6 h-6 rounded bg-primary/20 flex items-center justify-center">
-                  <span className="text-primary font-bold text-[10px]">OC</span>
+                <div
+                  className="w-6 h-6 rounded flex items-center justify-center"
+                  style={{ background: 'rgba(99, 102, 241, 0.2)' }}
+                >
+                  <span className="font-bold text-[10px]" style={{ color: 'var(--landing-accent-light)' }}>OC</span>
                 </div>
-                <span className="font-semibold text-foreground text-sm">OrgOfClaws</span>
+                <span className="font-semibold text-sm" style={{ color: 'var(--landing-text)' }}>OrgOfClaws</span>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs" style={{ color: 'var(--landing-muted)' }}>
                 {t('footer.tagline')}
               </p>
             </div>
-            <div className="flex gap-6 text-sm text-muted-foreground">
-              <Link href="/pricing" className="hover:text-foreground transition-colors">{t('footer.pricing')}</Link>
-              <Link href="/login" className="hover:text-foreground transition-colors">{t('footer.signIn')}</Link>
-              <Link href="/register" className="hover:text-foreground transition-colors">{t('footer.register')}</Link>
+            <div className="flex gap-6 text-sm" style={{ color: 'var(--landing-muted)' }}>
+              <Link href="/pricing" className="hover:opacity-100 transition-opacity">{t('footer.pricing')}</Link>
+              <Link href="/login" className="hover:opacity-100 transition-opacity">{t('footer.signIn')}</Link>
+              <Link href="/register" className="hover:opacity-100 transition-opacity">{t('footer.register')}</Link>
             </div>
           </div>
-          <div className="mt-6 sm:mt-8 pt-6 border-t border-border/40 text-xs text-muted-foreground">
+          <div className="mt-8 pt-6 text-xs" style={{ borderTop: '1px solid var(--landing-border)', color: 'var(--landing-muted)' }}>
             &copy; {new Date().getFullYear()} {t('footer.copyright')}
           </div>
         </div>

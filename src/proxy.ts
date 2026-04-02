@@ -200,16 +200,16 @@ export function proxy(request: NextRequest) {
     return addSecurityHeaders(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }), request)
   }
 
-  // Page routes: redirect to login if no session
+  // Page routes: redirect to home or dashboard based on session
   if (sessionToken) {
     const { response, nonce } = nextResponseWithNonce(request)
     return addSecurityHeaders(response, request, nonce)
   }
 
-  // Redirect to login
-  const loginUrl = request.nextUrl.clone()
-  loginUrl.pathname = '/login'
-  return addSecurityHeaders(NextResponse.redirect(loginUrl), request)
+  // Unauthenticated: root "/" goes to landing page, everything else to login
+  const redirectUrl = request.nextUrl.clone()
+  redirectUrl.pathname = pathname === '/' ? '/home' : '/login'
+  return addSecurityHeaders(NextResponse.redirect(redirectUrl), request)
 }
 
 export const config = {
