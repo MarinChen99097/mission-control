@@ -108,8 +108,8 @@ export async function POST(request: NextRequest) {
     if (!stripeResponse.ok) {
       logger.error({ err: session.error }, `Stripe API error: ${session.error?.message || 'Unknown error'}`)
       return NextResponse.json(
-        { error: session.error?.message || 'Failed to create checkout session' },
-        { status: stripeResponse.status },
+        { error: 'Unable to start checkout. Please try again or contact support.' },
+        { status: 502 },
       )
     }
 

@@ -18,13 +18,13 @@ const MAX_PROCESSED_EVENTS = 10_000
 function trackEvent(eventId: string): boolean {
   if (processedEvents.has(eventId)) return false
   if (processedEvents.size >= MAX_PROCESSED_EVENTS) {
-    // Evict oldest entries (Sets iterate in insertion order)
-    const iterator = processedEvents.values()
-    for (let i = 0; i < 1000; i++) iterator.next()
-    // Rebuild with remaining entries
-    const remaining = [...processedEvents].slice(1000)
-    processedEvents.clear()
-    for (const id of remaining) processedEvents.add(id)
+    // Evict oldest 1000 entries in-place — O(k) with zero allocations
+    let evicted = 0
+    for (const id of processedEvents) {
+      if (evicted >= 1000) break
+      processedEvents.delete(id)
+      evicted++
+    }
   }
   processedEvents.add(eventId)
   return true

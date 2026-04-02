@@ -91,18 +91,10 @@ function FeatureCard({
 }) {
   return (
     <div
-      className="group relative p-6 rounded-xl backdrop-blur-sm transition-all duration-300 hover:-translate-y-1"
+      className="group relative p-6 rounded-xl backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(99,102,241,0.08)] hover:border-[rgba(99,102,241,0.4)]"
       style={{
         background: 'var(--landing-card)',
         border: '1px solid var(--landing-border)',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'var(--landing-border-hover)'
-        e.currentTarget.style.boxShadow = '0 0 30px rgba(99, 102, 241, 0.08)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'var(--landing-border)'
-        e.currentTarget.style.boxShadow = 'none'
       }}
     >
       <div
