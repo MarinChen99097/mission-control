@@ -10,52 +10,26 @@ interface MarketingAction {
   icon: string
   labelKey: string
   descKey: string
-  message: string
+  messageKey: string
 }
 
 const MARKETING_ACTIONS: MarketingAction[] = [
-  {
-    id: 'create-lp',
-    icon: '📄',
-    labelKey: 'createLandingPage',
-    descKey: 'createLandingPageDesc',
-    message: '幫我做一個 Landing Page',
-  },
-  {
-    id: 'brand-diagnosis',
-    icon: '🔬',
-    labelKey: 'brandDiagnosis',
-    descKey: 'brandDiagnosisDesc',
-    message: '幫我做品牌診斷',
-  },
-  {
-    id: 'social-posts',
-    icon: '📱',
-    labelKey: 'socialPosts',
-    descKey: 'socialPostsDesc',
-    message: '幫我做社群貼文',
-  },
-  {
-    id: 'market-research',
-    icon: '📊',
-    labelKey: 'marketResearch',
-    descKey: 'marketResearchDesc',
-    message: '幫我做市場研究',
-  },
+  { id: 'create-lp', icon: '📄', labelKey: 'createLandingPage', descKey: 'createLandingPageDesc', messageKey: 'msgCreateLP' },
+  { id: 'brand-diagnosis', icon: '🔬', labelKey: 'brandDiagnosis', descKey: 'brandDiagnosisDesc', messageKey: 'msgDiagnosis' },
+  { id: 'social-posts', icon: '📱', labelKey: 'socialPosts', descKey: 'socialPostsDesc', messageKey: 'msgSocialPosts' },
+  { id: 'market-research', icon: '📊', labelKey: 'marketResearch', descKey: 'marketResearchDesc', messageKey: 'msgResearch' },
 ]
 
-export function MarketingActionsWidget({ data }: { data: DashboardData }) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function MarketingActionsWidget({ data: _data }: { data: DashboardData }) {
   const t = useTranslations('marketingActions')
-  const { setChatPanelOpen, setActiveConversation } = useMissionControl()
+  const { setChatPanelOpen, setActiveConversation, setChatInput } = useMissionControl()
 
   const handleAction = useCallback((action: MarketingAction) => {
-    // Store intent so chat picks it up as first message context
-    try {
-      sessionStorage.setItem('quick_action_message', action.message)
-    } catch { /* SSR guard */ }
+    setChatInput(t(action.messageKey))
     setChatPanelOpen(true)
     setActiveConversation('agent_secretary')
-  }, [setChatPanelOpen, setActiveConversation])
+  }, [setChatPanelOpen, setActiveConversation, setChatInput, t])
 
   return (
     <section className="rounded-xl border border-border/50 bg-card/50 p-4">

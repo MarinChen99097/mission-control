@@ -49,7 +49,7 @@ function isGroupedWithPrevious(messages: ChatMessage[], index: number): boolean 
 
 export function MessageList() {
   const t = useTranslations('chat')
-  const { chatMessages, activeConversation, isSendingMessage, updatePendingMessage, removePendingMessage, addChatMessage } = useMissionControl()
+  const { chatMessages, activeConversation, isSendingMessage, updatePendingMessage, removePendingMessage, addChatMessage, setChatInput } = useMissionControl()
   const bottomRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [showNewMessages, setShowNewMessages] = useState(false)
@@ -172,10 +172,7 @@ export function MessageList() {
                 ].map(({ icon, text }) => (
                   <button
                     key={text}
-                    onClick={() => {
-                      const input = document.querySelector<HTMLTextAreaElement>('[data-chat-input]')
-                      if (input) { input.value = text; input.focus(); input.dispatchEvent(new Event('input', { bubbles: true })) }
-                    }}
+                    onClick={() => setChatInput(text)}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border/50 hover:border-primary/40 hover:bg-primary/5 transition-all text-left text-xs text-muted-foreground hover:text-foreground"
                   >
                     <span>{icon}</span>

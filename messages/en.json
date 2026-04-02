@@ -3053,6 +3053,10 @@
     "socialPosts": "Social Posts",
     "socialPostsDesc": "FB/IG ad images + copy",
     "marketResearch": "Market Research",
-    "marketResearchDesc": "Competitor & market analysis"
+    "marketResearchDesc": "Competitor & market analysis",
+    "msgCreateLP": "Help me create a Landing Page",
+    "msgDiagnosis": "Run a free brand diagnosis for me",
+    "msgSocialPosts": "Help me create social media posts",
+    "msgResearch": "Analyze my market and competitors"
   }
 }

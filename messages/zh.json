@@ -3053,6 +3053,10 @@
     "socialPosts": "社群貼文",
     "socialPostsDesc": "FB/IG 廣告圖 + 文案",
     "marketResearch": "市場研究",
-    "marketResearchDesc": "競品分析與市場趨勢"
+    "marketResearchDesc": "競品分析與市場趨勢",
+    "msgCreateLP": "幫我做一個 Landing Page",
+    "msgDiagnosis": "免費幫我做品牌診斷",
+    "msgSocialPosts": "幫我做社群貼文",
+    "msgResearch": "幫我分析市場和競品"
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
@@ -11,8 +11,6 @@ interface BusinessProfile {
   brandName: string
   productDescription: string
   websiteUrl: string
-  challenge: string
-  goal: string
 }
 
 const GOALS = [
@@ -34,52 +32,53 @@ const SERVICES = [
 
 export function BusinessOnboardingWizard({ onClose }: { onClose: () => void }) {
   const t = useTranslations('businessOnboarding')
-  const { setChatPanelOpen, setActiveConversation } = useMissionControl()
+  const { setChatPanelOpen, setActiveConversation, setChatInput } = useMissionControl()
   const [step, setStep] = useState(0)
   const [closing, setClosing] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [profile, setProfile] = useState<BusinessProfile>({
-    brandName: '', productDescription: '', websiteUrl: '', challenge: '', goal: '',
+    brandName: '', productDescription: '', websiteUrl: '',
   })
   const [selectedGoal, setSelectedGoal] = useState('')
   const [selectedService, setSelectedService] = useState('')
 
+  // SSR guard — createPortal needs document.body
+  useEffect(() => { setMounted(true) }, [])
+
   const dismiss = useCallback(() => {
     setClosing(true)
-    // Save dismissal
+    try { localStorage.setItem('business_onboarding_dismissed', '1') } catch { /* SSR */ }
     fetch('/api/onboarding', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'dismiss_business_onboarding' }),
-    }).catch(() => {})
+    }).catch(err => console.warn('Failed to save dismissal:', err))
     setTimeout(() => onClose(), 300)
   }, [onClose])
 
   const startChat = useCallback(() => {
     // Build initial message with collected profile data
     const parts: string[] = []
-    if (profile.brandName) parts.push(`品牌：${profile.brandName}`)
-    if (profile.productDescription) parts.push(`產品描述：${profile.productDescription}`)
-    if (profile.websiteUrl) parts.push(`網站：${profile.websiteUrl}`)
-    if (profile.challenge) parts.push(`挑戰：${profile.challenge}`)
+    if (profile.brandName) parts.push(`${t('profile.brandName')}: ${profile.brandName}`)
+    if (profile.productDescription) parts.push(`${t('profile.productDescription')}: ${profile.productDescription}`)
+    if (profile.websiteUrl) parts.push(`${t('profile.websiteUrl')}: ${profile.websiteUrl}`)
     const goalLabel = GOALS.find(g => g.id === selectedGoal)
-    if (goalLabel) parts.push(`目標：${t(`goals.${goalLabel.labelKey}`)}`)
+    if (goalLabel) parts.push(`${t('goals.title')}: ${t(`goals.${goalLabel.labelKey}`)}`)
     const serviceLabel = SERVICES.find(s => s.id === selectedService)
-    if (serviceLabel) parts.push(`想要的服務：${t(`services.${serviceLabel.labelKey}`)}`)
+    if (serviceLabel) parts.push(`${t('services.title')}: ${t(`services.${serviceLabel.labelKey}`)}`)
 
-    // Store profile in sessionStorage for chat to pick up
-    sessionStorage.setItem('business_onboarding_context', JSON.stringify({
-      profile, selectedGoal, selectedService,
-      message: parts.join('\n'),
-    }))
+    // Set chat input via store (not sessionStorage)
+    setChatInput(parts.join('\n'))
 
     setClosing(true)
     setTimeout(() => {
       onClose()
-      // Open chat panel with secretary
       setChatPanelOpen(true)
       setActiveConversation('agent_secretary')
     }, 300)
-  }, [profile, selectedGoal, selectedService, onClose, setChatPanelOpen, setActiveConversation, t])
+  }, [profile, selectedGoal, selectedService, onClose, setChatPanelOpen, setActiveConversation, setChatInput, t])
+
+  if (!mounted) return null
 
   const currentStep = BUSINESS_ONBOARDING_STEPS[step]
   const totalSteps = BUSINESS_ONBOARDING_STEPS.length
