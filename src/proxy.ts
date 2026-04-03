@@ -137,7 +137,7 @@ export function proxy(request: NextRequest) {
   const requestHosts = getRequestHostCandidates(request)
   const allowAnyHost = envFlag('MC_ALLOW_ANY_HOST') || process.env.NODE_ENV !== 'production'
   const allowedPatterns = String(process.env.MC_ALLOWED_HOSTS || '')
-    .split(',')
+    .split(/[,;]/)
     .map((s) => s.trim())
     .filter(Boolean)
   const implicitAllowedHosts = getImplicitAllowedHosts()
