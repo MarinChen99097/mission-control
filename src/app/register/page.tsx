@@ -157,7 +157,7 @@ export default function RegisterPage() {
     // Client-side validation (reduced fields)
     if (!displayName.trim()) { setError(t('displayNameRequired')); return }
     if (!email.trim()) { setError(t('emailRequired')); return }
-    if (password.length < 12) { setError(t('passwordTooShort')); return }
+    if (password.length < 8) { setError(t('passwordTooShort')); return }
 
     const username = deriveUsername(email)
     if (!/^[a-z0-9._-]{3,28}$/.test(username)) {
@@ -182,8 +182,20 @@ export default function RegisterPage() {
       const data = await res.json()
 
       if (!res.ok) {
+        if (data.code === 'NOT_WHITELISTED') {
+          setPendingApproval(true)
+          setError('')
+          setLoading(false)
+          return
+        }
         setError(data.error || t('registrationFailed'))
         setLoading(false)
+        return
+      }
+
+      // If MB returned a user + JWT cookie, redirect to dashboard
+      if (data.user) {
+        window.location.href = '/'
         return
       }
 

@@ -3,6 +3,8 @@ import { createUser } from '@/lib/auth'
 import { getDatabase, logAuditEvent } from '@/lib/db'
 import { createRateLimiter, extractClientIp } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
+import { isMarketingBackendEnabled, mbRegister, mbGetMe } from '@/lib/marketing-backend'
+import { getMcSessionCookieName, getMcSessionCookieOptions, isRequestSecure } from '@/lib/session-cookie'
 
 // Stricter rate limit for registration: 5 per IP per hour
 const registerLimiter = createRateLimiter({
@@ -15,7 +17,6 @@ const registerLimiter = createRateLimiter({
 // Validation helpers
 const USERNAME_REGEX = /^[a-z0-9._-]{3,28}$/
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const MIN_PASSWORD_LENGTH = 12
 
 export async function POST(request: Request) {
   try {
@@ -24,56 +25,150 @@ export async function POST(request: Request) {
     if (rateCheck) return rateCheck
 
     const body = await request.json()
-    const { username, email, password, displayName } = body
+    const { email, password, displayName, username: rawUsername } = body
 
-    // --- Input validation ---
+    const ipAddress = extractClientIp(request)
+    const userAgent = request.headers.get('user-agent') || undefined
+
+    // ─── Marketing Backend registration (OrgOfClaws mode) ───
+    if (isMarketingBackendEnabled()) {
+      // Validate for MB: email + password(8+) + full_name
+      const errors: string[] = []
+      if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email)) {
+        errors.push('Valid email is required')
+      }
+      if (!password || typeof password !== 'string' || password.length < 8) {
+        errors.push('Password must be at least 8 characters')
+      }
+      if (!displayName || typeof displayName !== 'string' || !displayName.trim()) {
+        errors.push('Display name is required')
+      }
+      if (errors.length > 0) {
+        return NextResponse.json({ error: errors[0], details: errors }, { status: 400 })
+      }
+
+      try {
+        const mbResult = await mbRegister({
+          email: email.trim().toLowerCase(),
+          password,
+          full_name: displayName.trim(),
+          terms_accepted: true,
+        })
+
+        // Handle email verification requirement
+        if (mbResult.email_verification_required) {
+          return NextResponse.json({
+            ok: true,
+            message: 'Account created. Please check your email to verify your account.',
+            email_verification_required: true,
+          }, { status: 201 })
+        }
+
+        if (!mbResult.access_token) {
+          return NextResponse.json({
+            ok: true,
+            message: 'Account created. Please sign in.',
+          }, { status: 201 })
+        }
+
+        // Get user profile
+        let userProfile: { id?: string; email?: string; full_name?: string; avatar_url?: string } = { email }
+        try {
+          const profile = await mbGetMe(mbResult.access_token)
+          userProfile = { id: profile.id, email: profile.email, full_name: profile.full_name, avatar_url: profile.avatar_url }
+        } catch { /* non-fatal */ }
+
+        const isSecureRequest = isRequestSecure(request)
+        const cookieName = getMcSessionCookieName(isSecureRequest)
+
+        const response = NextResponse.json({
+          ok: true,
+          user: {
+            id: userProfile.id || 'mb-user',
+            username: userProfile.email || email,
+            display_name: userProfile.full_name || displayName,
+            role: 'admin',
+            provider: 'marketing_backend',
+            email: userProfile.email || email,
+            avatar_url: userProfile.avatar_url || null,
+            workspace_id: 1,
+            tenant_id: 1,
+          },
+        }, { status: 201 })
+
+        // Set JWT cookie
+        response.cookies.set(cookieName, mbResult.access_token, {
+          ...getMcSessionCookieOptions({ maxAgeSeconds: 43200, isSecureRequest }),
+        })
+
+        if (mbResult.refresh_token) {
+          response.cookies.set('mc_refresh_token', mbResult.refresh_token, {
+            httpOnly: true,
+            secure: isSecureRequest,
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 30 * 24 * 3600,
+          })
+        }
+
+        logger.info({ email: email.toLowerCase() }, 'User registered via Marketing Backend')
+        return response
+      } catch (error: any) {
+        const message = error?.message || 'Registration failed'
+
+        // Map common MB errors to user-friendly responses
+        if (message.includes('NOT_WHITELISTED')) {
+          return NextResponse.json({
+            error: 'This email is not authorized for access during beta period.',
+            code: 'NOT_WHITELISTED',
+          }, { status: 403 })
+        }
+        if (message.includes('already') || message.includes('exists')) {
+          return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 })
+        }
+        if (message.includes('TERMS_NOT_ACCEPTED')) {
+          return NextResponse.json({ error: 'Terms of service must be accepted' }, { status: 400 })
+        }
+        if (message.includes('PASSWORD')) {
+          return NextResponse.json({ error: message }, { status: 400 })
+        }
+
+        logger.warn({ err: message }, 'Marketing Backend registration failed, trying local fallback')
+        // Fall through to local auth
+      }
+    }
+
+    // ─── Local auth (self-hosted mode, fallback) ───
+    const username = rawUsername
+      || email?.split('@')[0]?.toLowerCase()?.replace(/[^a-z0-9._-]/g, '-')?.slice(0, 28)?.padEnd(3, '0')
+      || ''
+
     const errors: string[] = []
-
-    if (!username || typeof username !== 'string') {
-      errors.push('Username is required')
-    } else if (!USERNAME_REGEX.test(username)) {
-      errors.push('Username must be 3-28 characters: lowercase letters, numbers, dots, hyphens, underscores only')
+    if (!username || !USERNAME_REGEX.test(username)) {
+      errors.push('Valid email is required')
     }
-
-    if (!email || typeof email !== 'string') {
-      errors.push('Email is required')
-    } else if (!EMAIL_REGEX.test(email)) {
-      errors.push('Invalid email format')
+    if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email)) {
+      errors.push('Valid email is required')
     }
-
-    if (!password || typeof password !== 'string') {
-      errors.push('Password is required')
-    } else if (password.length < MIN_PASSWORD_LENGTH) {
-      errors.push(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`)
+    if (!password || typeof password !== 'string' || password.length < 8) {
+      errors.push('Password must be at least 8 characters')
     }
-
     if (!displayName || typeof displayName !== 'string' || !displayName.trim()) {
       errors.push('Display name is required')
     }
-
     if (errors.length > 0) {
       return NextResponse.json({ error: errors[0], details: errors }, { status: 400 })
     }
 
     const db = getDatabase()
-    const ipAddress = extractClientIp(request)
-    const userAgent = request.headers.get('user-agent') || undefined
 
-    // Check if username already exists
-    const existingUsername = db.prepare('SELECT id FROM users WHERE username = ?').get(username.toLowerCase())
-    if (existingUsername) {
-      return NextResponse.json({ error: 'Username is already taken' }, { status: 409 })
-    }
-
-    // Check if email already exists
     const existingEmail = db.prepare('SELECT id FROM users WHERE lower(email) = ?').get(email.toLowerCase())
     if (existingEmail) {
       return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 })
     }
 
-    // Create user with role='viewer' and is_approved=0 (pending admin approval)
     const user = createUser(
-      username.toLowerCase(),
+      username,
       password,
       displayName.trim(),
       'viewer',
@@ -100,7 +195,6 @@ export async function POST(request: Request) {
       message: 'Account created. An admin will review your request.',
     }, { status: 201 })
   } catch (error: any) {
-    // Handle unique constraint violations from SQLite
     if (error?.code === 'SQLITE_CONSTRAINT_UNIQUE' || error?.message?.includes('UNIQUE constraint')) {
       return NextResponse.json({ error: 'Username or email is already taken' }, { status: 409 })
     }
