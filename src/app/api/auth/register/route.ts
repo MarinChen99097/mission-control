@@ -116,7 +116,7 @@ export async function POST(request: Request) {
       } catch (error: any) {
         const message = error?.message || 'Registration failed'
 
-        // Map common MB errors to user-friendly responses
+        // Map common MB errors to user-friendly responses (do NOT fallthrough)
         if (message.includes('NOT_WHITELISTED')) {
           return NextResponse.json({
             error: 'This email is not authorized for access during beta period.',
@@ -133,8 +133,10 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: message }, { status: 400 })
         }
 
-        logger.warn({ err: message }, 'Marketing Backend registration failed, trying local fallback')
-        // Fall through to local auth
+        // Unknown MB error — return it, do NOT fallthrough to SQLite
+        // (Cloud Run has no SQLite setup, fallthrough would 500)
+        logger.warn({ err: message }, 'Marketing Backend registration failed')
+        return NextResponse.json({ error: message }, { status: 400 })
       }
     }
 
