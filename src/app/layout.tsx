@@ -43,6 +43,25 @@ function resolveMetadataBase(): URL {
 }
 
 const metadataBase = resolveMetadataBase()
+const isOrgOfClaws = metadataBase.hostname.includes('orgofclaws')
+
+const brand = isOrgOfClaws
+  ? {
+      title: 'Org of Claws — AI Agent Team for Your Business',
+      description:
+        'Deploy your own AI agent team. Org of Claws orchestrates specialized AI agents that handle marketing, engineering, sales, and operations — so you can focus on growing your business.',
+      siteName: 'Org of Claws',
+      ogAlt: 'Org of Claws — AI agent team platform',
+      ogImage: '/brand/openclaw-logo.png',
+    }
+  : {
+      title: 'Mission Control — AI Agent Orchestration Dashboard',
+      description:
+        'Open-source dashboard for AI agent orchestration. Manage agent fleets, dispatch tasks, track costs, and coordinate multi-agent workflows. Self-hosted, zero dependencies, SQLite-powered.',
+      siteName: 'Mission Control',
+      ogAlt: 'Mission Control — open-source AI agent orchestration dashboard',
+      ogImage: '/brand/mc-logo-512.png',
+    }
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -52,35 +71,37 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'Mission Control — AI Agent Orchestration Dashboard',
-  description: 'Open-source dashboard for AI agent orchestration. Manage agent fleets, dispatch tasks, track costs, and coordinate multi-agent workflows. Self-hosted, zero dependencies, SQLite-powered.',
+  title: brand.title,
+  description: brand.description,
   metadataBase,
   icons: {
     icon: [
       { url: '/icon.png', type: 'image/png', sizes: '256x256' },
-      { url: '/brand/mc-logo-128.png', type: 'image/png', sizes: '128x128' },
     ],
     apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
     shortcut: ['/icon.png'],
   },
   openGraph: {
-    title: 'Mission Control — AI Agent Orchestration Dashboard',
-    description: 'Open-source dashboard for AI agent orchestration. Manage agent fleets, dispatch tasks, track costs, and coordinate multi-agent workflows.',
-    images: [{ url: '/brand/mc-logo-512.png', width: 512, height: 512, alt: 'Mission Control — open-source AI agent orchestration dashboard' }],
+    title: brand.title,
+    description: brand.description,
+    images: [{ url: brand.ogImage, width: 512, height: 512, alt: brand.ogAlt }],
     type: 'website',
-    siteName: 'Mission Control',
+    siteName: brand.siteName,
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Mission Control — AI Agent Orchestration Dashboard',
-    description: 'Open-source dashboard for AI agent orchestration. Manage agent fleets, dispatch tasks, track costs, and coordinate multi-agent workflows.',
-    images: ['/brand/mc-logo-512.png'],
+    title: brand.title,
+    description: brand.description,
+    images: [brand.ogImage],
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Mission Control',
+    title: brand.siteName,
   },
+  other: isOrgOfClaws
+    ? { 'theme-color': '#dc2626' }
+    : { 'theme-color': '#0d1117' },
 }
 
 export default async function RootLayout({
@@ -95,6 +116,7 @@ export default async function RootLayout({
   return (
     <html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} className="dark" suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/site.webmanifest" />
         {/* Blocking script to set 'dark' class before first paint, preventing FOUC.
             Content is a static string literal — no user input, no XSS vector. */}
         <script

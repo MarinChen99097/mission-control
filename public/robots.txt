@@ -1,5 +1,5 @@
-# Mission Control — AI Agent Orchestration Dashboard
-# https://github.com/builderz-labs/mission-control
+# Org of Claws — AI Agent Team Platform
+# https://orgofclaws.com
 
 User-agent: *
 Allow: /

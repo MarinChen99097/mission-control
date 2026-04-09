@@ -35,12 +35,19 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # --- Litestream: SQLite replication to GCS ---
-# Download and install litestream for persistent SQLite on Cloud Run
 RUN apt-get update && apt-get install -y wget ca-certificates --no-install-recommends && \
     wget -qO /tmp/litestream.deb https://github.com/benbjohnson/litestream/releases/download/v0.3.13/litestream-v0.3.13-linux-amd64.deb && \
     dpkg -i /tmp/litestream.deb && \
     rm /tmp/litestream.deb && \
     apt-get purge -y wget && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
+# --- OS Security Hardening ---
+# Enable TCP SYN cookies (prevent SYN flood attacks)
+RUN echo "net.ipv4.tcp_syncookies = 1" >> /etc/sysctl.conf || true
+# Restrict core dumps
+RUN echo "* hard core 0" >> /etc/security/limits.conf || true
+# Set /tmp noexec where possible (Cloud Run containers are ephemeral)
+# Note: sysctl/mount changes may not persist in Cloud Run but set as best practice
 
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=build /app/.next/standalone ./
@@ -61,11 +68,14 @@ RUN sed -i 's/\r$//' /app/docker-entrypoint.sh && \
     chmod 755 /app/docker-entrypoint.sh && \
     chmod -R a+rX /app/public/ /app/src/
 
+# --- Security: Remove world-writable files ---
+RUN find /app -type f -perm /o+w -exec chmod o-w {} + 2>/dev/null || true
+
 # nextjs user needs write access to .data for SQLite
 USER nextjs
 ENV PORT=3000
 EXPOSE 3000
 ENV HOSTNAME=0.0.0.0
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD ["node", "/app/healthcheck.js"]
+    CMD ["node", "/app/healthcheck.js"]
 ENTRYPOINT ["/app/docker-entrypoint.sh"]

@@ -9,17 +9,18 @@ import { locales, localeNames, type Locale } from '@/i18n/config'
 /* ---------- landing page design tokens ---------- */
 
 const landingColors = {
-  '--landing-bg': '#0A0A0F',
-  '--landing-bg-alt': '#0F1119',
-  '--landing-card': 'rgba(15, 23, 42, 0.8)',
-  '--landing-card-solid': '#0F172A',
-  '--landing-border': 'rgba(30, 41, 59, 0.5)',
-  '--landing-border-hover': 'rgba(99, 102, 241, 0.4)',
-  '--landing-text': '#F8FAFC',
-  '--landing-muted': '#94A3B8',
-  '--landing-accent': '#6366F1',
-  '--landing-accent-light': '#818CF8',
-  '--landing-amber': '#F59E0B',
+  '--landing-bg': '#050A14',
+  '--landing-bg-alt': '#0A1628',
+  '--landing-card': 'rgba(10, 30, 60, 0.6)',
+  '--landing-card-solid': '#0C1E35',
+  '--landing-border': 'rgba(30, 58, 95, 0.4)',
+  '--landing-border-hover': 'rgba(59, 130, 246, 0.4)',
+  '--landing-text': '#F0F4FF',
+  '--landing-muted': '#8CA3C0',
+  '--landing-accent': '#3B82F6',
+  '--landing-accent-light': '#60A5FA',
+  '--landing-gold': '#F5A623',
+  '--landing-gold-light': '#FBBF24',
   '--landing-green': '#10B981',
   '--landing-red': '#EF4444',
 } as React.CSSProperties
@@ -43,19 +44,24 @@ function smoothScrollTo(id: string) {
 function HeroOrb() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-      {/* Central orb glow */}
+      {/* Central blue orb glow */}
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] rounded-full blur-[140px] opacity-30"
-        style={{ background: 'radial-gradient(ellipse, var(--landing-accent), transparent 70%)' }}
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full blur-[160px] opacity-25"
+        style={{ background: 'radial-gradient(ellipse, var(--landing-accent), #1E3A5F 50%, transparent 70%)' }}
       />
-      {/* Secondary warm glow */}
+      {/* Gold accent glow — offset top-right for depth */}
       <div
-        className="absolute top-1/3 right-1/4 w-[300px] h-[300px] rounded-full blur-[120px] opacity-15"
-        style={{ background: 'var(--landing-amber)' }}
+        className="absolute top-[30%] right-[20%] w-[350px] h-[250px] rounded-full blur-[130px] opacity-15"
+        style={{ background: 'var(--landing-gold)' }}
+      />
+      {/* Subtle cool glow bottom-left for balance */}
+      <div
+        className="absolute bottom-[20%] left-[15%] w-[250px] h-[200px] rounded-full blur-[120px] opacity-10"
+        style={{ background: '#60A5FA' }}
       />
       {/* Subtle grid pattern */}
       <div
-        className="absolute inset-0 opacity-[0.04]"
+        className="absolute inset-0 opacity-[0.03]"
         style={{
           backgroundImage: 'linear-gradient(to right, var(--landing-muted) 1px, transparent 1px), linear-gradient(to bottom, var(--landing-muted) 1px, transparent 1px)',
           backgroundSize: '60px 60px',
@@ -91,7 +97,7 @@ function FeatureCard({
 }) {
   return (
     <div
-      className="group relative p-6 rounded-xl backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(99,102,241,0.08)] hover:border-[rgba(99,102,241,0.4)]"
+      className="group relative p-6 rounded-xl backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(245,166,35,0.12),inset_0_0_0_1px_rgba(245,166,35,0.3)]"
       style={{
         background: 'var(--landing-card)',
         border: '1px solid var(--landing-border)',
@@ -99,7 +105,7 @@ function FeatureCard({
     >
       <div
         className="w-11 h-11 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300"
-        style={{ background: 'rgba(99, 102, 241, 0.12)', color: 'var(--landing-accent-light)' }}
+        style={{ background: 'rgba(59, 130, 246, 0.12)', color: 'var(--landing-accent-light)' }}
       >
         {icon}
       </div>
@@ -118,8 +124,8 @@ function FeatureCard({
       <span
         className="inline-block text-xs px-2.5 py-1 rounded-full font-medium"
         style={{
-          background: 'rgba(99, 102, 241, 0.1)',
-          color: 'var(--landing-accent-light)',
+          background: 'rgba(245, 166, 35, 0.1)',
+          color: 'var(--landing-gold-light)',
         }}
       >
         {tag}
@@ -192,12 +198,12 @@ function NavLanguageSwitcher() {
                 className="w-full flex items-center justify-between px-3 py-2 text-sm transition-colors"
                 style={{
                   color: currentLocale === loc ? 'var(--landing-text)' : 'var(--landing-muted)',
-                  background: currentLocale === loc ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+                  background: currentLocale === loc ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
                 }}
                 onMouseEnter={(e) => {
                   if (currentLocale !== loc) {
                     e.currentTarget.style.color = 'var(--landing-text)'
-                    e.currentTarget.style.background = 'rgba(99, 102, 241, 0.05)'
+                    e.currentTarget.style.background = 'rgba(59, 130, 246, 0.05)'
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -226,11 +232,11 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
   const t = useTranslations('home.nav')
   return (
     <>
-      <div className="fixed inset-0 z-40 backdrop-blur-sm" style={{ background: 'rgba(10, 10, 15, 0.8)' }} onClick={onClose} />
+      <div className="fixed inset-0 z-40 backdrop-blur-sm" style={{ background: 'rgba(5, 10, 20, 0.8)' }} onClick={onClose} />
       <div
         className="fixed top-16 left-0 right-0 z-50 shadow-xl p-4 flex flex-col gap-3 backdrop-blur-md"
         style={{
-          background: 'rgba(15, 23, 42, 0.95)',
+          background: 'rgba(10, 22, 40, 0.95)',
           borderBottom: '1px solid var(--landing-border)',
         }}
       >
@@ -256,7 +262,7 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
             <Button variant="ghost" size="sm" className="w-full" style={{ color: 'var(--landing-text)' }}>{t('signIn')}</Button>
           </Link>
           <Link href="/register" className="flex-1">
-            <Button size="sm" className="w-full" style={{ background: 'var(--landing-accent)', color: '#fff' }}>{t('startFree')}</Button>
+            <Button size="sm" className="w-full" style={{ background: 'var(--landing-gold)', color: '#0A1628' }}>{t('startFree')}</Button>
           </Link>
         </div>
       </div>
@@ -371,7 +377,7 @@ export default function HomePage() {
       <nav
         className="backdrop-blur-md sticky top-0 z-50"
         style={{
-          background: 'rgba(10, 10, 15, 0.85)',
+          background: 'rgba(5, 10, 20, 0.88)',
           borderBottom: '1px solid var(--landing-border)',
         }}
       >
@@ -379,7 +385,7 @@ export default function HomePage() {
           <Link href="/home" className="flex items-center gap-2.5 shrink-0">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'rgba(99, 102, 241, 0.2)' }}
+              style={{ background: 'rgba(59, 130, 246, 0.15)' }}
             >
               <span className="font-bold text-sm" style={{ color: 'var(--landing-accent-light)' }}>OC</span>
             </div>
@@ -405,7 +411,7 @@ export default function HomePage() {
                 <Button
                   size="sm"
                   className="font-medium"
-                  style={{ background: 'var(--landing-accent)', color: '#fff' }}
+                  style={{ background: 'var(--landing-gold)', color: '#0A1628' }}
                 >
                   {t('nav.startFree')}
                 </Button>
@@ -444,14 +450,14 @@ export default function HomePage() {
           <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-8"
             style={{
-              background: 'rgba(99, 102, 241, 0.1)',
-              border: '1px solid rgba(99, 102, 241, 0.25)',
-              color: 'var(--landing-accent-light)',
+              background: 'rgba(245, 166, 35, 0.1)',
+              border: '1px solid rgba(245, 166, 35, 0.3)',
+              color: 'var(--landing-gold)',
             }}
           >
             <span
               className="w-1.5 h-1.5 rounded-full animate-pulse"
-              style={{ background: 'var(--landing-accent-light)' }}
+              style={{ background: 'var(--landing-gold)' }}
             />
             {t('hero.badge')}
           </div>
@@ -464,7 +470,7 @@ export default function HomePage() {
             <span
               className="bg-clip-text text-transparent"
               style={{
-                backgroundImage: 'linear-gradient(135deg, var(--landing-accent-light), #A78BFA, var(--landing-accent))',
+                backgroundImage: 'linear-gradient(135deg, var(--landing-accent-light), var(--landing-gold), var(--landing-accent))',
               }}
             >
               {t('hero.headline')}
@@ -486,9 +492,9 @@ export default function HomePage() {
                 size="lg"
                 className="text-base px-8 h-12 font-medium transition-all duration-200 hover:scale-[1.02] w-full sm:w-auto"
                 style={{
-                  background: 'linear-gradient(135deg, var(--landing-accent), #7C3AED)',
-                  color: '#fff',
-                  boxShadow: '0 4px 24px rgba(99, 102, 241, 0.35)',
+                  background: 'linear-gradient(135deg, var(--landing-gold), #D4880F)',
+                  color: '#0A1628',
+                  boxShadow: '0 4px 24px rgba(245, 166, 35, 0.35)',
                 }}
               >
                 {t('hero.ctaPrimary')}
@@ -580,6 +586,37 @@ export default function HomePage() {
 
       <SectionDivider />
 
+      {/* ========== Social Proof / Numbers ========== */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
+            {[
+              { value: t('stats.modelsValue'), label: t('stats.modelsLabel') },
+              { value: t('stats.sourcesValue'), label: t('stats.sourcesLabel') },
+              { value: t('stats.agentsValue'), label: t('stats.agentsLabel') },
+              { value: t('stats.uptimeValue'), label: t('stats.uptimeLabel') },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center p-6">
+                <div
+                  className="text-3xl sm:text-4xl font-bold mb-2"
+                  style={{
+                    backgroundImage: 'linear-gradient(135deg, var(--landing-accent-light), var(--landing-gold))',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  {stat.value}
+                </div>
+                <p className="text-sm" style={{ color: 'var(--landing-muted)' }}>{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <SectionDivider />
+
       {/* ========== How It Works (3 steps) ========== */}
       <section className="py-24 sm:py-32 px-4 sm:px-6">
         <div className="max-w-[1200px] mx-auto">
@@ -593,10 +630,11 @@ export default function HomePage() {
             {(['1', '2', '3'] as const).map((step) => (
               <div key={step} className="text-center group">
                 <div
-                  className="w-14 h-14 rounded-full font-bold text-xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300"
+                  className="w-14 h-14 rounded-full font-bold text-xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-all duration-300"
                   style={{
-                    background: 'rgba(99, 102, 241, 0.12)',
-                    color: 'var(--landing-accent-light)',
+                    background: 'rgba(245, 166, 35, 0.1)',
+                    color: 'var(--landing-gold)',
+                    border: '1px solid rgba(245, 166, 35, 0.2)',
                   }}
                 >
                   {step}
@@ -680,37 +718,6 @@ export default function HomePage() {
                 ))}
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <SectionDivider />
-
-      {/* ========== Social Proof / Numbers ========== */}
-      <section className="py-24 sm:py-28 px-4 sm:px-6">
-        <div className="max-w-[1200px] mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
-            {[
-              { value: t('stats.modelsValue'), label: t('stats.modelsLabel') },
-              { value: t('stats.sourcesValue'), label: t('stats.sourcesLabel') },
-              { value: t('stats.agentsValue'), label: t('stats.agentsLabel') },
-              { value: t('stats.uptimeValue'), label: t('stats.uptimeLabel') },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center p-6">
-                <div
-                  className="text-3xl sm:text-4xl font-bold mb-2"
-                  style={{
-                    backgroundImage: 'linear-gradient(135deg, var(--landing-accent-light), var(--landing-amber))',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                  }}
-                >
-                  {stat.value}
-                </div>
-                <p className="text-sm" style={{ color: 'var(--landing-muted)' }}>{stat.label}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -801,13 +808,13 @@ export default function HomePage() {
               className="p-6 rounded-xl text-center relative"
               style={{
                 background: 'var(--landing-card)',
-                border: '2px solid var(--landing-accent)',
-                boxShadow: '0 0 30px rgba(99, 102, 241, 0.15)',
+                border: '2px solid var(--landing-gold)',
+                boxShadow: '0 0 30px rgba(245, 166, 35, 0.15)',
               }}
             >
               <div
                 className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[11px] font-semibold"
-                style={{ background: 'var(--landing-accent)', color: '#fff' }}
+                style={{ background: 'var(--landing-gold)', color: '#0A1628' }}
               >
                 {t('pricingPreview.popular')}
               </div>
@@ -820,7 +827,7 @@ export default function HomePage() {
                 <Button
                   size="sm"
                   className="w-full font-medium"
-                  style={{ background: 'var(--landing-accent)', color: '#fff' }}
+                  style={{ background: 'var(--landing-gold)', color: '#0A1628' }}
                 >
                   {t('pricingPreview.cta')}
                 </Button>
@@ -885,7 +892,11 @@ export default function HomePage() {
       <section className="relative py-24 sm:py-32 px-4 sm:px-6 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full blur-[100px] opacity-20"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full blur-[120px] opacity-15"
+            style={{ background: 'var(--landing-gold)' }}
+          />
+          <div
+            className="absolute top-[40%] left-[30%] w-[400px] h-[300px] rounded-full blur-[140px] opacity-10"
             style={{ background: 'var(--landing-accent)' }}
           />
         </div>
@@ -904,9 +915,9 @@ export default function HomePage() {
               size="lg"
               className="text-base px-10 h-13 font-medium transition-all duration-200 hover:scale-[1.02]"
               style={{
-                background: 'linear-gradient(135deg, var(--landing-accent), #7C3AED)',
-                color: '#fff',
-                boxShadow: '0 4px 24px rgba(99, 102, 241, 0.35)',
+                background: 'linear-gradient(135deg, var(--landing-gold), #D4880F)',
+                color: '#0A1628',
+                boxShadow: '0 4px 24px rgba(245, 166, 35, 0.35)',
               }}
             >
               {t('cta.button')}
@@ -923,7 +934,7 @@ export default function HomePage() {
               <div className="flex items-center gap-2 mb-2">
                 <div
                   className="w-6 h-6 rounded flex items-center justify-center"
-                  style={{ background: 'rgba(99, 102, 241, 0.2)' }}
+                  style={{ background: 'rgba(59, 130, 246, 0.15)' }}
                 >
                   <span className="font-bold text-[10px]" style={{ color: 'var(--landing-accent-light)' }}>OC</span>
                 </div>
