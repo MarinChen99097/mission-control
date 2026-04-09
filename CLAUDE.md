@@ -72,6 +72,34 @@ Database path: `MISSION_CONTROL_DB_PATH` (defaults to `.data/mission-control.db`
 - **Icons**: No icon libraries -- use raw text/emoji in components
 - **Standalone output**: `next.config.js` sets `output: 'standalone'`
 
+## OrgOfClaws Deployment (orgofclaws.com)
+
+MC is deployed on Cloud Run as the frontend for OrgOfClaws SaaS platform.
+
+**⚠️ Current State (Phase 0 — Desktop Bridge):**
+```
+MC (Cloud Run) → gateway.orgofclaws.com → Cloudflare Tunnel → Martin's Desktop
+  → localhost:18789 (openclaw-gateway)
+  → localhost:18790 (skills-api — serves /api/skills, /api/sessions, MCP)
+  → localhost:18792 (webhook-receiver — /api/mc-task)
+```
+- All OpenClaw agent runtime is on Martin's desktop, not on GCP
+- If desktop is off, all agent/skill/MCP functionality is unavailable
+- MC itself remains up (Cloud Run) but shows gateway disconnected
+
+**Target (Phase 1 — Cloud Laptop):**
+- `gateway.orgofclaws.com` → Cloudflare Tunnel → Cloud Laptop VM (GCE)
+- VM auto-syncs agent configs from `orgofclaws-infra/openclaw-configs/`
+- See `orgofclaws-infra/CLAUDE.md` for VM architecture
+
+**MC env vars for gateway connection:**
+| Var | Value | Purpose |
+|-----|-------|---------|
+| `OPENCLAW_GATEWAY_HOST` | `gateway.orgofclaws.com` | Server-side gateway URL |
+| `NEXT_PUBLIC_ORGOFCLAWS_WS_BASE` | `wss://orgofclaws.com/ws` | Client-side WebSocket |
+| `NEXT_PUBLIC_GATEWAY_OPTIONAL` | `true` | Graceful degradation when gateway is down |
+| `NEXT_PUBLIC_GATEWAY_PORT` | `443` | HTTPS through Cloudflare |
+
 ## Agent Control Interfaces
 
 Mission Control provides three interfaces for autonomous agents:

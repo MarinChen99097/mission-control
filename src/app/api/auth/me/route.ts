@@ -6,6 +6,9 @@ import { getMcSessionCookieName, getMcSessionCookieOptions, isRequestSecure } fr
 import { logger } from '@/lib/logger'
 
 export async function GET(request: Request) {
+  // Session cookie is always a local SQLite session token (even when MB auth is used,
+  // login/register/google routes upsert a local user and create a local session).
+  // getUserFromRequest() handles all auth modes: session cookie, API key, proxy header.
   const auth = requireRole(request, 'viewer')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 

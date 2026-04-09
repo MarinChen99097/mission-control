@@ -3,7 +3,7 @@ import { createUser } from '@/lib/auth'
 import { getDatabase, logAuditEvent } from '@/lib/db'
 import { createRateLimiter, extractClientIp } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
-import { isMarketingBackendEnabled, mbRegister, mbGetMe } from '@/lib/marketing-backend'
+import { isMarketingBackendEnabled, mbRegister, mbGetMe, upsertMarketingUser } from '@/lib/marketing-backend'
 import { getMcSessionCookieName, getMcSessionCookieOptions, isRequestSecure } from '@/lib/session-cookie'
 
 // Stricter rate limit for registration: 5 per IP per hour
@@ -81,10 +81,16 @@ export async function POST(request: Request) {
         const isSecureRequest = isRequestSecure(request)
         const cookieName = getMcSessionCookieName(isSecureRequest)
 
+        // Upsert local SQLite user + create local session so getUserFromRequest() works
+        const { userId, sessionToken, expiresAt } = upsertMarketingUser(
+          { email: userProfile.email || email, full_name: userProfile.full_name || displayName, avatar_url: userProfile.avatar_url },
+          { ipAddress, userAgent }
+        )
+
         const response = NextResponse.json({
           ok: true,
           user: {
-            id: userProfile.id || 'mb-user',
+            id: userId,
             username: userProfile.email || email,
             display_name: userProfile.full_name || displayName,
             role: 'admin',
@@ -96,9 +102,18 @@ export async function POST(request: Request) {
           },
         }, { status: 201 })
 
-        // Set JWT cookie
-        response.cookies.set(cookieName, mbResult.access_token, {
-          ...getMcSessionCookieOptions({ maxAgeSeconds: 43200, isSecureRequest }),
+        // Store local session token as cookie (not MB JWT)
+        response.cookies.set(cookieName, sessionToken, {
+          ...getMcSessionCookieOptions({ maxAgeSeconds: expiresAt - Math.floor(Date.now() / 1000), isSecureRequest }),
+        })
+
+        // Store MB JWT in separate cookie for downstream service calls
+        response.cookies.set('oc_token', mbResult.access_token, {
+          httpOnly: true,
+          secure: isSecureRequest,
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 43200,
         })
 
         if (mbResult.refresh_token) {

@@ -7,6 +7,10 @@
  * When MARKETING_BACKEND_URL is not set, falls back to MC's local auth.
  */
 
+import { randomBytes } from 'crypto'
+import { getDatabase } from './db'
+import { createSession, createUser } from './auth'
+
 const MARKETING_BACKEND_URL = process.env.MARKETING_BACKEND_URL || process.env.NEXT_PUBLIC_MARKETING_BACKEND_URL || ''
 
 export function isMarketingBackendEnabled(): boolean {
@@ -141,4 +145,59 @@ export async function mbRefreshToken(refreshToken: string): Promise<MBLoginResul
   }
 
   return res.json()
+}
+
+/**
+ * Upsert a local SQLite user from Marketing Backend profile and create a session.
+ *
+ * After MB auth succeeds, MC needs a local user record so that getUserFromRequest()
+ * works for all subsequent API calls. This bridges MB auth → MC local session.
+ */
+export function upsertMarketingUser(profile: {
+  email: string
+  full_name?: string
+  avatar_url?: string | null
+  id?: string
+}, options?: {
+  provider?: 'local' | 'google'
+  ipAddress?: string
+  userAgent?: string
+}): { userId: number; sessionToken: string; expiresAt: number } {
+  const db = getDatabase()
+  const email = profile.email.toLowerCase().trim()
+  const displayName = profile.full_name || email.split('@')[0] || 'User'
+  const username = email.replace(/[^a-z0-9._-]/g, '-').slice(0, 28).padEnd(3, '0')
+  const provider = options?.provider || 'local'
+
+  // Check if user already exists by email
+  const existing = db.prepare(`
+    SELECT id, username FROM users WHERE lower(email) = ?
+  `).get(email) as { id: number; username: string } | undefined
+
+  let userId: number
+
+  if (existing) {
+    // Update profile fields
+    const now = Math.floor(Date.now() / 1000)
+    db.prepare(`
+      UPDATE users SET display_name = ?, avatar_url = COALESCE(?, avatar_url), provider = ?, updated_at = ?
+      WHERE id = ?
+    `).run(displayName, profile.avatar_url || null, provider, now, existing.id)
+    userId = existing.id
+  } else {
+    // Create new user with random password (MB users don't use local password)
+    const randomPassword = randomBytes(32).toString('hex')
+    const user = createUser(username, randomPassword, displayName, 'admin', {
+      provider,
+      email,
+      avatar_url: profile.avatar_url || null,
+      is_approved: 1,
+    })
+    userId = user.id
+  }
+
+  // Create a local session
+  const { token, expiresAt } = createSession(userId, options?.ipAddress, options?.userAgent)
+
+  return { userId, sessionToken: token, expiresAt }
 }

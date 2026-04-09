@@ -5,6 +5,8 @@ import { getDatabase, logAuditEvent } from '@/lib/db'
 import { verifyGoogleIdToken } from '@/lib/google-auth'
 import { getMcSessionCookieName, getMcSessionCookieOptions, isRequestSecure } from '@/lib/session-cookie'
 import { loginLimiter } from '@/lib/rate-limit'
+import { isMarketingBackendEnabled, mbGoogleAuth, mbGetMe, upsertMarketingUser } from '@/lib/marketing-backend'
+import { logger } from '@/lib/logger'
 
 function upsertAccessRequest(input: {
   email: string
@@ -33,6 +35,80 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}))
     const credential = String(body?.credential || '')
+
+    const isSecureRequest = isRequestSecure(request)
+    const cookieName = getMcSessionCookieName(isSecureRequest)
+
+    // ─── Marketing Backend auth (OrgOfClaws mode) ───
+    if (isMarketingBackendEnabled()) {
+      try {
+        const mbResult = await mbGoogleAuth(credential)
+
+        if (!mbResult.access_token) {
+          return NextResponse.json({ error: 'Google sign-in failed' }, { status: 401 })
+        }
+
+        // Get user profile
+        let userProfile: any = {}
+        try {
+          userProfile = await mbGetMe(mbResult.access_token)
+        } catch { /* non-fatal */ }
+
+        const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+        const userAgent = request.headers.get('user-agent') || undefined
+
+        // Upsert local SQLite user + create local session so getUserFromRequest() works
+        const { userId, sessionToken, expiresAt } = upsertMarketingUser(
+          { email: userProfile.email || 'google-user', full_name: userProfile.full_name || 'Google User', avatar_url: userProfile.avatar_url },
+          { provider: 'google', ipAddress, userAgent }
+        )
+
+        const response = NextResponse.json({
+          user: {
+            id: userId,
+            username: userProfile.email || 'google-user',
+            display_name: userProfile.full_name || 'Google User',
+            role: 'admin',
+            provider: 'google',
+            email: userProfile.email || null,
+            avatar_url: userProfile.avatar_url || null,
+            workspace_id: 1,
+            tenant_id: 1,
+          },
+        })
+
+        // Store local session token as cookie (not MB JWT)
+        response.cookies.set(cookieName, sessionToken, {
+          ...getMcSessionCookieOptions({ maxAgeSeconds: expiresAt - Math.floor(Date.now() / 1000), isSecureRequest }),
+        })
+
+        // Store MB JWT in separate cookie for downstream service calls
+        response.cookies.set('oc_token', mbResult.access_token, {
+          httpOnly: true,
+          secure: isSecureRequest,
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 43200,
+        })
+
+        if (mbResult.refresh_token) {
+          response.cookies.set('mc_refresh_token', mbResult.refresh_token, {
+            httpOnly: true,
+            secure: isSecureRequest,
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 30 * 24 * 3600,
+          })
+        }
+
+        return response
+      } catch (error: any) {
+        logger.warn({ err: error?.message }, 'Marketing Backend Google auth failed, trying local fallback')
+        // Fall through to local auth
+      }
+    }
+
+    // ─── Local auth (self-hosted mode, fallback) ───
     const profile = await verifyGoogleIdToken(credential)
 
     const db = getDatabase()
@@ -99,9 +175,6 @@ export async function POST(request: NextRequest) {
         tenant_id: row.tenant_id ?? 1,
       },
     })
-
-    const isSecureRequest = isRequestSecure(request)
-    const cookieName = getMcSessionCookieName(isSecureRequest)
 
     response.cookies.set(cookieName, token, {
       ...getMcSessionCookieOptions({ maxAgeSeconds: expiresAt - Math.floor(Date.now() / 1000), isSecureRequest }),
