@@ -79,16 +79,12 @@ const brand = isOrgOfClaws
       description:
         'Deploy your own AI agent team. Org of Claws orchestrates specialized AI agents that handle marketing, engineering, sales, and operations — so you can focus on growing your business.',
       siteName: 'Org of Claws',
-      ogAlt: 'Org of Claws — AI agent team platform',
-      ogImage: '/brand/openclaw-logo.png',
     }
   : {
       title: 'Mission Control — AI Agent Orchestration Dashboard',
       description:
         'Open-source dashboard for AI agent orchestration. Manage agent fleets, dispatch tasks, track costs, and coordinate multi-agent workflows. Self-hosted, zero dependencies, SQLite-powered.',
       siteName: 'Mission Control',
-      ogAlt: 'Mission Control — open-source AI agent orchestration dashboard',
-      ogImage: '/brand/mc-logo-512.png',
     }
 
 export const viewport: Viewport = {
@@ -112,15 +108,15 @@ export const metadata: Metadata = {
   openGraph: {
     title: brand.title,
     description: brand.description,
-    images: [{ url: brand.ogImage, width: 512, height: 512, alt: brand.ogAlt }],
     type: 'website',
     siteName: brand.siteName,
+    // images provided by src/app/opengraph-image.tsx (dynamic)
   },
   twitter: {
     card: 'summary_large_image',
     title: brand.title,
     description: brand.description,
-    images: [brand.ogImage],
+    // images provided by src/app/twitter-image.tsx (dynamic)
   },
   appleWebApp: {
     capable: true,
