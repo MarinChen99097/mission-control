@@ -2769,7 +2769,17 @@
       "subheadline": "Marketing, nghiên cứu, bán hàng, tiếp cận khách hàng — tất cả do các AI agent hoạt động 24/7 đảm nhận. Một nền tảng. Một gói đăng ký. Không phức tạp.",
       "ctaPrimary": "Bắt đầu ngay — $10/tháng",
       "ctaSecondary": "Khám phá bên trong",
-      "trustLine": "Sử dụng 5 mô hình AI \u2022 47+ nguồn dữ liệu \u2022 100+ doanh nghiệp tin dùng"
+      "trustLine": "Sử dụng 5 mô hình AI \u2022 47+ nguồn dữ liệu \u2022 100+ doanh nghiệp tin dùng",
+      "poweredBy": "Sử dụng các mô hình AI hàng đầu"
+    },
+    "mockup": {
+      "marketing": "Marketing",
+      "research": "Nghiên cứu",
+      "email": "Email Engine",
+      "analytics": "Phân tích",
+      "tasks": "Tác vụ",
+      "agents": "Agent",
+      "savings": "Tiết kiệm"
     },
     "steps": {
       "title": "Bắt đầu chỉ trong 3 bước",
@@ -2843,7 +2853,8 @@
       "proName": "Pro",
       "maxName": "Max",
       "popular": "Phổ biến nhất",
-      "cta": "Xem chi tiết"
+      "cta": "Xem chi tiết",
+      "perMonth": "/tháng"
     },
     "faq": {
       "title": "Câu hỏi thường gặp",

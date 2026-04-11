@@ -2769,7 +2769,17 @@
       "subheadline": "Marketing, recherche, vente, prospection — gérés par des agents IA qui ne dorment jamais. Une plateforme. Un abonnement. Zéro complexité.",
       "ctaPrimary": "Commencer — $10/mois",
       "ctaSecondary": "Découvrir le contenu",
-      "trustLine": "Propulsé par 5 modèles IA \u2022 47+ sources de données \u2022 Utilisé par plus de 100 entreprises"
+      "trustLine": "Propulsé par 5 modèles IA \u2022 47+ sources de données \u2022 Utilisé par plus de 100 entreprises",
+      "poweredBy": "Propulsé par les meilleurs modèles d'IA"
+    },
+    "mockup": {
+      "marketing": "Marketing",
+      "research": "Recherche",
+      "email": "Moteur Email",
+      "analytics": "Analytique",
+      "tasks": "Tâches",
+      "agents": "Agents",
+      "savings": "Économies"
     },
     "steps": {
       "title": "Opérationnel en 3 étapes",
@@ -2843,7 +2853,8 @@
       "proName": "Pro",
       "maxName": "Max",
       "popular": "Le Plus Populaire",
-      "cta": "Voir les Détails"
+      "cta": "Voir les Détails",
+      "perMonth": "/mois"
     },
     "faq": {
       "title": "Questions Fréquentes",

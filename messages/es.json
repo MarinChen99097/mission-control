@@ -2769,7 +2769,17 @@
       "subheadline": "Marketing, investigación, ventas, alcance — todo gestionado por agentes de IA que nunca descansan. Una plataforma. Una suscripción. Cero complejidad.",
       "ctaPrimary": "Comenzar — $10/mes",
       "ctaSecondary": "Descubre qué incluye",
-      "trustLine": "Impulsado por 5 modelos de IA \u2022 47+ fuentes de datos \u2022 Usado por más de 100 empresas"
+      "trustLine": "Impulsado por 5 modelos de IA \u2022 47+ fuentes de datos \u2022 Usado por más de 100 empresas",
+      "poweredBy": "Impulsado por los mejores modelos de IA"
+    },
+    "mockup": {
+      "marketing": "Marketing",
+      "research": "Investigación",
+      "email": "Motor de Email",
+      "analytics": "Analítica",
+      "tasks": "Tareas",
+      "agents": "Agentes",
+      "savings": "Ahorro"
     },
     "steps": {
       "title": "Listo en 3 pasos",
@@ -2843,7 +2853,8 @@
       "proName": "Pro",
       "maxName": "Max",
       "popular": "Más Popular",
-      "cta": "Ver Detalles"
+      "cta": "Ver Detalles",
+      "perMonth": "/mes"
     },
     "faq": {
       "title": "Preguntas Frecuentes",

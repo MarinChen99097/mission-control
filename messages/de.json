@@ -2769,7 +2769,17 @@
       "subheadline": "Marketing, Recherche, Vertrieb, Outreach — erledigt von KI-Agenten, die nie schlafen. Eine Plattform. Ein Abonnement. Null Komplexität.",
       "ctaPrimary": "Jetzt starten — $10/Monat",
       "ctaSecondary": "Funktionen entdecken",
-      "trustLine": "Angetrieben von 5 KI-Modellen \u2022 47+ Datenquellen \u2022 Von über 100 Unternehmen genutzt"
+      "trustLine": "Angetrieben von 5 KI-Modellen \u2022 47+ Datenquellen \u2022 Von über 100 Unternehmen genutzt",
+      "poweredBy": "Angetrieben von führenden KI-Modellen"
+    },
+    "mockup": {
+      "marketing": "Marketing",
+      "research": "Recherche",
+      "email": "E-Mail-Engine",
+      "analytics": "Analytik",
+      "tasks": "Aufgaben",
+      "agents": "Agenten",
+      "savings": "Ersparnis"
     },
     "steps": {
       "title": "In 3 Schritten einsatzbereit",
@@ -2843,7 +2853,8 @@
       "proName": "Pro",
       "maxName": "Max",
       "popular": "Am Beliebtesten",
-      "cta": "Details ansehen"
+      "cta": "Details ansehen",
+      "perMonth": "/Mon."
     },
     "faq": {
       "title": "Häufig gestellte Fragen",

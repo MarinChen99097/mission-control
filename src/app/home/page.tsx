@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { locales, localeNames, type Locale } from '@/i18n/config'
@@ -15,7 +15,6 @@ const landingColors = {
   '--landing-card': 'rgba(10, 30, 60, 0.6)',
   '--landing-card-solid': '#0C1E35',
   '--landing-border': 'rgba(30, 58, 95, 0.4)',
-  '--landing-border-hover': 'rgba(59, 130, 246, 0.4)',
   '--landing-text': '#F0F4FF',
   '--landing-muted': '#8CA3C0',
   '--landing-accent': '#3B82F6',
@@ -74,7 +73,7 @@ function HeroOrb() {
 
 /* ---------- Hero Dashboard Mockup (CSS illustration) ---------- */
 
-function HeroDashboardMockup() {
+function HeroDashboardMockup({ t }: { t: ReturnType<typeof useTranslations> }) {
   return (
     <div className="relative mt-16 mx-auto max-w-4xl" aria-hidden="true">
       {/* Glow behind the mockup */}
@@ -110,10 +109,10 @@ function HeroDashboardMockup() {
           {/* Left sidebar - agent list */}
           <div className="col-span-1 space-y-2.5">
             {[
-              { name: 'Marketing Lead', status: 'active', color: '#10B981' },
-              { name: 'Research Agent', status: 'active', color: '#10B981' },
-              { name: 'Email Engine', status: 'running', color: '#F5A623' },
-              { name: 'Analytics', status: 'idle', color: '#60A5FA' },
+              { name: t('mockup.marketing'), status: 'active', color: '#10B981' },
+              { name: t('mockup.research'), status: 'active', color: '#10B981' },
+              { name: t('mockup.email'), status: 'running', color: '#F5A623' },
+              { name: t('mockup.analytics'), status: 'idle', color: '#60A5FA' },
             ].map((agent) => (
               <div
                 key={agent.name}
@@ -131,9 +130,9 @@ function HeroDashboardMockup() {
             {/* Stat cards row */}
             <div className="grid grid-cols-3 gap-2">
               {[
-                { label: 'Tasks', value: '142', delta: '+12%' },
-                { label: 'Agents', value: '6', delta: 'Online' },
-                { label: 'Savings', value: '$4.2K', delta: '/month' },
+                { label: t('mockup.tasks'), value: '142', delta: '+12%' },
+                { label: t('mockup.agents'), value: '6', delta: 'Online' },
+                { label: t('mockup.savings'), value: '$4.2K', delta: '/month' },
               ].map((s) => (
                 <div
                   key={s.label}
@@ -271,6 +270,8 @@ function NavLanguageSwitcher() {
         style={{ color: 'var(--landing-muted)' }}
         onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--landing-text)' }}
         onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--landing-muted)' }}
+        onFocus={(e) => { e.currentTarget.style.color = 'var(--landing-text)' }}
+        onBlur={(e) => { e.currentTarget.style.color = 'var(--landing-muted)' }}
         aria-label="Language"
         aria-expanded={open}
         aria-haspopup="listbox"
@@ -309,6 +310,18 @@ function NavLanguageSwitcher() {
                   }
                 }}
                 onMouseLeave={(e) => {
+                  if (currentLocale !== loc) {
+                    e.currentTarget.style.color = 'var(--landing-muted)'
+                    e.currentTarget.style.background = 'transparent'
+                  }
+                }}
+                onFocus={(e) => {
+                  if (currentLocale !== loc) {
+                    e.currentTarget.style.color = 'var(--landing-text)'
+                    e.currentTarget.style.background = 'rgba(59, 130, 246, 0.05)'
+                  }
+                }}
+                onBlur={(e) => {
                   if (currentLocale !== loc) {
                     e.currentTarget.style.color = 'var(--landing-muted)'
                     e.currentTarget.style.background = 'transparent'
@@ -462,9 +475,7 @@ export default function HomePage() {
   const t = useTranslations('home')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const handleNavClick = useCallback((id: string) => {
-    smoothScrollTo(id)
-  }, [])
+  const handleNavClick = (id: string) => smoothScrollTo(id)
 
   return (
     <div
@@ -625,7 +636,7 @@ export default function HomePage() {
           </p>
 
           {/* Dashboard mockup illustration */}
-          <HeroDashboardMockup />
+          <HeroDashboardMockup t={t} />
         </div>
       </section>
 
@@ -635,7 +646,7 @@ export default function HomePage() {
       <section className="py-10 sm:py-14 px-4 sm:px-6">
         <div className="max-w-[800px] mx-auto">
           <p className="text-center text-xs mb-6 uppercase tracking-widest font-medium" style={{ color: 'var(--landing-muted)', opacity: 0.6 }}>
-            Powered by leading AI models
+            {t('hero.poweredBy')}
           </p>
           <div className="flex items-center justify-center gap-6 sm:gap-10 flex-wrap">
             {[
@@ -766,7 +777,7 @@ export default function HomePage() {
           </h2>
           <div className="relative grid sm:grid-cols-3 gap-8 sm:gap-12">
             {/* Connecting lines between steps (desktop only) */}
-            <div className="hidden sm:block absolute top-7 left-[calc(16.67%+28px)] right-[calc(16.67%+28px)] h-px" style={{ background: 'linear-gradient(to right, rgba(245, 166, 35, 0.3), rgba(59, 130, 246, 0.3))' }} aria-hidden="true">
+            <div className="hidden sm:block absolute top-10 left-[calc(16.67%+40px)] right-[calc(16.67%+40px)] h-px" style={{ background: 'linear-gradient(to right, rgba(245, 166, 35, 0.3), rgba(59, 130, 246, 0.3))' }} aria-hidden="true">
               <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full" style={{ background: 'rgba(245, 166, 35, 0.5)' }} />
             </div>
             {(['1', '2', '3'] as const).map((step) => (
@@ -952,7 +963,7 @@ export default function HomePage() {
               <h3 className="font-semibold text-lg mb-1" style={{ color: 'var(--landing-text)' }}>{t('pricingPreview.starterName')}</h3>
               <div className="mb-3">
                 <span className="text-3xl font-bold" style={{ color: 'var(--landing-text)' }}>$10</span>
-                <span className="text-sm" style={{ color: 'var(--landing-muted)' }}>/mo</span>
+                <span className="text-sm" style={{ color: 'var(--landing-muted)' }}>{t('pricingPreview.perMonth')}</span>
               </div>
               <Link href="/pricing">
                 <Button
@@ -983,7 +994,7 @@ export default function HomePage() {
               <h3 className="font-semibold text-lg mb-1" style={{ color: 'var(--landing-text)' }}>{t('pricingPreview.proName')}</h3>
               <div className="mb-3">
                 <span className="text-3xl font-bold" style={{ color: 'var(--landing-text)' }}>$19</span>
-                <span className="text-sm" style={{ color: 'var(--landing-muted)' }}>/mo</span>
+                <span className="text-sm" style={{ color: 'var(--landing-muted)' }}>{t('pricingPreview.perMonth')}</span>
               </div>
               <Link href="/pricing">
                 <Button
@@ -1004,7 +1015,7 @@ export default function HomePage() {
               <h3 className="font-semibold text-lg mb-1" style={{ color: 'var(--landing-text)' }}>{t('pricingPreview.maxName')}</h3>
               <div className="mb-3">
                 <span className="text-3xl font-bold" style={{ color: 'var(--landing-text)' }}>$35</span>
-                <span className="text-sm" style={{ color: 'var(--landing-muted)' }}>/mo</span>
+                <span className="text-sm" style={{ color: 'var(--landing-muted)' }}>{t('pricingPreview.perMonth')}</span>
               </div>
               <Link href="/pricing">
                 <Button

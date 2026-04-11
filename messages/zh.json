@@ -2823,7 +2823,17 @@
       "subheadline": "行銷、研究、銷售、客戶開發，全交給 AI 智能體全天候運作。一個平台，一筆訂閱，零學習門檻。",
       "ctaPrimary": "立即開始 · $10/月",
       "ctaSecondary": "看看有什麼功能",
-      "trustLine": "5 個 AI 模型 • 47+ 資料來源 • 100+ 企業使用中"
+      "trustLine": "5 個 AI 模型 • 47+ 資料來源 • 100+ 企業使用中",
+      "poweredBy": "由頂尖 AI 模型驅動"
+    },
+    "mockup": {
+      "marketing": "行銷主管",
+      "research": "研究智能體",
+      "email": "郵件引擎",
+      "analytics": "數據分析",
+      "tasks": "任務",
+      "agents": "智能體",
+      "savings": "節省成本"
     },
     "steps": {
       "title": "3 步驟，馬上開工",
@@ -2897,7 +2907,8 @@
       "proName": "進階版",
       "maxName": "旗艦版",
       "popular": "最多人選",
-      "cta": "看詳情"
+      "cta": "看詳情",
+      "perMonth": "/月"
     },
     "faq": {
       "title": "常見問題",

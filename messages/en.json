@@ -2823,7 +2823,17 @@
       "subheadline": "Marketing, research, sales, outreach — handled by AI agents that never sleep. One platform. One subscription. Zero complexity.",
       "ctaPrimary": "Get Started — $10/mo",
       "ctaSecondary": "See What's Inside",
-      "trustLine": "Powered by 5 AI models \u2022 47+ data sources \u2022 Used by 100+ businesses"
+      "trustLine": "Powered by 5 AI models \u2022 47+ data sources \u2022 Used by 100+ businesses",
+      "poweredBy": "Powered by leading AI models"
+    },
+    "mockup": {
+      "marketing": "Marketing Lead",
+      "research": "Research Agent",
+      "email": "Email Engine",
+      "analytics": "Analytics",
+      "tasks": "Tasks",
+      "agents": "Agents",
+      "savings": "Savings"
     },
     "steps": {
       "title": "Up and running in 3 steps",
@@ -2897,7 +2907,8 @@
       "proName": "Pro",
       "maxName": "Max",
       "popular": "Most Popular",
-      "cta": "See Details"
+      "cta": "See Details",
+      "perMonth": "/mo"
     },
     "faq": {
       "title": "Frequently Asked Questions",

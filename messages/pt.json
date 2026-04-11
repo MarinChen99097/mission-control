@@ -2769,7 +2769,17 @@
       "subheadline": "Marketing, pesquisa, vendas, prospecção — tudo gerenciado por agentes AI que nunca dormem. Uma plataforma. Uma assinatura. Zero complexidade.",
       "ctaPrimary": "Comece agora — $10/mês",
       "ctaSecondary": "Veja o que tem dentro",
-      "trustLine": "Alimentado por 5 modelos de AI \u2022 47+ fontes de dados \u2022 Usado por 100+ empresas"
+      "trustLine": "Alimentado por 5 modelos de AI \u2022 47+ fontes de dados \u2022 Usado por 100+ empresas",
+      "poweredBy": "Impulsionado pelos melhores modelos de IA"
+    },
+    "mockup": {
+      "marketing": "Marketing",
+      "research": "Pesquisa",
+      "email": "Motor de Email",
+      "analytics": "Análise",
+      "tasks": "Tarefas",
+      "agents": "Agentes",
+      "savings": "Economia"
     },
     "steps": {
       "title": "Pronto em 3 passos",
@@ -2843,7 +2853,8 @@
       "proName": "Pro",
       "maxName": "Max",
       "popular": "Mais popular",
-      "cta": "Ver detalhes"
+      "cta": "Ver detalhes",
+      "perMonth": "/mês"
     },
     "faq": {
       "title": "Perguntas frequentes",
