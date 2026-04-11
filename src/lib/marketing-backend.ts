@@ -157,7 +157,6 @@ export function upsertMarketingUser(profile: {
   email: string
   full_name?: string
   avatar_url?: string | null
-  id?: string
 }, options?: {
   provider?: 'local' | 'google'
   ipAddress?: string
