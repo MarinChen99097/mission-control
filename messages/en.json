@@ -285,7 +285,7 @@
     "apiKeyRotating": "Rotating...",
     "apiKeyConfirmRotate": "Confirm Rotate",
     "apiKeyCancel": "Cancel",
-    "apiKeyNewGenerated": "New API key generated. Copy it now -- it will not be shown again.",
+    "apiKeyNewGenerated": "New API key generated. Copy it now — it won't be shown again.",
     "apiKeyCopied": "Copied!",
     "apiKeyCopy": "Copy",
     "apiKeyDismiss": "Dismiss",
@@ -2820,8 +2820,8 @@
     "hero": {
       "badge": "AI Business OS for SMEs",
       "headline": "Your AI Business Team",
-      "subheadline": "Build, market, sell, research -- all with AI agents that work 24/7. One platform. One subscription. Zero complexity.",
-      "ctaPrimary": "Get Started -- $10/mo",
+      "subheadline": "Marketing, research, sales, outreach — handled by AI agents that never sleep. One platform. One subscription. Zero complexity.",
+      "ctaPrimary": "Get Started — $10/mo",
       "ctaSecondary": "See What's Inside",
       "trustLine": "Powered by 5 AI models \u2022 47+ data sources \u2022 Used by 100+ businesses"
     },
@@ -2830,13 +2830,13 @@
       "step1Title": "Pick a plan",
       "step1Desc": "$10/mo gets you started. All features included from day one.",
       "step2Title": "Connect your apps",
-      "step2Desc": "Google Drive, Notion, GitHub, social accounts -- one-click integrations.",
+      "step2Desc": "Google Drive, Notion, GitHub, social accounts — connect them all in one click.",
       "step3Title": "Your AI team starts working",
-      "step3Desc": "24/7 automated, intelligent. Marketing, research, outreach -- all handled."
+      "step3Desc": "Marketing, research, outreach — your AI team works around the clock while you focus on growing."
     },
     "features": {
       "title": "One platform. Every tool you need.",
-      "subtitle": "Six AI-powered engines that replace an entire team. From marketing to research to outreach -- all in one dashboard.",
+      "subtitle": "Six AI-powered engines that do the work of an entire team — from marketing to research to outreach, all in one dashboard.",
       "marketingTitle": "AI Marketing Engine",
       "marketingDesc": "Generate campaigns, landing pages, and social content. AI creates everything from strategy to visuals.",
       "marketingTag": "Campaigns in minutes",
@@ -2903,7 +2903,7 @@
       "title": "Frequently Asked Questions",
       "subtitle": "Everything you need to know before getting started.",
       "q1": "What is OrgOfClaws?",
-      "a1": "OrgOfClaws is a complete AI-powered business operating system. It gives you an entire AI team -- marketing, research, outreach, automation -- all working 24/7 from one platform. Think of it as hiring a full team for the price of a coffee per day.",
+      "a1": "OrgOfClaws is a complete AI-powered business operating system. It gives you an entire AI team — marketing, research, outreach, automation — all working 24/7 from one platform. Think of it as hiring a full team for the price of a coffee per day.",
       "q2": "Do I need technical knowledge?",
       "a2": "Not at all. Everything is set up automatically. Connect your apps with one click, and your AI team starts working immediately. If you can use a web browser, you can use OrgOfClaws.",
       "q3": "What AI models are included?",
@@ -2913,7 +2913,7 @@
       "q5": "Can I cancel anytime?",
       "a5": "Yes. No contracts, no lock-in. Cancel with one click. Your data is preserved for 30 days in case you change your mind, then securely deleted.",
       "q6": "How is this different from ChatGPT or other AI tools?",
-      "a6": "ChatGPT is a chat window. Other tools do one thing. OrgOfClaws is a complete business OS -- it generates marketing campaigns, runs deep research with 16 agents across 47+ sources, sends cold emails at scale, automates your workflows, and tracks everything in one dashboard. It's your AI business team, not just a chatbot."
+      "a6": "ChatGPT is a chat window. Other tools do one thing. OrgOfClaws is a complete business OS — it generates marketing campaigns, runs deep research with 16 agents across 47+ sources, sends cold emails at scale, automates your workflows, and tracks everything in one dashboard. It's your AI business team, not just a chatbot."
     },
     "cta": {
       "title": "Ready to build your AI business team?",

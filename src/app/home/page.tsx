@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { Button } from '@/components/ui/button'
@@ -67,6 +68,107 @@ function HeroOrb() {
           backgroundSize: '60px 60px',
         }}
       />
+    </div>
+  )
+}
+
+/* ---------- Hero Dashboard Mockup (CSS illustration) ---------- */
+
+function HeroDashboardMockup() {
+  return (
+    <div className="relative mt-16 mx-auto max-w-4xl" aria-hidden="true">
+      {/* Glow behind the mockup */}
+      <div
+        className="absolute -inset-6 rounded-3xl blur-[60px] opacity-20"
+        style={{ background: 'linear-gradient(135deg, var(--landing-accent), var(--landing-gold))' }}
+      />
+      {/* Browser-like frame */}
+      <div
+        className="relative rounded-xl overflow-hidden shadow-2xl"
+        style={{
+          border: '1px solid rgba(59, 130, 246, 0.2)',
+          background: 'linear-gradient(180deg, rgba(10, 22, 40, 0.95), rgba(5, 10, 20, 0.98))',
+        }}
+      >
+        {/* Title bar */}
+        <div className="flex items-center gap-2 px-4 py-2.5" style={{ borderBottom: '1px solid rgba(30, 58, 95, 0.3)' }}>
+          <div className="flex gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-full" style={{ background: '#EF4444' }} />
+            <div className="w-2.5 h-2.5 rounded-full" style={{ background: '#F5A623' }} />
+            <div className="w-2.5 h-2.5 rounded-full" style={{ background: '#10B981' }} />
+          </div>
+          <div
+            className="flex-1 text-center text-[10px] font-mono"
+            style={{ color: 'var(--landing-muted)' }}
+          >
+            orgofclaws.com/dashboard
+          </div>
+        </div>
+
+        {/* Dashboard content */}
+        <div className="p-4 sm:p-6 grid grid-cols-3 gap-3 sm:gap-4">
+          {/* Left sidebar - agent list */}
+          <div className="col-span-1 space-y-2.5">
+            {[
+              { name: 'Marketing Lead', status: 'active', color: '#10B981' },
+              { name: 'Research Agent', status: 'active', color: '#10B981' },
+              { name: 'Email Engine', status: 'running', color: '#F5A623' },
+              { name: 'Analytics', status: 'idle', color: '#60A5FA' },
+            ].map((agent) => (
+              <div
+                key={agent.name}
+                className="flex items-center gap-2 p-2 rounded-lg text-[10px] sm:text-xs"
+                style={{ background: 'rgba(30, 58, 95, 0.25)', border: '1px solid rgba(30, 58, 95, 0.2)' }}
+              >
+                <div className="w-1.5 h-1.5 rounded-full shrink-0 animate-pulse" style={{ background: agent.color }} />
+                <span className="truncate" style={{ color: 'var(--landing-text)' }}>{agent.name}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Right area - stats + chart */}
+          <div className="col-span-2 space-y-3">
+            {/* Stat cards row */}
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: 'Tasks', value: '142', delta: '+12%' },
+                { label: 'Agents', value: '6', delta: 'Online' },
+                { label: 'Savings', value: '$4.2K', delta: '/month' },
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  className="p-2 rounded-lg text-center"
+                  style={{ background: 'rgba(30, 58, 95, 0.2)', border: '1px solid rgba(30, 58, 95, 0.15)' }}
+                >
+                  <div className="text-sm sm:text-lg font-bold" style={{ color: 'var(--landing-text)' }}>{s.value}</div>
+                  <div className="text-[9px] sm:text-[10px]" style={{ color: 'var(--landing-muted)' }}>{s.label}</div>
+                  <div className="text-[8px] sm:text-[9px] font-medium" style={{ color: '#10B981' }}>{s.delta}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Fake chart area */}
+            <div
+              className="rounded-lg p-3 h-24 sm:h-32 flex items-end gap-1"
+              style={{ background: 'rgba(30, 58, 95, 0.15)', border: '1px solid rgba(30, 58, 95, 0.12)' }}
+            >
+              {[40, 55, 35, 65, 50, 75, 60, 80, 70, 90, 85, 95].map((h, i) => (
+                <div
+                  key={i}
+                  className="flex-1 rounded-t transition-all"
+                  style={{
+                    height: `${h}%`,
+                    background: i >= 10
+                      ? 'linear-gradient(to top, var(--landing-gold), rgba(245, 166, 35, 0.4))'
+                      : 'linear-gradient(to top, var(--landing-accent), rgba(59, 130, 246, 0.3))',
+                    opacity: 0.7 + (i * 0.025),
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -383,12 +485,13 @@ export default function HomePage() {
       >
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/home" className="flex items-center gap-2.5 shrink-0">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'rgba(59, 130, 246, 0.15)' }}
-            >
-              <span className="font-bold text-sm" style={{ color: 'var(--landing-accent-light)' }}>OC</span>
-            </div>
+            <Image
+              src="/brand/openclaw-logo.png"
+              alt="OrgOfClaws"
+              width={32}
+              height={32}
+              className="w-8 h-8 rounded-lg"
+            />
             <span className="font-semibold tracking-tight" style={{ color: 'var(--landing-text)' }}>OrgOfClaws</span>
           </Link>
 
@@ -520,6 +623,41 @@ export default function HomePage() {
           >
             {t('hero.trustLine')}
           </p>
+
+          {/* Dashboard mockup illustration */}
+          <HeroDashboardMockup />
+        </div>
+      </section>
+
+      <SectionDivider />
+
+      {/* ========== AI Model Logos (trust bar) ========== */}
+      <section className="py-10 sm:py-14 px-4 sm:px-6">
+        <div className="max-w-[800px] mx-auto">
+          <p className="text-center text-xs mb-6 uppercase tracking-widest font-medium" style={{ color: 'var(--landing-muted)', opacity: 0.6 }}>
+            Powered by leading AI models
+          </p>
+          <div className="flex items-center justify-center gap-6 sm:gap-10 flex-wrap">
+            {[
+              { src: '/brand/claude-logo.png', name: 'Claude' },
+              { src: '/brand/codex-logo.png', name: 'Codex' },
+              { src: '/brand/hermes-logo.png', name: 'Hermes' },
+            ].map((logo) => (
+              <div key={logo.name} className="flex items-center gap-2 opacity-50 hover:opacity-80 transition-opacity">
+                <Image src={logo.src} alt={logo.name} width={28} height={28} className="w-7 h-7 rounded" />
+                <span className="text-xs font-medium hidden sm:inline" style={{ color: 'var(--landing-muted)' }}>{logo.name}</span>
+              </div>
+            ))}
+            {/* Text-only logos for Gemini, GLM */}
+            {['Gemini', 'GLM'].map((name) => (
+              <div key={name} className="flex items-center gap-2 opacity-50 hover:opacity-80 transition-opacity">
+                <div className="w-7 h-7 rounded flex items-center justify-center text-[9px] font-bold" style={{ background: 'rgba(59, 130, 246, 0.1)', color: 'var(--landing-accent-light)' }}>
+                  {name[0]}
+                </div>
+                <span className="text-xs font-medium hidden sm:inline" style={{ color: 'var(--landing-muted)' }}>{name}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -626,18 +764,42 @@ export default function HomePage() {
           >
             {t('steps.title')}
           </h2>
-          <div className="grid sm:grid-cols-3 gap-8 sm:gap-12">
+          <div className="relative grid sm:grid-cols-3 gap-8 sm:gap-12">
+            {/* Connecting lines between steps (desktop only) */}
+            <div className="hidden sm:block absolute top-7 left-[calc(16.67%+28px)] right-[calc(16.67%+28px)] h-px" style={{ background: 'linear-gradient(to right, rgba(245, 166, 35, 0.3), rgba(59, 130, 246, 0.3))' }} aria-hidden="true">
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full" style={{ background: 'rgba(245, 166, 35, 0.5)' }} />
+            </div>
             {(['1', '2', '3'] as const).map((step) => (
-              <div key={step} className="text-center group">
-                <div
-                  className="w-14 h-14 rounded-full font-bold text-xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-all duration-300"
-                  style={{
-                    background: 'rgba(245, 166, 35, 0.1)',
-                    color: 'var(--landing-gold)',
-                    border: '1px solid rgba(245, 166, 35, 0.2)',
-                  }}
-                >
-                  {step}
+              <div key={step} className="text-center group relative">
+                {/* Step icon with illustration */}
+                <div className="relative mx-auto mb-6 w-20 h-20">
+                  {/* Outer ring glow */}
+                  <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'radial-gradient(circle, rgba(245, 166, 35, 0.15), transparent 70%)' }} />
+                  <div
+                    className="relative w-full h-full rounded-full font-bold text-2xl flex items-center justify-center group-hover:scale-110 transition-all duration-300"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(245, 166, 35, 0.12), rgba(59, 130, 246, 0.08))',
+                      color: 'var(--landing-gold)',
+                      border: '1px solid rgba(245, 166, 35, 0.25)',
+                      boxShadow: '0 0 20px rgba(245, 166, 35, 0.08)',
+                    }}
+                  >
+                    {step === '1' && (
+                      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                      </svg>
+                    )}
+                    {step === '2' && (
+                      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-2.556a4.5 4.5 0 00-1.242-7.244l-4.5-4.5a4.5 4.5 0 00-6.364 6.364L5.2 8.8" />
+                      </svg>
+                    )}
+                    {step === '3' && (
+                      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.58-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                      </svg>
+                    )}
+                  </div>
                 </div>
                 <h3
                   className="font-semibold text-lg mb-2"
@@ -646,7 +808,7 @@ export default function HomePage() {
                   {t(`steps.step${step}Title`)}
                 </h3>
                 <p
-                  className="text-sm"
+                  className="text-sm leading-relaxed max-w-xs mx-auto"
                   style={{ color: 'var(--landing-muted)' }}
                 >
                   {t(`steps.step${step}Desc`)}
@@ -932,12 +1094,13 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <div
-                  className="w-6 h-6 rounded flex items-center justify-center"
-                  style={{ background: 'rgba(59, 130, 246, 0.15)' }}
-                >
-                  <span className="font-bold text-[10px]" style={{ color: 'var(--landing-accent-light)' }}>OC</span>
-                </div>
+                <Image
+                  src="/brand/openclaw-logo.png"
+                  alt="OrgOfClaws"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6 rounded"
+                />
                 <span className="font-semibold text-sm" style={{ color: 'var(--landing-text)' }}>OrgOfClaws</span>
               </div>
               <p className="text-xs" style={{ color: 'var(--landing-muted)' }}>

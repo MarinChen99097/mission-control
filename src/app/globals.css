@@ -105,6 +105,24 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Locale-specific font stacks for optimal rendering */
+  html[lang="zh"] body,
+  html[lang="zh-TW"] body {
+    font-family: var(--font-cjk-tc), var(--font-sans), "PingFang TC", "Microsoft JhengHei", sans-serif;
+  }
+  html[lang="ja"] body {
+    font-family: var(--font-cjk-jp), var(--font-sans), "Hiragino Sans", "Yu Gothic", sans-serif;
+  }
+  html[lang="th"] body {
+    font-family: var(--font-thai), var(--font-sans), "Sarabun", sans-serif;
+  }
+  html[lang="ar"] body {
+    font-family: var(--font-arabic), var(--font-sans), "Tahoma", sans-serif;
+  }
+  html[lang="vi"] body {
+    font-family: var(--font-sans), "Segoe UI", sans-serif;
+  }
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 5px;
